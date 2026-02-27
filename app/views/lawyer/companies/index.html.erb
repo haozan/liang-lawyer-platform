@@ -1,0 +1,317 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">律师工作台</h1>
+        <p class="text-secondary">管理企业客户和待办事项</p>
+      </div>
+      <%= link_to new_lawyer_company_path, class: "btn-primary" do %>
+        <%= lucide_icon "plus", class: "w-5 h-5" %>
+        <span>新建企业</span>
+      <% end %>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="card card-elevated">
+        <div class="card-body">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-secondary mb-1">今日新增</p>
+              <p class="font-heading text-3xl font-bold text-primary"><%= @stats[:today_new] %></p>
+            </div>
+            <%= lucide_icon "file-plus", class: "w-12 h-12 text-blue-500 opacity-20" %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card card-elevated">
+        <div class="card-body">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-secondary mb-1">待处理</p>
+              <p class="font-heading text-3xl font-bold text-orange-600"><%= @stats[:total_pending] %></p>
+            </div>
+            <%= lucide_icon "clock", class: "w-12 h-12 text-orange-500 opacity-20" %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card card-elevated">
+        <div class="card-body">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-secondary mb-1">本周已处理</p>
+              <p class="font-heading text-3xl font-bold text-green-600"><%= @stats[:this_week_reviewed] %></p>
+            </div>
+            <%= lucide_icon "check-circle", class: "w-12 h-12 text-green-500 opacity-20" %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card card-elevated">
+        <div class="card-body">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-secondary mb-1">逾期待办</p>
+              <p class="font-heading text-3xl font-bold text-red-600"><%= @stats[:overdue] %></p>
+            </div>
+            <%= lucide_icon "alert-triangle", class: "w-12 h-12 text-red-500 opacity-20" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Urgent Items Section -->
+    <% if @urgent_items.any? %>
+      <div class="card card-elevated border-l-4 border-red-500 mb-8">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-4">
+            <%= lucide_icon "alert-triangle", class: "w-6 h-6 text-red-600" %>
+            <h3 class="font-heading text-xl font-semibold text-primary">🔴 紧急事项</h3>
+            <span class="ml-auto badge badge-danger"><%= @urgent_items.count %> 项</span>
+          </div>
+          <div class="space-y-3">
+            <% @urgent_items.take(5).each do |item| %>
+              <%= link_to item[:link], class: "block group" do %>
+                <div class="flex items-start gap-3 p-3 bg-red-50 rounded-lg hover:shadow-md transition-shadow">
+                  <%= lucide_icon "alert-circle", class: "w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" %>
+                  <div class="flex-1">
+                    <p class="text-secondary group-hover:text-primary transition-colors">
+                      <span class="font-semibold text-primary"><%= item[:company].name %></span> · <%= item[:message] %>
+                    </p>
+                    <% if item[:overdue] %>
+                      <p class="text-xs text-red-600 mt-1">已逾期 <%= item[:overdue_days] %> 天</p>
+                    <% end %>
+                  </div>
+                  <%= lucide_icon "arrow-right", class: "w-5 h-5 text-muted group-hover:text-primary transition-colors flex-shrink-0" %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Pending Contracts Section -->
+    <% if @pending_contracts.any? %>
+      <div class="card card-elevated border-l-4 border-orange-500 mb-8">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-4">
+            <%= lucide_icon "file-text", class: "w-6 h-6 text-orange-600" %>
+            <h3 class="font-heading text-xl font-semibold text-primary">🟡 待审查合同</h3>
+            <span class="ml-auto badge badge-warning"><%= @pending_contracts.count %> 个</span>
+          </div>
+          <div class="space-y-3">
+            <% @pending_contracts.take(5).each do |item| %>
+              <%= link_to item[:link], class: "block group" do %>
+                <div class="flex items-start gap-3 p-3 bg-orange-50 rounded-lg hover:shadow-md transition-shadow">
+                  <%= lucide_icon "file", class: "w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" %>
+                  <div class="flex-1">
+                    <p class="text-secondary group-hover:text-primary transition-colors">
+                      <span class="font-semibold text-primary"><%= item[:company].name %></span> · <%= item[:message] %>
+                    </p>
+                    <p class="text-xs text-muted mt-1">
+                      <%= item[:created_ago] %>
+                      <% if item[:overdue] %>
+                        <span class="text-red-600 ml-2">已逾期 <%= item[:overdue_days] %> 天</span>
+                      <% end %>
+                    </p>
+                  </div>
+                  <%= lucide_icon "arrow-right", class: "w-5 h-5 text-muted group-hover:text-primary transition-colors flex-shrink-0" %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Pending Employees & Regulations Section -->
+    <% if @pending_employees.any? || @pending_regulations.any? %>
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <!-- Pending Employees -->
+        <% if @pending_employees.any? %>
+          <div class="card card-elevated border-l-4 border-blue-500">
+            <div class="card-body">
+              <div class="flex items-center gap-3 mb-4">
+                <%= lucide_icon "users", class: "w-6 h-6 text-blue-600" %>
+                <h3 class="font-heading text-lg font-semibold text-primary">🟢 待审查员工档案</h3>
+                <span class="ml-auto badge badge-info"><%= @pending_employees.count %></span>
+              </div>
+              <div class="space-y-2">
+                <% @pending_employees.take(3).each do |item| %>
+                  <%= link_to item[:link], class: "block group" do %>
+                    <div class="flex items-start gap-2 p-2 bg-blue-50 rounded hover:shadow transition-shadow">
+                      <div class="flex-1">
+                        <p class="text-sm text-secondary group-hover:text-primary transition-colors">
+                          <span class="font-semibold"><%= item[:company].name %></span> · <%= item[:message] %>
+                        </p>
+                        <p class="text-xs text-muted"><%= item[:created_ago] %></p>
+                      </div>
+                      <%= lucide_icon "arrow-right", class: "w-4 h-4 text-muted group-hover:text-primary transition-colors flex-shrink-0" %>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Pending Regulations -->
+        <% if @pending_regulations.any? %>
+          <div class="card card-elevated border-l-4 border-green-500">
+            <div class="card-body">
+              <div class="flex items-center gap-3 mb-4">
+                <%= lucide_icon "book-open", class: "w-6 h-6 text-green-600" %>
+                <h3 class="font-heading text-lg font-semibold text-primary">🟢 待审查规章制度</h3>
+                <span class="ml-auto badge badge-success"><%= @pending_regulations.count %></span>
+              </div>
+              <div class="space-y-2">
+                <% @pending_regulations.take(3).each do |item| %>
+                  <%= link_to item[:link], class: "block group" do %>
+                    <div class="flex items-start gap-2 p-2 bg-green-50 rounded hover:shadow transition-shadow">
+                      <div class="flex-1">
+                        <p class="text-sm text-secondary group-hover:text-primary transition-colors">
+                          <span class="font-semibold"><%= item[:company].name %></span> · <%= item[:message] %>
+                        </p>
+                        <p class="text-xs text-muted"><%= item[:created_ago] %></p>
+                      </div>
+                      <%= lucide_icon "arrow-right", class: "w-4 h-4 text-muted group-hover:text-primary transition-colors flex-shrink-0" %>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- No Pending Tasks Message -->
+    <% if @urgent_items.empty? && @pending_contracts.empty? && @pending_employees.empty? && @pending_regulations.empty? %>
+      <div class="card card-elevated border-l-4 border-green-500 mb-8">
+        <div class="card-body">
+          <div class="flex items-center gap-3">
+            <%= lucide_icon "check-circle", class: "w-6 h-6 text-green-600" %>
+            <h3 class="font-heading text-xl font-semibold text-primary">✅ 暂无待办事项</h3>
+          </div>
+          <p class="text-secondary mt-2 ml-9">所有事项已处理完毕，继续保持！</p>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Companies List with Badges -->
+    <div class="mb-4">
+      <h2 class="font-heading text-2xl font-bold text-primary mb-4">企业客户列表</h2>
+    </div>
+
+    <% if @companies.any? %>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @companies.each do |company| %>
+          <% company_todo = @company_todos.find { |ct| ct[:company].id == company.id } %>
+          <div class="card card-elevated hover:shadow-lg transition-shadow relative">
+            <!-- Badge -->
+            <% if company_todo %>
+              <div class="absolute -top-2 -right-2 z-10">
+                <% if company_todo[:urgent_count] > 0 %>
+                  <span class="inline-flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-full font-bold text-sm shadow-lg">
+                    <%= company_todo[:total_count] %>
+                  </span>
+                <% elsif company_todo[:contracts_count] > 0 %>
+                  <span class="inline-flex items-center justify-center w-10 h-10 bg-orange-500 text-white rounded-full font-bold text-sm shadow-lg">
+                    <%= company_todo[:total_count] %>
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center justify-center w-10 h-10 bg-blue-500 text-white rounded-full font-bold text-sm shadow-lg">
+                    <%= company_todo[:total_count] %>
+                  </span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <div class="card-body">
+              <h3 class="font-heading text-xl font-bold text-primary mb-4"><%= company.name %></h3>
+              
+              <!-- Todo Summary -->
+              <% if company_todo %>
+                <div class="mb-4 p-3 bg-surface-hover rounded-lg">
+                  <p class="text-sm font-semibold text-primary mb-2">📋 待办事项：</p>
+                  <div class="space-y-1 text-xs text-secondary">
+                    <% if company_todo[:urgent_count] > 0 %>
+                      <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                        <span>紧急事项 <%= company_todo[:urgent_count] %> 项</span>
+                      </div>
+                    <% end %>
+                    <% if company_todo[:contracts_count] > 0 %>
+                      <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                        <span>待审合同 <%= company_todo[:contracts_count] %> 个</span>
+                      </div>
+                    <% end %>
+                    <% if company_todo[:employees_count] > 0 %>
+                      <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span>待审员工 <%= company_todo[:employees_count] %> 个</span>
+                      </div>
+                    <% end %>
+                    <% if company_todo[:regulations_count] > 0 %>
+                      <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                        <span>待审制度 <%= company_todo[:regulations_count] %> 个</span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+
+              <div class="space-y-2 text-sm text-secondary mb-6">
+                <div class="flex items-center justify-between">
+                  <span>员工档案</span>
+                  <span class="font-semibold"><%= company.employees.count %> 个</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>合同档案</span>
+                  <span class="font-semibold"><%= company.contracts.count %> 个</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>规章制度</span>
+                  <span class="font-semibold"><%= company.regulations.count %> 个</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>创建时间</span>
+                  <span class="font-semibold"><%= company.created_at.strftime('%Y-%m-%d') %></span>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <%= link_to "进入", enter_lawyer_company_path(company), class: "btn-primary flex-1" %>
+                <%= link_to edit_lawyer_company_path(company), class: "btn-outline" do %>
+                  <%= lucide_icon "edit", class: "w-4 h-4" %>
+                <% end %>
+                <%= link_to lawyer_company_path(company), data: { turbo_method: :delete, turbo_confirm: "确定删除该企业吗？" }, class: "btn-danger" do %>
+                  <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="card card-elevated">
+        <div class="card-body text-center py-12">
+          <%= lucide_icon "building-2", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+          <h3 class="font-heading text-xl font-semibold text-secondary mb-2">暂无企业客户</h3>
+          <p class="text-muted mb-6">点击上方按钮创建第一个企业客户</p>
+          <%= link_to new_lawyer_company_path, class: "btn-primary" do %>
+            <%= lucide_icon "plus", class: "w-5 h-5" %>
+            <span>新建企业</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,112 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    <!-- Header with context indicator -->
+    <% if lawyer? && viewing_company %>
+      <div class="mb-6 card card-flat border-l-4 border-primary">
+        <div class="card-body py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <%= lucide_icon "building-2", class: "w-5 h-5 text-primary" %>
+            <span class="text-secondary">当前查看：<strong class="text-primary"><%= viewing_company.name %></strong></span>
+          </div>
+          <%= link_to "返回企业列表", lawyer_companies_path, class: "btn-outline btn-sm" %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">员工档案管理</h1>
+        <p class="text-secondary">管理企业员工信息与劳动合同</p>
+      </div>
+      <%= link_to new_employee_path, class: "btn-primary" do %>
+        <%= lucide_icon "plus", class: "w-5 h-5" %>
+        <span>新建员工档案</span>
+      <% end %>
+    </div>
+
+    <!-- Search Bar -->
+    <%= form_with url: employees_path, method: :get, class: "mb-6" do |f| %>
+      <div class="flex gap-3">
+        <%= f.text_field :q, value: params[:q], placeholder: "搜索员工姓名...", class: "form-input flex-1" %>
+        <%= f.submit "搜索", class: "btn-primary" %>
+        <% if params[:q].present? %>
+          <%= link_to "清除", employees_path, class: "btn-outline" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Employee List -->
+    <% if @employees.any? %>
+      <div class="card card-elevated">
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr class="table-header">
+                <th class="table-header-cell">姓名</th>
+                <th class="table-header-cell">岗位</th>
+                <th class="table-header-cell">入职日期</th>
+                <th class="table-header-cell">合同截止日期</th>
+                <th class="table-header-cell">状态</th>
+                <th class="table-header-cell text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @employees.each do |employee| %>
+                <tr class="table-row">
+                  <td class="table-cell font-semibold">
+                    <%= link_to employee.name, employee_path(employee), class: "text-primary hover:underline" %>
+                  </td>
+                  <td class="table-cell"><%= employee.position %></td>
+                  <td class="table-cell"><%= employee.hired_at&.strftime('%Y-%m-%d') %></td>
+                  <td class="table-cell">
+                    <%= employee.contract_end_at&.strftime('%Y-%m-%d') %>
+                    <% if employee.contract_expiring_soon? %>
+                      <span class="badge-warning ml-2">即将到期</span>
+                    <% elsif employee.contract_expired? %>
+                      <span class="badge-danger ml-2">已过期</span>
+                    <% end %>
+                  </td>
+                  <td class="table-cell">
+                    <% if employee.contract_expired? %>
+                      <span class="badge-danger">已过期</span>
+                    <% elsif employee.contract_expiring_soon? %>
+                      <span class="badge-warning">即将到期</span>
+                    <% else %>
+                      <span class="badge-success">正常</span>
+                    <% end %>
+                  </td>
+                  <td class="table-cell text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <%= link_to employee_path(employee), class: "text-info hover:text-info-dark" do %>
+                        <%= lucide_icon "eye", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= link_to edit_employee_path(employee), class: "text-secondary hover:text-primary" do %>
+                        <%= lucide_icon "edit", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= link_to employee_path(employee), data: { turbo_method: :delete, turbo_confirm: "确定删除该员工档案吗?" }, class: "text-danger hover:text-danger-dark" do %>
+                        <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% else %>
+      <div class="card card-elevated">
+        <div class="card-body text-center py-12">
+          <%= lucide_icon "users", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+          <h3 class="font-heading text-xl font-semibold text-secondary mb-2">暂无员工档案</h3>
+          <p class="text-muted mb-6">点击上方按钮创建第一个员工档案</p>
+          <%= link_to new_employee_path, class: "btn-primary" do %>
+            <%= lucide_icon "plus", class: "w-5 h-5" %>
+            <span>新建员工档案</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

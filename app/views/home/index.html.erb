@@ -1,0 +1,236 @@
+<div class="min-h-screen" data-controller="scroll-reveal" data-scroll-reveal-scroll-threshold-value="80">
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-center bg-gradient-to-br from-primary/5 to-secondary/5 overflow-hidden">
+    <div class="container-xl mx-auto px-6">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div class="space-y-8">
+          <h1 class="font-heading text-5xl md:text-6xl font-bold text-primary leading-tight">
+            梁家航律师<br />法务风险管理平台
+          </h1>
+          <p class="text-xl text-secondary leading-relaxed">
+            专注珠三角中小企业，提供员工档案、合同管理、规章制度的全方位法律风险防控服务
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <%= link_to "登录系统", login_path, class: "btn-primary btn-lg" %>
+            <%= link_to "了解更多", "#services", class: "btn-outline btn-lg" %>
+          </div>
+        </div>
+        <div class="relative">
+          <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&q=80" alt="法律服务" class="rounded-2xl shadow-2xl w-full">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="py-24 bg-surface">
+    <div class="container-xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="font-heading text-4xl font-bold text-primary mb-4">核心服务模块</h2>
+        <p class="text-xl text-secondary">全面覆盖企业法务风险管理三大核心领域</p>
+      </div>
+
+      <!-- Service 1: Employee Management -->
+      <div class="grid lg:grid-cols-2 gap-12 items-center mb-24" data-scroll-reveal-target="feature">
+        <div class="space-y-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
+            <%= lucide_icon "users", class: "w-8 h-8" %>
+          </div>
+          <h3 class="font-heading text-3xl font-bold text-primary">员工档案管理</h3>
+          <p class="text-lg text-secondary leading-relaxed">
+            完整记录员工劳动合同信息，自动预警合同到期提醒（30天），规避劳动法律风险，确保企业用工合规。
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-primary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">合同到期智能预警系统</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-primary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">社保缴纳记录追踪</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-primary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">试用期自动计算管理</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80" alt="员工管理" class="rounded-2xl shadow-xl w-full">
+        </div>
+      </div>
+
+      <!-- Service 2: Contract Management (Z-pattern reversed) -->
+      <div class="grid lg:grid-cols-2 gap-12 items-center mb-24" data-scroll-reveal-target="feature">
+        <div class="lg:order-2 space-y-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-secondary/10 text-secondary mb-4">
+            <%= lucide_icon "file-text", class: "w-8 h-8" %>
+          </div>
+          <h3 class="font-heading text-3xl font-bold text-primary">合同档案管理</h3>
+          <p class="text-lg text-secondary leading-relaxed">
+            集中管理各类商业合同，追踪合同状态与履行情况，提供到期提醒与违约预警，保障企业商业交易安全。
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-secondary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">合同全生命周期管理</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-secondary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">多状态追踪（执行/完成/违约/诉讼）</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-secondary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">PDF文件安全存储与下载</span>
+            </li>
+          </ul>
+        </div>
+        <div class="lg:order-1">
+          <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&q=80" alt="合同管理" class="rounded-2xl shadow-xl w-full">
+        </div>
+      </div>
+
+      <!-- Service 3: Regulation Management -->
+      <div class="grid lg:grid-cols-2 gap-12 items-center mb-24" data-scroll-reveal-target="feature">
+        <div class="space-y-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4">
+            <%= lucide_icon "book-open", class: "w-8 h-8" %>
+          </div>
+          <h3 class="font-heading text-3xl font-bold text-primary">规章制度管理</h3>
+          <p class="text-lg text-secondary leading-relaxed">
+            建立完善的企业规章制度库，确保制度合法有效，律师专业审核与持续更新，夯实企业管理的法律基础。
+          </p>
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-primary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">规章制度合规性审查</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-primary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">版本管理与追踪</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <%= lucide_icon "check-circle", class: "w-5 h-5 text-primary mt-1 flex-shrink-0" %>
+              <span class="text-secondary">员工签收电子化存证</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80" alt="规章制度" class="rounded-2xl shadow-xl w-full">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="py-24 bg-gradient-to-br from-primary/5 to-secondary/5">
+    <div class="container-xl mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="font-heading text-4xl font-bold text-primary mb-4">客户评价</h2>
+        <p class="text-xl text-secondary">珠三角中小企业的信赖之选</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="card card-elevated" data-scroll-reveal-target="testimonial">
+          <div class="card-body">
+            <div class="flex items-center gap-4 mb-4">
+              <img src="https://i.pravatar.cc/100?img=33" alt="李总" class="w-16 h-16 rounded-full">
+              <div>
+                <h4 class="font-heading font-bold text-primary">李总</h4>
+                <p class="text-sm text-muted">佛山金属制品有限公司</p>
+              </div>
+            </div>
+            <p class="text-secondary leading-relaxed">
+              "使用平台后，员工合同管理井井有条，再也不用担心劳动纠纷了。梁律师团队的专业意见非常有价值。"
+            </p>
+          </div>
+        </div>
+
+        <div class="card card-elevated" data-scroll-reveal-target="testimonial">
+          <div class="card-body">
+            <div class="flex items-center gap-4 mb-4">
+              <img src="https://i.pravatar.cc/100?img=47" alt="张经理" class="w-16 h-16 rounded-full">
+              <div>
+                <h4 class="font-heading font-bold text-primary">张经理</h4>
+                <p class="text-sm text-muted">东莞建材贸易公司</p>
+              </div>
+            </div>
+            <p class="text-secondary leading-relaxed">
+              "合同到期预警功能太实用了！帮我们避免了多次商业合同逾期的风险，系统操作也很简单。"
+            </p>
+          </div>
+        </div>
+
+        <div class="card card-elevated" data-scroll-reveal-target="testimonial">
+          <div class="card-body">
+            <div class="flex items-center gap-4 mb-4">
+              <img src="https://i.pravatar.cc/100?img=27" alt="王主管" class="w-16 h-16 rounded-full">
+              <div>
+                <h4 class="font-heading font-bold text-primary">王主管</h4>
+                <p class="text-sm text-muted">广州制造企业</p>
+              </div>
+            </div>
+            <p class="text-secondary leading-relaxed">
+              "规章制度的法律审核服务让我们的管理更加规范，律师及时反馈意见，帮我们完善了整套制度体系。"
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-24 bg-surface">
+    <div class="container-xl mx-auto px-6">
+      <div class="mx-auto text-center" data-scroll-reveal-target="cta" style="max-width: 800px;">
+        <h2 class="font-heading text-4xl font-bold text-primary mb-6">立即开启专业法务管理</h2>
+        <p class="text-xl text-secondary mb-8 leading-relaxed">
+          加入我们的平台，让专业律师团队为您的企业提供全方位法律风险防控服务
+        </p>
+        <%= link_to login_path, class: "btn-primary btn-lg" do %>
+          <%= lucide_icon "arrow-right", class: "w-5 h-5" %>
+          <span>登录系统</span>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-primary text-white py-12">
+    <div class="container-xl mx-auto px-6">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h3 class="font-heading text-xl font-bold mb-4">关于我们</h3>
+          <p class="text-white/80 leading-relaxed">专注珠三角中小企业法律风险管理服务</p>
+        </div>
+        <div>
+          <h3 class="font-heading text-xl font-bold mb-4">服务模块</h3>
+          <ul class="space-y-2 text-white/80">
+            <li><a href="#services" class="hover:text-white transition-colors">员工档案管理</a></li>
+            <li><a href="#services" class="hover:text-white transition-colors">合同档案管理</a></li>
+            <li><a href="#services" class="hover:text-white transition-colors">规章制度管理</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-xl font-bold mb-4">快速链接</h3>
+          <ul class="space-y-2 text-white/80">
+            <li><%= link_to "登录系统", login_path, class: "hover:text-white transition-colors" %></li>
+            <li><a href="#services" class="hover:text-white transition-colors">服务介绍</a></li>
+            <li><%= link_to "联系我们", login_path, class: "hover:text-white transition-colors" %></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-xl font-bold mb-4">联系方式</h3>
+          <ul class="space-y-2 text-white/80">
+            <li>电话：138-XXXX-XXXX</li>
+            <li>邮箱：contact@lianglawyer.com</li>
+            <li>地址：广东省佛山市</li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-white/20 pt-8 text-center text-white/60">
+        <p>&copy; 2024 梁家航律师法务风险管理平台. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</div>

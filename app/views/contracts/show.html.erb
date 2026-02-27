@@ -1,0 +1,252 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-lg mx-auto px-6">
+    <div class="mb-6">
+      <%= link_to contracts_path, class: "inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回列表</span>
+      <% end %>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="md:col-span-2 space-y-6">
+        <div class="card card-elevated">
+          <div class="card-header border-b border-border">
+            <h2 class="font-heading text-2xl font-bold text-primary">合同档案信息</h2>
+          </div>
+          <div class="card-body space-y-4">
+            <div>
+              <label class="form-label">合同名称</label>
+              <p class="text-primary font-semibold text-lg"><%= @contract.name %></p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div>
+                <label class="form-label">签订日期</label>
+                <p class="text-secondary"><%= @contract.signed_at&.strftime('%Y年%m月%d日') %></p>
+              </div>
+              <div>
+                <label class="form-label">到期日期</label>
+                <p class="text-secondary">
+                  <%= @contract.end_at&.strftime('%Y年%m月%d日') %>
+                  <% if @contract.expiring_soon? %>
+                    <span class="badge-warning ml-2">即将到期</span>
+                  <% elsif @contract.expired? %>
+                    <span class="badge-danger ml-2">已过期</span>
+                  <% end %>
+                </p>
+              </div>
+              <div>
+                <label class="form-label">合同状态</label>
+                <% case @contract.status %>
+                <% when 'active' %>
+                  <span class="badge-success"><%= @contract.status_display %></span>
+                <% when 'completed' %>
+                  <span class="badge-neutral"><%= @contract.status_display %></span>
+                <% when 'breach' %>
+                  <span class="badge-warning"><%= @contract.status_display %></span>
+                <% when 'litigation' %>
+                  <span class="badge-danger"><%= @contract.status_display %></span>
+                <% end %>
+              </div>
+            </div>
+            <div>
+              <label class="form-label">合同文件</label>
+              <% if @contract.file.attached? %>
+                <%= link_to rails_blob_path(@contract.file, disposition: "attachment"), class: "inline-flex items-center gap-2 px-4 py-2 bg-surface-elevated rounded hover:bg-border transition-colors" do %>
+                  <%= lucide_icon "file-text", class: "w-5 h-5 text-primary" %>
+                  <span class="text-primary"><%= @contract.file.filename %></span>
+                  <%= lucide_icon "download", class: "w-4 h-4 text-muted" %>
+                <% end %>
+              <% else %>
+                <p class="text-muted">未上传</p>
+              <% end %>
+            </div>
+          </div>
+          <div class="card-footer border-t border-border flex gap-3">
+            <%= link_to edit_contract_path(@contract), class: "btn-primary" do %>
+              <%= lucide_icon "edit", class: "w-4 h-4" %>
+              <span>编辑档案</span>
+            <% end %>
+            <%= link_to contract_path(@contract), data: { turbo_method: :delete, turbo_confirm: "确定删除该合同档案吗?" }, class: "btn-danger" do %>
+              <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+              <span>删除档案</span>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Reconciliation Module -->
+        <div class="card card-elevated">
+          <div class="card-header border-b border-border">
+            <h3 class="font-heading text-xl font-bold text-primary">对账模块</h3>
+          </div>
+          <div class="card-body space-y-6">
+            <!-- Monthly Reminder -->
+            <% unless Reconciliation.current_month_uploaded?(@contract) %>
+              <div class="alert-info">
+                <%= lucide_icon "calendar", class: "w-5 h-5" %>
+                <div>
+                  <h4 class="font-semibold">温馨提示</h4>
+                  <p class="text-sm">请及时上传本月对账单，以便律师审查可能存在的风险</p>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- Existing Reconciliations List -->
+            <% if @contract.reconciliations.ordered.any? %>
+              <div>
+                <h4 class="font-semibold text-primary mb-3">历史对账单</h4>
+                <div class="space-y-3">
+                  <% @contract.reconciliations.ordered.each do |reconciliation| %>
+                    <div class="border border-border rounded-lg p-4 bg-surface-elevated hover:border-secondary transition-colors">
+                      <div class="flex items-start justify-between mb-2">
+                        <div class="flex items-center gap-2">
+                          <%= lucide_icon "calendar-check", class: "w-5 h-5 text-primary" %>
+                          <span class="font-semibold text-primary"><%= reconciliation.period_display %></span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-muted">
+                          <span><%= reconciliation.uploaded_by %></span>
+                          <span>·</span>
+                          <span><%= reconciliation.uploaded_at.strftime('%m-%d %H:%M') %></span>
+                        </div>
+                      </div>
+                      
+                      <% if reconciliation.notes.present? %>
+                        <p class="text-secondary text-sm mb-2"><%= reconciliation.notes %></p>
+                      <% end %>
+                      
+                      <% if reconciliation.attachments.attached? %>
+                        <div class="flex flex-wrap gap-2 mb-3">
+                          <% reconciliation.attachments.each do |attachment| %>
+                            <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "inline-flex items-center gap-2 px-3 py-1.5 bg-surface rounded text-sm text-secondary hover:text-primary hover:bg-border transition-colors" do %>
+                              <% if attachment.content_type.start_with?('image/') %>
+                                <%= lucide_icon "image", class: "w-4 h-4" %>
+                              <% else %>
+                                <%= lucide_icon "file-text", class: "w-4 h-4" %>
+                              <% end %>
+                              <span><%= attachment.filename %></span>
+                              <%= lucide_icon "download", class: "w-3 h-3" %>
+                            <% end %>
+                          <% end %>
+                        </div>
+                      <% end %>
+                      
+                      <%= link_to contract_reconciliation_path(@contract, reconciliation), 
+                        data: { turbo_method: :delete, turbo_confirm: "确定删除这条对账记录吗？" },
+                        class: "text-sm text-danger hover:underline inline-flex items-center gap-1" do %>
+                        <%= lucide_icon "trash-2", class: "w-3 h-3" %>
+                        <span>删除</span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% else %>
+              <p class="text-muted text-center py-4">暂无对账记录</p>
+            <% end %>
+
+            <!-- Upload Form -->
+            <div class="border-t border-border pt-6">
+              <h4 class="font-semibold text-primary mb-4">上传对账单</h4>
+              <%= form_with model: [@contract, @contract.reconciliations.build], url: contract_reconciliations_path(@contract), class: "space-y-4" do |f| %>
+                <div>
+                  <%= f.label :period, "账期", class: "form-label" %>
+                  <%= f.month_field :period, value: Time.current.strftime('%Y-%m'), class: "form-input", required: true %>
+                  <p class="form-help">选择对账单所属月份</p>
+                </div>
+                
+                <div>
+                  <%= f.label :notes, "备注说明 (可选)", class: "form-label" %>
+                  <%= f.text_area :notes, rows: 3, placeholder: "添加对账说明或注意事项...", class: "form-textarea" %>
+                </div>
+                
+                <div>
+                  <%= f.label :attachments, "附件上传", class: "form-label" %>
+                  <%= f.file_field :attachments, multiple: true, accept: "image/png,image/jpeg,image/jpg,application/pdf", class: "form-input", required: true %>
+                  <p class="form-help">支持 PNG、JPEG、JPG、PDF 格式，单个文件不超过 10MB</p>
+                </div>
+                
+                <%= f.submit "提交对账单", class: "btn-primary" do %>
+                  <%= lucide_icon "upload", class: "w-4 h-4" %>
+                  <span>提交对账单</span>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comments (reuse same structure as employee) -->
+        <div class="card card-elevated">
+          <div class="card-header border-b border-border">
+            <h3 class="font-heading text-xl font-bold text-primary">评论记录</h3>
+          </div>
+          <div class="card-body">
+            <% if @comments.any? %>
+              <div class="space-y-4 mb-6">
+                <% @comments.each do |comment| %>
+                  <div class="border-l-4 border-secondary pl-4 py-2">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="font-semibold text-primary"><%= comment.author_name %></span>
+                      <span class="text-sm text-muted"><%= comment.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+                    </div>
+                    <p class="text-secondary whitespace-pre-wrap"><%= comment.content %></p>
+                    <% if comment.attachments.attached? %>
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        <% comment.attachments.each do |attachment| %>
+                          <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated rounded text-sm text-secondary hover:text-primary transition-colors" do %>
+                            <%= lucide_icon "paperclip", class: "w-4 h-4" %>
+                            <span><%= attachment.filename %></span>
+                          <% end %>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="text-muted text-center py-6">暂无评论记录</p>
+            <% end %>
+
+            <%= form_with model: [@contract, @comment], url: contract_comments_path(@contract), class: "space-y-4" do |f| %>
+              <%= f.text_area :content, rows: 4, placeholder: "添加评论或风险提示...", class: "form-textarea", required: true %>
+              <div>
+                <%= f.label :attachments, "附件上传 (可选)", class: "form-label" %>
+                <%= f.file_field :attachments, multiple: true, class: "form-input" %>
+                <p class="form-help">支持图片、PDF、Word、Excel格式，单个文件不超过20MB</p>
+              </div>
+              <%= f.submit "发布评论", class: "btn-primary" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="card card-elevated">
+          <div class="card-body">
+            <h3 class="font-heading text-lg font-bold text-primary mb-4">快捷操作</h3>
+            <div class="space-y-2">
+              <%= link_to edit_contract_path(@contract), class: "btn-outline w-full justify-start" do %>
+                <%= lucide_icon "edit", class: "w-4 h-4" %>
+                <span>编辑档案</span>
+              <% end %>
+              <% if @contract.file.attached? %>
+                <%= link_to rails_blob_path(@contract.file, disposition: "attachment"), class: "btn-outline w-full justify-start" do %>
+                  <%= lucide_icon "download", class: "w-4 h-4" %>
+                  <span>下载合同文件</span>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <% if @contract.expiring_soon? || @contract.expired? %>
+          <div class="alert-<%= @contract.expired? ? 'danger' : 'warning' %>">
+            <%= lucide_icon "alert-circle", class: "w-5 h-5" %>
+            <div>
+              <h4 class="font-semibold"><%= @contract.expired? ? '合同已过期' : '合同即将到期' %></h4>
+              <p class="text-sm">请及时处理合同续签事宜</p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

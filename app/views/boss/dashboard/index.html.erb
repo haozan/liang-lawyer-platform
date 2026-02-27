@@ -1,0 +1,149 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="mb-8 text-center">
+      <h1 class="font-heading text-4xl font-bold text-primary mb-2">企业主控制面板</h1>
+      <p class="text-secondary"><%= @company.name %> · 数据总览</p>
+    </div>
+    
+    <!-- Urgent Alerts (置顶显示) -->
+    <% if @urgent_alerts.any? %>
+      <div class="card card-elevated border-l-4 border-red-500 mb-8">
+        <div class="card-body">
+          <div class="flex items-center gap-3 mb-4">
+            <%= lucide_icon "alert-triangle", class: "w-6 h-6 text-red-600" %>
+            <h3 class="font-heading text-xl font-semibold text-primary">⚠️ 风险提醒</h3>
+            <span class="ml-auto badge badge-danger"><%= @urgent_alerts.count %> 条</span>
+          </div>
+          <div class="space-y-3">
+            <% @urgent_alerts.each do |alert| %>
+              <%= link_to alert[:link], class: "block group" do %>
+                <div class="flex items-start gap-3 p-3 <%= alert[:type] == 'danger' ? 'bg-red-50' : alert[:type] == 'warning' ? 'bg-orange-50' : 'bg-blue-50' %> rounded-lg hover:shadow-md transition-shadow">
+                  <%= lucide_icon "alert-circle", class: "w-5 h-5 #{alert[:type] == 'danger' ? 'text-red-600' : alert[:type] == 'warning' ? 'text-orange-600' : 'text-blue-600'} mt-0.5 flex-shrink-0" %>
+                  <p class="text-secondary flex-1 group-hover:text-primary transition-colors"><%= alert[:message] %></p>
+                  <%= lucide_icon "arrow-right", class: "w-5 h-5 text-muted group-hover:text-primary transition-colors flex-shrink-0" %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="card card-elevated border-l-4 border-green-500 mb-8">
+        <div class="card-body">
+          <div class="flex items-center gap-3">
+            <%= lucide_icon "check-circle", class: "w-6 h-6 text-green-600" %>
+            <h3 class="font-heading text-xl font-semibold text-primary">✅ 暂无风险提醒</h3>
+          </div>
+          <p class="text-secondary mt-2 ml-9">当前企业运营状态良好，无紧急事项需要处理</p>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Stats Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- 员工档案卡片 -->
+      <%= link_to employees_path, class: "block" do %>
+        <div class="card card-elevated hover:shadow-xl transition-shadow bg-gradient-to-br from-blue-50 to-white">
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+              <div class="p-3 bg-blue-100 rounded-lg">
+                <%= lucide_icon "users", class: "w-8 h-8 text-blue-600" %>
+              </div>
+              <span class="text-4xl font-bold text-blue-600"><%= @employees_count %></span>
+            </div>
+            <h3 class="font-heading text-xl font-semibold text-primary mb-3">员工档案</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between text-secondary">
+                <span>即将到期：</span>
+                <span class="font-semibold text-orange-600"><%= @employees_expiring_soon.count %> 人</span>
+              </div>
+              <div class="flex justify-between text-secondary">
+                <span>已过期：</span>
+                <span class="font-semibold text-red-600"><%= @employees_expired.count %> 人</span>
+              </div>
+              <div class="flex justify-between text-secondary">
+                <span>本月新增：</span>
+                <span class="font-semibold text-green-600"><%= @employees_new_this_month %> 人</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-surface flex items-center justify-between text-blue-600 font-semibold">
+              <span>查看全部</span>
+              <%= lucide_icon "arrow-right", class: "w-5 h-5" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <!-- 合同管理卡片 -->
+      <%= link_to contracts_path, class: "block" do %>
+        <div class="card card-elevated hover:shadow-xl transition-shadow bg-gradient-to-br from-green-50 to-white">
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+              <div class="p-3 bg-green-100 rounded-lg">
+                <%= lucide_icon "file-text", class: "w-8 h-8 text-green-600" %>
+              </div>
+              <span class="text-4xl font-bold text-green-600"><%= @contracts_count %></span>
+            </div>
+            <h3 class="font-heading text-xl font-semibold text-primary mb-3">合同管理</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between text-secondary">
+                <span>即将到期：</span>
+                <span class="font-semibold text-orange-600"><%= @contracts_expiring_soon.count %> 份</span>
+              </div>
+              <div class="flex justify-between text-secondary">
+                <span>待上传对账：</span>
+                <span class="font-semibold text-red-600"><%= @contracts_need_reconciliation %> 份</span>
+              </div>
+              <div class="flex justify-between text-secondary">
+                <span>诉讼/违约：</span>
+                <span class="font-semibold text-red-600"><%= @contracts_in_risk.count %> 份</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-surface flex items-center justify-between text-green-600 font-semibold">
+              <span>查看全部</span>
+              <%= lucide_icon "arrow-right", class: "w-5 h-5" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <!-- 规章制度卡片 -->
+      <%= link_to regulations_path, class: "block" do %>
+        <div class="card card-elevated hover:shadow-xl transition-shadow bg-gradient-to-br from-purple-50 to-white">
+          <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+              <div class="p-3 bg-purple-100 rounded-lg">
+                <%= lucide_icon "book-open", class: "w-8 h-8 text-purple-600" %>
+              </div>
+              <span class="text-4xl font-bold text-purple-600"><%= @regulations_count %></span>
+            </div>
+            <h3 class="font-heading text-xl font-semibold text-primary mb-3">规章制度</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between text-secondary">
+                <span>最近更新：</span>
+                <span class="font-semibold"><%= @regulations_latest ? time_ago_in_words(@regulations_latest.updated_at) + '前' : '暂无' %></span>
+              </div>
+              <div class="flex justify-between text-secondary">
+                <span>本月新增：</span>
+                <span class="font-semibold text-green-600"><%= @regulations_new_this_month %> 项</span>
+              </div>
+              <div class="flex justify-between text-secondary">
+                <span>&nbsp;</span>
+                <span>&nbsp;</span>
+              </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-surface flex items-center justify-between text-purple-600 font-semibold">
+              <span>查看全部</span>
+              <%= lucide_icon "arrow-right", class: "w-5 h-5" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+    </div>
+    
+  </div>
+</div>

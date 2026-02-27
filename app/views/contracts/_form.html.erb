@@ -1,0 +1,55 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-md mx-auto px-6">
+    <div class="mb-6">
+      <%= link_to contracts_path, class: "inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回列表</span>
+      <% end %>
+    </div>
+
+    <div class="card card-elevated">
+      <div class="card-header border-b border-border">
+        <h2 class="font-heading text-2xl font-bold text-primary"><%= @contract.persisted? ? '编辑合同档案' : '新建合同档案' %></h2>
+      </div>
+      <div class="card-body">
+        <%= form_with model: @contract, class: "space-y-6" do |f| %>
+          <div>
+            <%= f.label :name, "合同名称 *", class: "form-label" %>
+            <%= f.text_field :name, required: true, class: "form-input" %>
+          </div>
+          
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <%= f.label :signed_at, "签订日期 *", class: "form-label" %>
+              <%= f.date_field :signed_at, required: true, class: "form-input" %>
+            </div>
+            
+            <div>
+              <%= f.label :end_at, "到期日期 *", class: "form-label" %>
+              <%= f.date_field :end_at, required: true, class: "form-input" %>
+            </div>
+          </div>
+          
+          <div>
+            <%= f.label :status, "合同状态 *", class: "form-label" %>
+            <%= f.select :status, [['执行中', 'active'], ['已完成', 'completed'], ['已违约', 'breach'], ['诉讼中', 'litigation']], {}, class: "form-select" %>
+          </div>
+          
+          <div>
+            <%= f.label :file, "合同文件 (PDF) *", class: "form-label" %>
+            <%= f.file_field :file, accept: 'application/pdf', class: "form-input", required: !@contract.persisted? %>
+            <p class="form-help">请上传双方盖章的PDF扫描版</p>
+            <% if @contract.file.attached? %>
+              <p class="mt-2 text-sm text-success">已上传：<%= @contract.file.filename %></p>
+            <% end %>
+          </div>
+
+          <div class="flex gap-3">
+            <%= f.submit @contract.persisted? ? '更新档案' : '创建档案', class: "btn-primary" %>
+            <%= link_to "取消", @contract.persisted? ? contract_path(@contract) : contracts_path, class: "btn-outline" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

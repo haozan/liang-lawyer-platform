@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    <% if lawyer? && viewing_company %>
+      <div class="mb-6 card card-flat border-l-4 border-secondary">
+        <div class="card-body py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <%= lucide_icon "building-2", class: "w-5 h-5 text-secondary" %>
+            <span class="text-secondary">当前查看：<strong class="text-primary"><%= viewing_company.name %></strong></span>
+          </div>
+          <%= link_to "返回企业列表", lawyer_companies_path, class: "btn-outline btn-sm" %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">合同档案管理</h1>
+        <p class="text-secondary">管理企业合同全周期跟踪与证据链保存</p>
+      </div>
+      <%= link_to new_contract_path, class: "btn-primary" do %>
+        <%= lucide_icon "plus", class: "w-5 h-5" %>
+        <span>新建合同档案</span>
+      <% end %>
+    </div>
+
+    <%= form_with url: contracts_path, method: :get, class: "mb-6" do |f| %>
+      <div class="flex gap-3">
+        <%= f.text_field :q, value: params[:q], placeholder: "搜索合同名称...", class: "form-input flex-1" %>
+        <%= f.submit "搜索", class: "btn-primary" %>
+        <% if params[:q].present? %>
+          <%= link_to "清除", contracts_path, class: "btn-outline" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if @contracts.any? %>
+      <div class="card card-elevated">
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr class="table-header">
+                <th class="table-header-cell">合同名称</th>
+                <th class="table-header-cell">签订日期</th>
+                <th class="table-header-cell">到期日期</th>
+                <th class="table-header-cell">状态</th>
+                <th class="table-header-cell text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @contracts.each do |contract| %>
+                <tr class="table-row">
+                  <td class="table-cell font-semibold">
+                    <%= link_to contract.name, contract_path(contract), class: "text-primary hover:underline" %>
+                  </td>
+                  <td class="table-cell"><%= contract.signed_at&.strftime('%Y-%m-%d') %></td>
+                  <td class="table-cell">
+                    <%= contract.end_at&.strftime('%Y-%m-%d') %>
+                    <% if contract.expiring_soon? %>
+                      <span class="badge-warning ml-2">即将到期</span>
+                    <% elsif contract.expired? %>
+                      <span class="badge-danger ml-2">已过期</span>
+                    <% end %>
+                  </td>
+                  <td class="table-cell">
+                    <% case contract.status %>
+                    <% when 'active' %>
+                      <span class="badge-success"><%= contract.status_display %></span>
+                    <% when 'completed' %>
+                      <span class="badge-neutral"><%= contract.status_display %></span>
+                    <% when 'breach' %>
+                      <span class="badge-warning"><%= contract.status_display %></span>
+                    <% when 'litigation' %>
+                      <span class="badge-danger"><%= contract.status_display %></span>
+                    <% end %>
+                  </td>
+                  <td class="table-cell text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <%= link_to contract_path(contract), class: "text-info hover:text-info-dark" do %>
+                        <%= lucide_icon "eye", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= link_to edit_contract_path(contract), class: "text-secondary hover:text-primary" do %>
+                        <%= lucide_icon "edit", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= link_to contract_path(contract), data: { turbo_method: :delete, turbo_confirm: "确定删除该合同档案吗?" }, class: "text-danger hover:text-danger-dark" do %>
+                        <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% else %>
+      <div class="card card-elevated">
+        <div class="card-body text-center py-12">
+          <%= lucide_icon "file-text", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+          <h3 class="font-heading text-xl font-semibold text-secondary mb-2">暂无合同档案</h3>
+          <p class="text-muted mb-6">点击上方按钮创建第一个合同档案</p>
+          <%= link_to new_contract_path, class: "btn-primary" do %>
+            <%= lucide_icon "plus", class: "w-5 h-5" %>
+            <span>新建合同档案</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
