@@ -208,12 +208,12 @@ export default class extends Controller {
       return this.altFormatValue
     }
 
-    // User-friendly format
+    // User-friendly format - Chinese
     if (this.enableTimeValue && this.noCalendarValue) {
-      return "h:i K" // Time only: "3:30 PM"
+      return "H:i" // Time only: "15:30"
     } else if (this.enableTimeValue) {
-      return "F j, Y at h:i K" // "January 15, 2024 at 3:30 PM"
+      return "Y年m月d日 H:i" // "2024年1月15日 15:30"
     }
-    return "F j, Y" // "January 15, 2024"
+    return "Y年m月d日" // "2024年1月15日"
   }
 }

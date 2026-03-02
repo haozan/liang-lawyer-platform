@@ -30,7 +30,7 @@
                 </div>
                 <div>
                   <dt class="form-label">Member since</dt>
-                  <dd class="text-secondary"><%= @user.created_at.strftime("%B %d, %Y") %></dd>
+                  <dd class="text-secondary"><%= @user.created_at.strftime("%Y年%-m月%-d日") %></dd>
                 </div>
               </dl>
             </div>
@@ -53,14 +53,14 @@
                 <div>
                   <dt class="form-label">Started</dt>
                   <dd class="text-primary">
-                    <%= @session.created_at.strftime("%B %d, %Y at %l:%M %p") %>
+                    <%= @session.created_at.strftime("%Y年%-m月%-d日 %H:%M") %>
                     <span class="text-muted text-sm">(<%= time_ago_in_words(@session.created_at) %> ago)</span>
                   </dd>
                 </div>
                 <div>
                   <dt class="form-label">Last Activity</dt>
                   <dd class="text-primary">
-                    <%= @session.updated_at.strftime("%B %d, %Y at %l:%M %p") %>
+                    <%= @session.updated_at.strftime("%Y年%-m月%-d日 %H:%M") %>
                     <span class="text-muted text-sm">(<%= time_ago_in_words(@session.updated_at) %> ago)</span>
                   </dd>
                 </div>

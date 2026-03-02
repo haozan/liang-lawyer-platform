@@ -1,10 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe "Reconciliations", type: :request do
-  # Authentication required - either lawyer or contract user
+  # Authentication required - either lawyer or company user
   let(:company) { last_or_create(:company) }
   let(:contract) { create(:contract, company: company) }
-  let(:company_user) { create(:company_user, company: company, role: 'contract') }
+  let(:company_user) { create(:company_user, company: company, role: 'employee') }
   
   before do
     # Sign in as company contract user

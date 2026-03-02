@@ -5,7 +5,7 @@
       <div class="flex items-center gap-3">
         <%= link_to root_path, class: "flex items-center gap-2 text-primary hover:text-primary-dark transition-colors" do %>
           <%= lucide_icon "scale", class: "w-6 h-6" %>
-          <span class="font-heading text-xl font-bold">梁家航律师法务风险管理平台</span>
+          <span class="font-heading text-xl font-bold">梁家航律师合同风险管理平台</span>
         <% end %>
       </div>
 
@@ -30,8 +30,8 @@
 
           <!-- Navigation Links -->
           <% if company_user? %>
-            <% if current_company_user.role == 'boss' %>
-              <!-- Boss Dropdown Menu -->
+            <% if current_company_user.role == 'boss' || current_company_user.employee? %>
+              <!-- 企业用户（老板/员工）下拉菜单 -->
               <div class="relative" data-controller="dropdown">
                 <button type="button" data-action="click->dropdown#toggle" class="flex items-center gap-2 text-secondary hover:text-primary transition-colors">
                   <span>模块导航</span>
@@ -39,34 +39,35 @@
                 </button>
                 <div data-dropdown-target="menu" class="hidden absolute right-0 mt-2 w-56 bg-surface border border-border rounded-lg shadow-lg z-50">
                   <div class="py-2">
-                    <%= link_to boss_root_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                      <%= lucide_icon "layout-dashboard", class: "w-5 h-5" %>
-                      <span>控制面板</span>
+                    <% if current_company_user.role == 'boss' %>
+                      <%= link_to boss_root_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
+                        <%= lucide_icon "layout-dashboard", class: "w-5 h-5" %>
+                        <span>控制面板</span>
+                      <% end %>
+                    <% end %>
+                    <%= link_to todos_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
+                      <%= lucide_icon "check-circle", class: "w-5 h-5" %>
+                      <span>待办事项</span>
                     <% end %>
                     <div class="border-t border-border my-1"></div>
-                    <%= link_to employees_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                      <%= lucide_icon "users", class: "w-5 h-5" %>
-                      <span>员工档案</span>
-                    <% end %>
                     <%= link_to contracts_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
                       <%= lucide_icon "file-text", class: "w-5 h-5" %>
                       <span>合同管理</span>
                     <% end %>
-                    <%= link_to regulations_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                      <%= lucide_icon "book-open", class: "w-5 h-5" %>
-                      <span>规章制度</span>
+                    <%= link_to cases_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
+                      <%= lucide_icon "briefcase", class: "w-5 h-5" %>
+                      <span>案件管理</span>
+                    <% end %>
+                    <%= link_to major_issues_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
+                      <%= lucide_icon "message-circle", class: "w-5 h-5" %>
+                      <span>重大事项研讨</span>
                     <% end %>
                   </div>
                 </div>
               </div>
-            <% elsif current_company_user.role == 'hr' %>
-              <%= link_to "员工管理", employees_path, class: "text-secondary hover:text-primary transition-colors" %>
-              <%= link_to "规章制度", regulations_path, class: "text-secondary hover:text-primary transition-colors" %>
-            <% else %>
-              <%= link_to "合同管理", contracts_path, class: "text-secondary hover:text-primary transition-colors" %>
             <% end %>
           <% elsif lawyer? %>
-            <%= link_to "企业列表", lawyer_companies_path, class: "text-secondary hover:text-primary transition-colors" %>
+            <%= link_to "工作台", lawyer_companies_path, class: "text-secondary hover:text-primary transition-colors" %>
           <% end %>
 
           <!-- Logout Button -->

@@ -24,6 +24,7 @@ gem "lucide-rails", "~> 0.7.1"
 gem "aws-sdk-s3", "~> 1.206"
 gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2.2"
+gem "rubyzip", "~> 2.3"
 
 group :development do
   gem "error_highlight", ">= 0.4.0", platforms: [ :ruby ]

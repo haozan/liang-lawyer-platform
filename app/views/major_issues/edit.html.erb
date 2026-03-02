@@ -1,0 +1,179 @@
+<div class="container-main">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-secondary mb-2">
+      <%= link_to major_issues_path, class: "hover:text-primary" do %>
+        重大事项研讨
+      <% end %>
+      <%= lucide_icon "chevron-right", class: "w-4 h-4" %>
+      <%= link_to major_issue_path(@major_issue), class: "hover:text-primary" do %>
+        <%= truncate(@major_issue.title, length: 30) %>
+      <% end %>
+      <%= lucide_icon "chevron-right", class: "w-4 h-4" %>
+      <span>编辑</span>
+    </div>
+    <h1 class="font-heading text-3xl font-bold text-primary">编辑重大事项</h1>
+  </div>
+
+  <!-- Form Card -->
+  <div class="card card-elevated">
+    <div class="card-body">
+      <%= form_with model: @major_issue, local: true do |f| %>
+        <!-- Error Messages -->
+        <% if @major_issue.errors.any? %>
+          <div class="alert alert-danger mb-6">
+            <h3 class="font-semibold mb-2">提交失败，请检查以下问题：</h3>
+            <ul class="list-disc list-inside">
+              <% @major_issue.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <!-- Basic Information -->
+        <div class="mb-6">
+          <h3 class="font-heading text-lg font-semibold text-primary mb-4">基本信息</h3>
+          
+          <div class="form-group">
+            <%= f.label :title, "事项标题", class: "form-label required" %>
+            <%= f.text_field :title, class: "form-input", placeholder: "请输入重大事项标题", required: true %>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="form-group">
+              <%= f.label :issue_type, "事项类型", class: "form-label required" %>
+              <%= f.select :issue_type, 
+                  options_for_select([
+                    ['法律风险', '法律风险'],
+                    ['财务问题', '财务问题'],
+                    ['战略决策', '战略决策'],
+                    ['人事变动', '人事变动'],
+                    ['合规审查', '合规审查'],
+                    ['商业谈判', '商业谈判'],
+                    ['其他', '其他']
+                  ], @major_issue.issue_type),
+                  { prompt: '请选择事项类型' },
+                  class: "form-select", 
+                  required: true %>
+            </div>
+
+            <div class="form-group">
+              <%= f.label :priority, "优先级", class: "form-label required" %>
+              <%= f.select :priority, 
+                  options_for_select([
+                    ['低', 'low'],
+                    ['中', 'medium'],
+                    ['高', 'high'],
+                    ['紧急', 'urgent']
+                  ], @major_issue.priority),
+                  {},
+                  class: "form-select", 
+                  required: true %>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="form-group">
+              <%= f.label :status, "当前状态", class: "form-label required" %>
+              <%= f.select :status, 
+                  options_for_select([
+                    ['待讨论', 'pending'],
+                    ['讨论中', 'discussing'],
+                    ['已解决', 'resolved'],
+                    ['已归档', 'archived']
+                  ], @major_issue.status),
+                  {},
+                  class: "form-select", 
+                  required: true %>
+            </div>
+
+            <div class="form-group">
+              <%= f.label :mentioned_lawyer_id, "@提醒律师（可选）", class: "form-label" %>
+              <%= f.select :mentioned_lawyer_id, 
+                  options_from_collection_for_select(@lawyers, :id, :name, @major_issue.mentioned_lawyer_id),
+                  { prompt: '选择需要提醒的律师' },
+                  class: "form-select" %>
+              <p class="form-help">选择后该律师将收到通知</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Important Dates -->
+        <div class="mb-6">
+          <h3 class="font-heading text-lg font-semibold text-primary mb-4">重要日期</h3>
+          
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="form-group">
+              <%= f.label :resolved_at, "解决日期", class: "form-label" %>
+              <%= f.date_field :resolved_at, class: "form-input" %>
+            </div>
+
+            <div class="form-group">
+              <%= f.label :archived_at, "归档日期", class: "form-label" %>
+              <%= f.date_field :archived_at, class: "form-input" %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+          <h3 class="font-heading text-lg font-semibold text-primary mb-4">事项描述</h3>
+          
+          <div class="form-group">
+            <%= f.label :description, "详细描述", class: "form-label required" %>
+            <%= f.text_area :description, 
+                class: "form-textarea", 
+                rows: 8, 
+                placeholder: "请详细描述重大事项的背景、现状和需要讨论的问题...",
+                required: true %>
+          </div>
+        </div>
+
+        <!-- Existing Attachments -->
+        <% if @major_issue.attachments.attached? %>
+          <div class="mb-6">
+            <h3 class="font-heading text-lg font-semibold text-primary mb-4">现有材料</h3>
+            <div class="space-y-2">
+              <% @major_issue.attachments.each do |attachment| %>
+                <div class="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <%= lucide_icon "file", class: "w-5 h-5 text-secondary" %>
+                    <div>
+                      <p class="font-medium text-primary"><%= attachment.filename %></p>
+                      <p class="text-sm text-secondary"><%= number_to_human_size(attachment.byte_size) %></p>
+                    </div>
+                  </div>
+                  <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "btn btn-secondary btn-sm" do %>
+                    <%= lucide_icon "download", class: "w-4 h-4 mr-1" %>
+                    下载
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- New Attachments -->
+        <div class="mb-6">
+          <h3 class="font-heading text-lg font-semibold text-primary mb-4">添加新材料</h3>
+          
+          <div class="form-group">
+            <%= f.label :attachments, "上传文件", class: "form-label" %>
+            <%= f.file_field :attachments, 
+                multiple: true, 
+                class: "form-input",
+                accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" %>
+            <p class="form-help">支持PDF、Word、Excel、图片等格式，单个文件不超过20MB</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4">
+          <%= f.submit "保存修改", class: "btn btn-primary" %>
+          <%= link_to "取消", major_issue_path(@major_issue), class: "btn btn-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

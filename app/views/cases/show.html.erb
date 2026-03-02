@@ -1,0 +1,439 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6 max-w-6xl">
+    
+    <!-- Header with Actions -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <h1 class="font-heading text-4xl font-bold text-primary"><%= @case.name %></h1>
+          <% case @case.status %>
+          <% when 'pending' %>
+            <span class="badge badge-warning">待立案</span>
+          <% when 'investigating' %>
+            <span class="badge badge-info">调查中</span>
+          <% when 'in_court' %>
+            <span class="badge badge-danger">庭审中</span>
+          <% when 'judgement' %>
+            <span class="badge badge-primary">已判决</span>
+          <% when 'closed' %>
+            <span class="badge badge-success">已结案</span>
+          <% end %>
+          <% if @case.stage.present? %>
+            <span class="badge badge-secondary"><%= @case.stage_display %></span>
+          <% end %>
+        </div>
+        <p class="text-secondary">案号：<%= @case.case_number.present? ? @case.case_number : '待立案' %></p>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <%= link_to cases_path, class: "btn-outline" do %>
+          <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
+          <span>返回列表</span>
+        <% end %>
+        <% if current_lawyer %>
+          <%= link_to edit_case_path(@case), class: "btn-primary" do %>
+            <%= lucide_icon "edit", class: "w-5 h-5" %>
+            <span>编辑案件</span>
+          <% end %>
+        <% end %>
+        <% if current_company_user && @case.can_boss_download_archive?(current_company_user) %>
+          <%= link_to download_archive_case_path(@case), class: "btn-success" do %>
+            <%= lucide_icon "download", class: "w-5 h-5" %>
+            <span>下载归档档案</span>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Basic Information -->
+        <div class="card card-elevated">
+          <div class="card-body">
+            <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">基本信息</h3>
+            <div class="space-y-3">
+              <div class="flex items-start">
+                <span class="text-secondary w-32 flex-shrink-0">案件类型：</span>
+                <span class="text-primary font-semibold"><%= @case.case_type %></span>
+              </div>
+              <% if @case.stage.present? %>
+                <div class="flex items-start">
+                  <span class="text-secondary w-32 flex-shrink-0">案件阶段：</span>
+                  <span class="text-primary font-semibold"><%= @case.stage_display %></span>
+                </div>
+              <% end %>
+              <% if @case.court_name.present? %>
+                <div class="flex items-start">
+                  <span class="text-secondary w-32 flex-shrink-0">法院名称：</span>
+                  <span class="text-primary"><%= @case.court_name %></span>
+                </div>
+              <% end %>
+              <div class="flex items-start">
+                <span class="text-secondary w-32 flex-shrink-0">立案日期：</span>
+                <div class="flex-1">
+                  <% if @case.filing_at.present? %>
+                    <span class="text-primary"><%= @case.filing_at.strftime('%Y年%m月%d日') %></span>
+                  <% else %>
+                    <span class="text-muted">待立案</span>
+                  <% end %>
+                  <% if @case.filing_attachments.attached? %>
+                    <div class="mt-2 space-y-1">
+                      <p class="text-xs text-secondary">受理通知书：</p>
+                      <% @case.filing_attachments.each do |attachment| %>
+                        <div class="flex items-center gap-2">
+                          <%= lucide_icon "file-text", class: "w-4 h-4 text-primary" %>
+                          <%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), class: "text-sm text-primary hover:underline" %>
+                          <span class="text-xs text-muted">(<%= number_to_human_size(attachment.byte_size) %>)</span>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+              <% if @case.hearing_at.present? %>
+                <div class="flex items-start">
+                  <span class="text-secondary w-32 flex-shrink-0">开庭时间：</span>
+                  <div class="flex-1">
+                    <span class="text-primary font-semibold <%= @case.hearing_at < Time.current ? 'text-green-600' : 'text-orange-600' %>">
+                      <%= @case.hearing_at.strftime('%Y年%m月%d日 %H:%M') %>
+                      <% if @case.hearing_at > Time.current %>
+                        <span class="text-xs">(还有 <%= ((@case.hearing_at - Time.current) / 1.day).to_i %> 天)</span>
+                      <% end %>
+                    </span>
+                    <% if @case.hearing_attachments.attached? %>
+                      <div class="mt-2 space-y-1">
+                        <p class="text-xs text-secondary">传票：</p>
+                        <% @case.hearing_attachments.each do |attachment| %>
+                          <div class="flex items-center gap-2">
+                            <%= lucide_icon "file-text", class: "w-4 h-4 text-primary" %>
+                            <%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), class: "text-sm text-primary hover:underline" %>
+                            <span class="text-xs text-muted">(<%= number_to_human_size(attachment.byte_size) %>)</span>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.judgement_received_at.present? %>
+                <div class="flex items-start">
+                  <span class="text-secondary w-32 flex-shrink-0">领取判决：</span>
+                  <div class="flex-1">
+                    <span class="text-primary"><%= @case.judgement_received_at.strftime('%Y年%m月%d日') %></span>
+                    <% if @case.judgement_attachments.attached? %>
+                      <div class="mt-2 space-y-1">
+                        <p class="text-xs text-secondary">判决书：</p>
+                        <% @case.judgement_attachments.each do |attachment| %>
+                          <div class="flex items-center gap-2">
+                            <%= lucide_icon "file-text", class: "w-4 h-4 text-primary" %>
+                            <%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), class: "text-sm text-primary hover:underline" %>
+                            <span class="text-xs text-muted">(<%= number_to_human_size(attachment.byte_size) %>)</span>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.archived_at.present? %>
+                <div class="flex items-start">
+                  <span class="text-secondary w-32 flex-shrink-0">归档日期：</span>
+                  <div class="flex-1">
+                    <span class="text-primary"><%= @case.archived_at.strftime('%Y年%m月%d日') %></span>
+                    <% if @case.archived_attachments.attached? %>
+                      <div class="mt-2 space-y-1">
+                        <p class="text-xs text-secondary">归档文件：</p>
+                        <% @case.archived_attachments.each do |attachment| %>
+                          <div class="flex items-center gap-2">
+                            <%= lucide_icon "file-text", class: "w-4 h-4 text-primary" %>
+                            <%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), class: "text-sm text-primary hover:underline" %>
+                            <span class="text-xs text-muted">(<%= number_to_human_size(attachment.byte_size) %>)</span>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.closing_at.present? %>
+                <div class="flex items-start">
+                  <span class="text-secondary w-32 flex-shrink-0">结案日期：</span>
+                  <span class="text-primary"><%= @case.closing_at.strftime('%Y年%m月%d日') %></span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Case Summary -->
+        <% if @case.summary.present? %>
+          <div class="card card-elevated">
+            <div class="card-body">
+              <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">案情概要</h3>
+              <div class="text-secondary whitespace-pre-wrap"><%= @case.summary %></div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Attachments -->
+        <% if @case.attachments.attached? %>
+          <div class="card card-elevated">
+            <div class="card-body">
+              <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">案件材料</h3>
+              <div class="grid md:grid-cols-2 gap-3">
+                <% @case.attachments.each do |attachment| %>
+                  <div class="flex items-center gap-3 p-3 bg-surface-hover rounded-lg">
+                    <%= lucide_icon "file", class: "w-5 h-5 text-primary flex-shrink-0" %>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold text-primary truncate"><%= attachment.filename %></p>
+                      <p class="text-xs text-muted"><%= number_to_human_size(attachment.byte_size) %></p>
+                    </div>
+                    <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "text-primary hover:text-primary-hover" do %>
+                      <%= lucide_icon "download", class: "w-4 h-4" %>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Work Logs Section -->
+        <div class="card card-elevated">
+          <div class="card-body">
+            <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">工作大事记</h3>
+            
+            <% if @work_logs.any? %>
+              <div class="space-y-4 mb-6">
+                <% @work_logs.each do |work_log| %>
+                  <div class="p-4 bg-surface-hover rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-start justify-between mb-2">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                          <%= lucide_icon "calendar", class: "w-4 h-4 text-primary" %>
+                          <span class="text-sm text-muted"><%= work_log.date.strftime('%Y年%m月%d日') %></span>
+                          <span class="text-xs text-muted px-2 py-0.5 bg-surface rounded">
+                            <%= work_log.submitter_name %>
+                          </span>
+                        </div>
+                        <h4 class="font-semibold text-primary text-lg mb-2"><%= work_log.title %></h4>
+                      </div>
+                      <% if current_lawyer || (current_company_user && @case.can_company_user_edit_work_logs?(current_company_user)) %>
+                        <%= button_to case_work_log_path(@case, work_log), 
+                          method: :delete, 
+                          data: { turbo_confirm: '确定删除该工作记录吗？' },
+                          class: "text-red-600 hover:text-red-800" do %>
+                          <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                        <% end %>
+                      <% end %>
+                    </div>
+                    <div class="text-secondary whitespace-pre-wrap mb-3"><%= work_log.content %></div>
+                    
+                    <% if work_log.attachments.attached? %>
+                      <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <p class="text-xs text-secondary mb-2">附件：</p>
+                        <div class="flex flex-wrap gap-2">
+                          <% work_log.attachments.each do |attachment| %>
+                            <%= link_to rails_blob_path(attachment, disposition: "attachment"), 
+                              class: "flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded text-sm hover:bg-primary/20" do %>
+                              <%= lucide_icon "paperclip", class: "w-3 h-3" %>
+                              <span><%= attachment.filename %></span>
+                              <span class="text-xs text-muted">(<%= number_to_human_size(attachment.byte_size) %>)</span>
+                            <% end %>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="text-muted text-center py-8">暂无工作大事记</p>
+            <% end %>
+
+            <!-- Add Work Log Form (Lawyer and Company User) -->
+            <% if current_lawyer || (current_company_user && @case.can_company_user_edit_work_logs?(current_company_user)) %>
+              <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h4 class="font-semibold text-primary mb-4">添加工作记录</h4>
+                <%= form_with url: case_work_logs_path(@case), class: "space-y-4" do |f| %>
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                      <%= label_tag "work_log[date]", "日期", class: "form-label required" %>
+                      <%= date_field_tag "work_log[date]", nil, class: "form-input", required: true %>
+                    </div>
+                    <div class="form-control">
+                      <%= label_tag "work_log[title]", "标题", class: "form-label required" %>
+                      <%= text_field_tag "work_log[title]", nil, class: "form-input", placeholder: "如：提交诉讼状、证据交换等", required: true %>
+                    </div>
+                  </div>
+                  <div class="form-control">
+                    <%= label_tag "work_log[content]", "详细内容", class: "form-label required" %>
+                    <%= text_area_tag "work_log[content]", nil, rows: 4, class: "form-textarea", placeholder: "请详细描述该项工作的具体情况...", required: true %>
+                  </div>
+                  <div class="form-control">
+                    <%= label_tag "work_log[attachments][]", "附件", class: "form-label" %>
+                    <%= file_field_tag "work_log[attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+                    <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word、Excel文件</p>
+                  </div>
+                  <%= f.submit "添加记录", class: "btn-primary" %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="card card-elevated">
+          <div class="card-body">
+            <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">律师意见</h3>
+            
+            <% if @comments.any? %>
+              <div class="space-y-4 mb-6">
+                <% @comments.each do |comment| %>
+                  <div class="p-4 bg-surface-hover rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-primary"><%= comment.author_name %></span>
+                        <span class="badge badge-sm <%= comment.author_role == 'lawyer' ? 'badge-primary' : 'badge-info' %>">
+                          <%= comment.author_role == 'lawyer' ? '律师' : '助理' %>
+                        </span>
+                      </div>
+                      <span class="text-xs text-muted"><%= time_ago_in_words(comment.created_at) %>前</span>
+                    </div>
+                    <div class="text-secondary whitespace-pre-wrap"><%= comment.content %></div>
+                    <% if comment.attachments.attached? %>
+                      <div class="flex flex-wrap gap-2 mt-3">
+                        <% comment.attachments.each do |attachment| %>
+                          <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "text-xs text-primary hover:underline" do %>
+                            <%= lucide_icon "paperclip", class: "w-3 h-3 inline" %> <%= attachment.filename %>
+                          <% end %>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="text-muted text-center py-8">暂无律师意见</p>
+            <% end %>
+
+            <!-- Add Comment Form (Lawyer Only) -->
+            <% if current_lawyer %>
+              <%= form_with url: case_comments_path(@case), class: "space-y-4" do |f| %>
+                <div class="form-control">
+                  <%= f.label "comment[content]", "专业意见", class: "form-label" %>
+                  <%= text_area_tag "comment[content]", nil, rows: 4, class: "form-textarea", placeholder: "添加您的专业意见...", required: true %>
+                </div>
+                <div class="form-control">
+                  <%= label_tag "comment[attachments][]", "附件", class: "form-label" %>
+                  <%= file_field_tag "comment[attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+                </div>
+                <%= f.submit "提交意见", class: "btn-primary" %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        
+        <!-- Timeline Card -->
+        <div class="card card-elevated">
+          <div class="card-body">
+            <h3 class="font-heading text-lg font-semibold text-primary mb-4">案件时间线</h3>
+            <div class="space-y-4">
+              <% if @case.filing_at %>
+                <div class="flex items-start gap-3">
+                  <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <p class="text-sm font-semibold text-primary">立案</p>
+                    <p class="text-xs text-muted"><%= @case.filing_at.strftime('%Y-%m-%d') %></p>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.hearing_at %>
+                <div class="flex items-start gap-3">
+                  <div class="w-2 h-2 <%= @case.hearing_at < Time.current ? 'bg-green-500' : 'bg-orange-500' %> rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <p class="text-sm font-semibold text-primary">开庭</p>
+                    <p class="text-xs text-muted"><%= @case.hearing_at.strftime('%Y-%m-%d %H:%M') %></p>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.judgement_received_at %>
+                <div class="flex items-start gap-3">
+                  <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <p class="text-sm font-semibold text-primary">领取判决</p>
+                    <p class="text-xs text-muted"><%= @case.judgement_received_at.strftime('%Y-%m-%d') %></p>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.archived_at %>
+                <div class="flex items-start gap-3">
+                  <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <p class="text-sm font-semibold text-primary">归档</p>
+                    <p class="text-xs text-muted"><%= @case.archived_at.strftime('%Y-%m-%d') %></p>
+                  </div>
+                </div>
+              <% end %>
+              <% if @case.closing_at %>
+                <div class="flex items-start gap-3">
+                  <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div>
+                    <p class="text-sm font-semibold text-primary">结案</p>
+                    <p class="text-xs text-muted"><%= @case.closing_at.strftime('%Y-%m-%d') %></p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions Card -->
+        <% if current_lawyer %>
+          <div class="card card-elevated">
+            <div class="card-body">
+              <h3 class="font-heading text-lg font-semibold text-primary mb-4">操作</h3>
+              <div class="space-y-2">
+                <%= link_to edit_case_path(@case), class: "btn-outline w-full" do %>
+                  <%= lucide_icon "edit", class: "w-4 h-4" %>
+                  <span>编辑案件</span>
+                <% end %>
+                <%= link_to delete_directly_case_path(@case), 
+                  data: { turbo_method: :post, turbo_confirm: "确定删除该案件吗？" },
+                  class: "btn-danger w-full" do %>
+                  <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  <span>删除案件</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Info Card -->
+        <div class="card card-elevated">
+          <div class="card-body">
+            <h3 class="font-heading text-lg font-semibold text-primary mb-4">案件信息</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-secondary">创建时间</span>
+                <span class="text-primary"><%= @case.created_at.strftime('%Y-%m-%d') %></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-secondary">最后更新</span>
+                <span class="text-primary"><%= @case.updated_at.strftime('%Y-%m-%d') %></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

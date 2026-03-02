@@ -1,0 +1,216 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">企业账户管理</h1>
+        <p class="text-secondary">统一管理所有企业的账户信息</p>
+      </div>
+      <%= link_to lawyer_companies_path, class: "btn-outline" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回工作台</span>
+      <% end %>
+    </div>
+
+    <!-- Companies and Accounts -->
+    <div class="space-y-8">
+      <% @companies.each do |company| %>
+        <div class="card card-elevated">
+          <div class="card-body">
+            
+            <!-- Company Header -->
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-surface-elevated">
+              <div class="flex items-center gap-3">
+                <%= lucide_icon "building-2", class: "w-8 h-8 text-primary" %>
+                <div>
+                  <h2 class="font-heading text-2xl font-bold text-primary"><%= company.name %></h2>
+                  <p class="text-sm text-secondary">
+                    <%= company.company_users.count %> 个账户
+                  </p>
+                </div>
+                <%= link_to edit_lawyer_company_path(company), class: "btn-outline btn-sm ml-3", title: "编辑企业信息" do %>
+                  <%= lucide_icon "edit", class: "w-4 h-4" %>
+                  <span>编辑企业</span>
+                <% end %>
+              </div>
+              
+              <!-- Add Account Button -->
+              <div data-controller="dropdown" class="relative">
+                <button type="button" 
+                        data-dropdown-target="trigger"
+                        data-action="click->dropdown#toggle"
+                        class="btn-primary">
+                  <%= lucide_icon "user-plus", class: "w-4 h-4" %>
+                  <span>添加账户</span>
+                </button>
+                
+                <!-- Dropdown Form -->
+                <div data-dropdown-target="menu" 
+                     class="hidden absolute right-0 top-full mt-2 w-96 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
+                  <div class="p-6">
+                    <h3 class="font-heading text-lg font-semibold text-primary mb-4">创建新账户</h3>
+                    <%= form_with model: CompanyUser.new, url: lawyer_company_accounts_path, method: :post, class: "space-y-4" do |f| %>
+                      <%= hidden_field_tag :company_id, company.id %>
+                      
+                      <div class="form-group">
+                        <%= f.label :name, "姓名", class: "form-label required" %>
+                        <%= f.text_field :name, class: "form-input", required: true %>
+                      </div>
+                      
+                      <div class="form-group">
+                        <%= f.label :phone, "电话", class: "form-label required" %>
+                        <%= f.telephone_field :phone, class: "form-input", placeholder: "13800138000", required: true %>
+                        <p class="form-hint">11位中国手机号码</p>
+                      </div>
+                      
+                      <div class="form-group">
+                        <%= f.label :role, "角色", class: "form-label required" %>
+                        <%= f.select :role, 
+                            [['员工', 'employee'], ['老板', 'boss'], ['高管', 'executive']], 
+                            {}, 
+                            class: "form-input", 
+                            required: true %>
+                      </div>
+                      
+                      <div class="form-group">
+                        <%= f.label :password, "密码", class: "form-label required" %>
+                        <%= f.password_field :password, class: "form-input", required: true %>
+                        <p class="form-hint">至少6位字符</p>
+                      </div>
+                      
+                      <div class="form-group">
+                        <%= f.label :password_confirmation, "确认密码", class: "form-label required" %>
+                        <%= f.password_field :password_confirmation, class: "form-input", required: true %>
+                      </div>
+                      
+                      <div class="flex gap-2">
+                        <%= f.submit "创建账户", class: "btn-primary flex-1" %>
+                        <button type="button" 
+                                data-action="click->dropdown#toggle" 
+                                class="btn-outline">
+                          取消
+                        </button>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Accounts List -->
+            <% if company.company_users.any? %>
+              <div class="space-y-3">
+                <% company.company_users.ordered.each do |user| %>
+                  <div class="flex items-center justify-between p-4 bg-surface rounded-lg hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-4 flex-1">
+                      <div class="p-3 bg-primary/10 rounded-lg">
+                        <%= lucide_icon "user", class: "w-6 h-6 text-primary" %>
+                      </div>
+                      
+                      <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                          <h3 class="font-semibold text-primary text-lg"><%= user.name %></h3>
+                          <% if user.boss? %>
+                            <span class="badge badge-primary">老板</span>
+                          <% elsif user.executive? %>
+                            <span class="badge badge-info">高管</span>
+                          <% else %>
+                            <span class="badge badge-secondary">员工</span>
+                          <% end %>
+                        </div>
+                        <div class="flex items-center gap-4 text-sm text-secondary">
+                          <div class="flex items-center gap-1">
+                            <%= lucide_icon "phone", class: "w-4 h-4" %>
+                            <span><%= user.phone %></span>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <%= lucide_icon "calendar", class: "w-4 h-4" %>
+                            <span>创建于 <%= user.created_at.strftime('%Y-%m-%d') %></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+                      <!-- Reset Password Button -->
+                      <div data-controller="dropdown" class="relative">
+                        <button type="button"
+                                data-dropdown-target="trigger"
+                                data-action="click->dropdown#toggle"
+                                class="btn-outline btn-sm">
+                          <%= lucide_icon "key", class: "w-4 h-4" %>
+                          <span>重置密码</span>
+                        </button>
+                        
+                        <!-- Reset Password Dropdown -->
+                        <div data-dropdown-target="menu" 
+                             class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
+                          <div class="p-4">
+                            <h4 class="font-semibold text-primary mb-3">重置密码</h4>
+                            <%= form_with model: user, url: lawyer_company_account_path(user), method: :patch, class: "space-y-3" do |f| %>
+                              <div class="form-group">
+                                <%= f.label :password, "新密码", class: "form-label required" %>
+                                <%= f.password_field :password, class: "form-input", required: true %>
+                              </div>
+                              
+                              <div class="form-group">
+                                <%= f.label :password_confirmation, "确认密码", class: "form-label required" %>
+                                <%= f.password_field :password_confirmation, class: "form-input", required: true %>
+                              </div>
+                              
+                              <div class="flex gap-2">
+                                <%= f.submit "确认重置", class: "btn-primary flex-1 btn-sm" %>
+                                <button type="button" 
+                                        data-action="click->dropdown#toggle" 
+                                        class="btn-outline btn-sm">
+                                  取消
+                                </button>
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Delete Button -->
+                      <%= link_to lawyer_company_account_path(user), 
+                          data: { turbo_method: :delete, turbo_confirm: "确定删除账户 #{user.name} 吗？删除后无法恢复。" },
+                          class: "btn-outline btn-danger btn-sm" do %>
+                        <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                        <span>删除</span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="alert alert-secondary">
+                <div class="flex items-center gap-3">
+                  <%= lucide_icon "info", class: "w-5 h-5" %>
+                  <p>该企业暂无账户，点击上方"添加账户"按钮创建首个账户</p>
+                </div>
+              </div>
+            <% end %>
+
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <% if @companies.empty? %>
+      <div class="card card-elevated">
+        <div class="card-body text-center py-12">
+          <%= lucide_icon "building-2", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+          <h3 class="font-heading text-xl font-semibold text-primary mb-2">暂无企业</h3>
+          <p class="text-secondary mb-6">请先创建企业，然后再管理企业账户</p>
+          <%= link_to new_lawyer_company_path, class: "btn-primary" do %>
+            <%= lucide_icon "plus", class: "w-5 h-5" %>
+            <span>新建企业</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+  </div>
+</div>

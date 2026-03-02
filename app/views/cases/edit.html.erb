@@ -1,0 +1,211 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6 max-w-4xl">
+    
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="font-heading text-4xl font-bold text-primary mb-2">编辑案件</h1>
+      <p class="text-secondary">修改案件信息</p>
+    </div>
+
+    <div class="card card-elevated">
+      <div class="card-body">
+        <%= form_with model: @case, class: "space-y-6" do |f| %>
+          
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">基本信息</h3>
+            
+            <div class="form-control">
+              <%= f.label :name, "案件名称", class: "form-label required" %>
+              <%= f.text_field :name, class: "form-input", placeholder: "请输入案件名称", required: true %>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= f.label :case_number, "案号", class: "form-label" %>
+                <%= f.text_field :case_number, class: "form-input", placeholder: "如：(2024)粤01民初1234号" %>
+                <p class="text-xs text-muted mt-1">待立案状态可以留空，立案后填写</p>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :case_type, "案件类型", class: "form-label required" %>
+                <%= f.select :case_type, 
+                  options_for_select([
+                    ['民事案件', '民事案件'],
+                    ['刑事案件', '刑事案件'],
+                    ['行政案件', '行政案件'],
+                    ['经济案件', '经济案件'],
+                    ['劳动争议', '劳动争议'],
+                    ['知识产权', '知识产权'],
+                    ['其他', '其他']
+                  ], @case.case_type), 
+                  { prompt: '请选择案件类型' },
+                  class: "form-select", required: true %>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= f.label :court_name, "法院名称", class: "form-label" %>
+                <%= f.text_field :court_name, class: "form-input", placeholder: "如：广州市中级人民法院" %>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :status, "案件状态", class: "form-label required" %>
+                <%= f.select :status,
+                  options_for_select([
+                    ['待立案', 'pending'],
+                    ['调查中', 'investigating'],
+                    ['庭审中', 'in_court'],
+                    ['已判决', 'judgement'],
+                    ['已结案', 'closed']
+                  ], @case.status),
+                  {},
+                  class: "form-select", required: true %>
+              </div>
+              
+              <div class="form-control">
+                <%= f.label :stage, "案件阶段", class: "form-label" %>
+                <%= f.select :stage,
+                  options_for_select([
+                    ['仲裁', 'arbitration'],
+                    ['一审', 'first_trial'],
+                    ['二审', 'second_trial'],
+                    ['执行', 'execution'],
+                    ['再审', 'retrial'],
+                    ['恢复执行', 'resume_execution']
+                  ], @case.stage),
+                  { prompt: '请选择案件阶段' },
+                  class: "form-select" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Important Dates -->
+          <div class="space-y-4">
+            <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">重要日期</h3>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= f.label :filing_at, "立案日期", class: "form-label" %>
+                <%= f.date_field :filing_at, class: "form-input" %>
+                <p class="text-xs text-muted mt-1">待立案状态可以留空，立案后填写</p>
+                
+                <% if @case.filing_attachments.attached? %>
+                  <div class="mt-2">
+                    <p class="text-xs text-secondary mb-1">已上传的受理通知书：</p>
+                    <% @case.filing_attachments.each do |attachment| %>
+                      <span class="text-xs text-primary"><%= attachment.filename %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+                
+                <%= f.label :filing_attachments, "上传受理通知书", class: "form-label text-sm mt-2" %>
+                <%= f.file_field :filing_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+                <p class="text-xs text-muted mt-1">上传《受理通知书》扫描件</p>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :hearing_at, "开庭时间", class: "form-label" %>
+                <%= f.datetime_local_field :hearing_at, value: @case.hearing_at&.strftime('%Y-%m-%dT%H:%M'), class: "form-input" %>
+                
+                <% if @case.hearing_attachments.attached? %>
+                  <div class="mt-2">
+                    <p class="text-xs text-secondary mb-1">已上传的传票：</p>
+                    <% @case.hearing_attachments.each do |attachment| %>
+                      <span class="text-xs text-primary"><%= attachment.filename %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+                
+                <%= f.label :hearing_attachments, "上传传票", class: "form-label text-sm mt-2" %>
+                <%= f.file_field :hearing_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+                <p class="text-xs text-muted mt-1">上传《传票》扫描件</p>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= f.label :judgement_received_at, "领取判决书日期", class: "form-label" %>
+                <%= f.date_field :judgement_received_at, class: "form-input" %>
+                
+                <% if @case.judgement_attachments.attached? %>
+                  <div class="mt-2">
+                    <p class="text-xs text-secondary mb-1">已上传的判决书：</p>
+                    <% @case.judgement_attachments.each do |attachment| %>
+                      <span class="text-xs text-primary"><%= attachment.filename %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+                
+                <%= f.label :judgement_attachments, "上传判决书", class: "form-label text-sm mt-2" %>
+                <%= f.file_field :judgement_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+                <p class="text-xs text-muted mt-1">上传判决书扫描件</p>
+              </div>
+
+              <div class="form-control">
+                <%= f.label :archived_at, "归档日期", class: "form-label" %>
+                <%= f.date_field :archived_at, class: "form-input" %>
+                
+                <% if @case.archived_attachments.attached? %>
+                  <div class="mt-2">
+                    <p class="text-xs text-secondary mb-1">已上传的归档文件：</p>
+                    <% @case.archived_attachments.each do |attachment| %>
+                      <span class="text-xs text-primary"><%= attachment.filename %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+                
+                <%= f.label :archived_attachments, "上传归档文件", class: "form-label text-sm mt-2" %>
+                <%= f.file_field :archived_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+                <p class="text-xs text-muted mt-1">上传归档相关文件</p>
+              </div>
+            </div>
+
+            <div class="form-control">
+              <%= f.label :closing_at, "结案日期", class: "form-label" %>
+              <%= f.date_field :closing_at, class: "form-input" %>
+            </div>
+          </div>
+
+          <!-- Case Summary -->
+          <div class="form-control">
+            <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2 mb-4">案件概要</h3>
+            <%= f.label :summary, "案情描述", class: "form-label" %>
+            <%= f.text_area :summary, rows: 6, class: "form-textarea", placeholder: "请详细描述案件情况、涉及主体、争议焦点等信息..." %>
+          </div>
+
+          <!-- Attachments -->
+          <div class="form-control">
+            <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2 mb-4">案件材料</h3>
+            
+            <% if @case.attachments.attached? %>
+              <div class="mb-4">
+                <p class="text-sm text-secondary mb-2">已上传的文件：</p>
+                <div class="space-y-2">
+                  <% @case.attachments.each do |attachment| %>
+                    <div class="flex items-center justify-between p-2 bg-surface-hover rounded">
+                      <span class="text-sm text-primary"><%= attachment.filename %></span>
+                      <span class="text-xs text-muted"><%= number_to_human_size(attachment.byte_size) %></span>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+            
+            <%= f.label :attachments, "添加更多文件", class: "form-label" %>
+            <%= f.file_field :attachments, multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+            <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word、Excel文件，单个文件不超过20MB</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3 pt-4">
+            <%= f.submit "保存修改", class: "btn-primary" %>
+            <%= link_to "取消", @case, class: "btn-outline" %>
+          </div>
+
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

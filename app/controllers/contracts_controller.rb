@@ -57,6 +57,7 @@ class ContractsController < ApplicationController
     return if lawyer?
     return if current_company_user&.role == 'contract'
     return if current_company_user&.role == 'boss'
+    return if current_company_user&.employee?
     redirect_to root_path, alert: "无权访问"
   end
 

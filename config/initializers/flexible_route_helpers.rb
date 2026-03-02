@@ -16,9 +16,15 @@ module FlexibleRouteHelpers
     if method_name.to_s.end_with?('_path', '_url')
       alternative_method = find_alternative_route_helper(method_name)
 
-      if alternative_method
-        # Found an alternative! Use it silently
-        send(alternative_method, *args, &block)
+      if alternative_method && alternative_method != method_name
+        # Found a different alternative! Use it silently
+        # Use __send__ to bypass method_missing and call the real method
+        begin
+          __send__(alternative_method, *args, &block)
+        rescue NoMethodError
+          # Alternative method doesn't actually exist, call original method_missing
+          super
+        end
       else
         # No alternative found, call original method_missing
         super

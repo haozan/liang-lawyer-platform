@@ -35,6 +35,6 @@ class Lawyer::CompanyAccountsController < ApplicationController
   private
 
   def company_user_params
-    params.require(:company_user).permit(:name, :email, :password, :password_confirmation, :role)
+    params.require(:company_user).permit(:name, :phone, :password, :password_confirmation, :role)
   end
 end

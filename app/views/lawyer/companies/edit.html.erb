@@ -1,0 +1,196 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center gap-4 mb-8">
+      <%= link_to lawyer_companies_path, class: "btn-outline btn-sm" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回企业列表</span>
+      <% end %>
+      
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">编辑企业</h1>
+        <p class="text-secondary">修改企业基本信息</p>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="max-w-2xl">
+      <div class="card card-elevated">
+        <div class="card-body">
+          <%= form_with model: @company, url: lawyer_company_path(@company), method: :patch, class: "space-y-6" do |f| %>
+            
+            <!-- Company Name Field -->
+            <div class="form-group">
+              <%= f.label :name, "企业名称", class: "form-label required" %>
+              <%= f.text_field :name, 
+                  class: "form-input", 
+                  placeholder: "请输入企业名称",
+                  autofocus: true,
+                  required: true %>
+              <% if @company.errors[:name].any? %>
+                <p class="form-error"><%= @company.errors[:name].first %></p>
+              <% end %>
+              <p class="form-hint">企业的全称或简称</p>
+            </div>
+            
+            <!-- Service Expiry Date Field -->
+            <div class="form-group">
+              <%= f.label :service_expires_at, "服务到期日期", class: "form-label" %>
+              <%= f.date_field :service_expires_at, 
+                  class: "form-input",
+                  min: Date.today %>
+              <p class="form-hint">设置企业服务的到期日期，留空表示永久服务</p>
+            </div>
+            
+            <!-- Service Status Display -->
+            <% if @company.persisted? %>
+              <div class="alert <%= @company.active? ? 'alert-success' : 'alert-warning' %>">
+                <div class="flex items-start gap-3">
+                  <%= lucide_icon "info", class: "w-5 h-5 flex-shrink-0 mt-0.5" %>
+                  <div class="text-sm flex-1">
+                    <p class="font-semibold mb-2">服务状态：<span class="badge <%= @company.status_badge_class %> ml-2"><%= @company.status_text %></span></p>
+                    <% if @company.service_expires_at.present? %>
+                      <p class="text-secondary">
+                        到期日期：<%= @company.service_expires_at.strftime('%Y年%m月%d日') %>
+                        <% if @company.active? && !@company.service_expired? %>
+                          <span class="ml-2">（还剩 <%= @company.days_until_expiry %> 天）</span>
+                        <% end %>
+                      </p>
+                    <% else %>
+                      <p class="text-secondary">未设置到期日期（永久服务）</p>
+                    <% end %>
+                    <% if @company.suspended? && @company.suspended_reason.present? %>
+                      <p class="text-secondary mt-2">
+                        暂停原因：<%= @company.suspended_reason %>
+                      </p>
+                      <p class="text-xs text-muted mt-1">
+                        暂停时间：<%= @company.suspended_at&.strftime('%Y-%m-%d %H:%M') %>
+                      </p>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- Company Stats -->
+            <div class="alert alert-secondary">
+              <div class="flex items-start gap-3">
+                <%= lucide_icon "database", class: "w-5 h-5 flex-shrink-0 mt-0.5" %>
+                <div class="text-sm flex-1">
+                  <p class="font-semibold mb-2">企业数据统计：</p>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <span class="text-secondary">合同数量：</span>
+                      <span class="font-semibold"><%= @company.contracts.count %> 个</span>
+                    </div>
+                    <div>
+                      <span class="text-secondary">案件数量：</span>
+                      <span class="font-semibold"><%= @company.cases.not_deleted.count %> 个</span>
+                    </div>
+                    <div>
+                      <span class="text-secondary">重大事项：</span>
+                      <span class="font-semibold"><%= @company.major_issues.not_deleted.count %> 个</span>
+                    </div>
+                    <div>
+                      <span class="text-secondary">企业账号：</span>
+                      <span class="font-semibold"><%= @company.company_users.count %> 个</span>
+                    </div>
+                  </div>
+                </div>
+                <%= link_to lawyer_company_accounts_path, class: "btn-outline btn-sm" do %>
+                  <%= lucide_icon "users", class: "w-4 h-4" %>
+                  <span>管理账户</span>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center gap-3 pt-4 border-t border-surface-elevated">
+              <%= f.submit "保存修改", class: "btn-primary" %>
+              <%= link_to "取消", lawyer_companies_path, class: "btn-outline" %>
+              
+              <% if @company.persisted? %>
+                <div class="ml-auto flex items-center gap-2">
+                  <% if @company.active? %>
+                    <div data-controller="dropdown" class="relative">
+                      <button type="button"
+                              data-dropdown-target="trigger"
+                              data-action="click->dropdown#toggle"
+                              class="btn-outline btn-sm">
+                        <%= lucide_icon "pause-circle", class: "w-4 h-4" %>
+                        <span>暂停服务</span>
+                      </button>
+                      
+                      <div data-dropdown-target="menu"
+                           class="hidden absolute right-0 bottom-full mb-2 w-80 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
+                        <div class="p-4">
+                          <h4 class="font-semibold text-primary mb-3">暂停企业服务</h4>
+                          <%= form_with url: suspend_lawyer_company_path(@company), method: :post, class: "space-y-3" do |form| %>
+                            <div class="form-group">
+                              <%= form.label :reason, "暂停原因", class: "form-label required" %>
+                              <%= form.text_area :reason, class: "form-input", rows: 3, required: true, placeholder: "例如：服务期满未续约" %>
+                            </div>
+                            <div class="flex gap-2">
+                              <%= form.submit "确认暂停", class: "btn-danger flex-1 btn-sm", data: { turbo_confirm: "确定要暂停该企业的服务吗？暂停后企业账户将无法登录。" } %>
+                              <button type="button"
+                                      data-action="click->dropdown#toggle"
+                                      class="btn-outline btn-sm">
+                                取消
+                              </button>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% elsif @company.suspended? %>
+                    <div data-controller="dropdown" class="relative">
+                      <button type="button"
+                              data-dropdown-target="trigger"
+                              data-action="click->dropdown#toggle"
+                              class="btn-primary btn-sm">
+                        <%= lucide_icon "play-circle", class: "w-4 h-4" %>
+                        <span>恢复服务</span>
+                      </button>
+                      
+                      <div data-dropdown-target="menu"
+                           class="hidden absolute right-0 bottom-full mb-2 w-80 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
+                        <div class="p-4">
+                          <h4 class="font-semibold text-primary mb-3">恢复企业服务</h4>
+                          <%= form_with url: resume_lawyer_company_path(@company), method: :post, class: "space-y-3" do |form| %>
+                            <div class="form-group">
+                              <%= form.label :service_expires_at, "服务到期日期", class: "form-label" %>
+                              <%= form.date_field :service_expires_at, class: "form-input", min: Date.today, placeholder: "留空表示永久服务" %>
+                              <p class="form-hint">可选：设置新的服务到期日期</p>
+                            </div>
+                            <div class="flex gap-2">
+                              <%= form.submit "确认恢复", class: "btn-primary flex-1 btn-sm" %>
+                              <button type="button"
+                                      data-action="click->dropdown#toggle"
+                                      class="btn-outline btn-sm">
+                                取消
+                              </button>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                  
+                  <%= link_to "删除企业", lawyer_company_path(@company), 
+                      data: { turbo_method: :delete, turbo_confirm: "确定删除该企业吗？删除后将无法恢复。" }, 
+                      class: "btn-danger btn-sm" do %>
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                    <span>删除企业</span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

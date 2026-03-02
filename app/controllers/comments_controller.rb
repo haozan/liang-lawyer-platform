@@ -26,6 +26,10 @@ class CommentsController < ApplicationController
       Employee.find(params[:employee_id])
     elsif params[:contract_id]
       Contract.find(params[:contract_id])
+    elsif params[:case_id]
+      Case.find(params[:case_id])
+    elsif params[:major_issue_id]
+      MajorIssue.find(params[:major_issue_id])
     elsif params[:regulation_id]
       Regulation.find(params[:regulation_id])
     end

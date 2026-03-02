@@ -4,15 +4,22 @@
       <div class="card-body">
         <div class="text-center mb-8">
           <h1 class="text-4xl font-heading font-bold text-primary mb-2">
-            梁家航律师法务风险管理平台
+            梁家航律师合同风险管理平台
           </h1>
           <p class="text-secondary text-lg">企业法务管理系统登录</p>
         </div>
 
         <%= form_with url: login_path, method: :post, class: "space-y-6" do |f| %>
           <div>
-            <%= f.label :email, "邮箱", class: "form-label" %>
-            <%= f.email_field :email, required: true, autofocus: true, class: "form-input", placeholder: "请输入邮箱" %>
+            <%= f.label :email, "邮箱（律师）", class: "form-label" %>
+            <%= f.email_field :email, autofocus: true, class: "form-input", placeholder: "律师请输入邮箱" %>
+            <p class="form-hint">律师使用邮箱登录</p>
+          </div>
+          
+          <div>
+            <%= f.label :phone, "电话（企业用户）", class: "form-label" %>
+            <%= f.telephone_field :phone, class: "form-input", placeholder: "企业用户请输入手机号" %>
+            <p class="form-hint">企业用户使用手机号登录</p>
           </div>
 
           <div>

@@ -1,0 +1,132 @@
+<div class="container-main">
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="font-heading text-3xl font-bold text-primary mb-2">重大事项研讨</h1>
+      <p class="text-secondary">讨论和管理公司重大事项</p>
+    </div>
+    <%= link_to new_major_issue_path, class: "btn btn-primary" do %>
+      <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
+      新建重大事项
+    <% end %>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <div class="card card-elevated">
+      <div class="card-body text-center">
+        <p class="text-sm text-secondary mb-1">全部事项</p>
+        <p class="font-heading text-3xl font-bold text-primary"><%= @all_count %></p>
+      </div>
+    </div>
+    
+    <div class="card card-elevated">
+      <div class="card-body text-center">
+        <p class="text-sm text-secondary mb-1">待讨论</p>
+        <p class="font-heading text-3xl font-bold text-yellow-600"><%= @pending_count %></p>
+      </div>
+    </div>
+    
+    <div class="card card-elevated">
+      <div class="card-body text-center">
+        <p class="text-sm text-secondary mb-1">讨论中</p>
+        <p class="font-heading text-3xl font-bold text-blue-600"><%= @discussing_count %></p>
+      </div>
+    </div>
+    
+    <div class="card card-elevated">
+      <div class="card-body text-center">
+        <p class="text-sm text-secondary mb-1">已解决</p>
+        <p class="font-heading text-3xl font-bold text-green-600"><%= @resolved_count %></p>
+      </div>
+    </div>
+    
+    <div class="card card-elevated">
+      <div class="card-body text-center">
+        <p class="text-sm text-secondary mb-1">紧急事项</p>
+        <p class="font-heading text-3xl font-bold text-red-600"><%= @urgent_count %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Major Issues List -->
+  <% if @major_issues.any? %>
+    <div class="space-y-4">
+      <% @major_issues.each do |issue| %>
+        <%= link_to major_issue_path(issue), class: "block" do %>
+          <div class="card card-elevated hover:shadow-lg transition-shadow">
+            <div class="card-body">
+              <!-- Header Row -->
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <h3 class="font-heading text-xl font-semibold text-primary"><%= issue.title %></h3>
+                    
+                    <!-- Status Badge -->
+                    <% status_class = case issue.status
+                         when 'pending' then 'badge-warning'
+                         when 'discussing' then 'badge-info'
+                         when 'resolved' then 'badge-success'
+                         when 'archived' then 'badge-secondary'
+                         else 'badge-secondary'
+                         end %>
+                    <span class="badge <%= status_class %>"><%= issue.status_display %></span>
+                    
+                    <!-- Priority Badge -->
+                    <% priority_class = case issue.priority
+                         when 'low' then 'badge-secondary'
+                         when 'medium' then 'badge-info'
+                         when 'high' then 'badge-warning'
+                         when 'urgent' then 'badge-danger'
+                         else 'badge-secondary'
+                         end %>
+                    <span class="badge <%= priority_class %>">优先级: <%= issue.priority_display %></span>
+                  </div>
+                  
+                  <!-- Issue Type and Mentioned Lawyer -->
+                  <div class="flex items-center gap-4 text-sm text-secondary mb-2">
+                    <span><%= lucide_icon "tag", class: "w-4 h-4 inline mr-1" %><%= issue.issue_type %></span>
+                    <% if issue.mentioned_lawyer.present? %>
+                      <span><%= lucide_icon "at-sign", class: "w-4 h-4 inline mr-1" %>@<%= issue.mentioned_lawyer.name %></span>
+                    <% end %>
+                    <span><%= lucide_icon "clock", class: "w-4 h-4 inline mr-1" %><%= time_ago_in_words(issue.created_at) %>前创建</span>
+                  </div>
+                  
+                  <!-- Description Preview -->
+                  <% if issue.description.present? %>
+                    <p class="text-secondary line-clamp-2"><%= truncate(issue.description, length: 200) %></p>
+                  <% end %>
+                </div>
+                
+                <!-- Comment Count -->
+                <div class="text-center ml-4">
+                  <%= lucide_icon "message-square", class: "w-5 h-5 text-secondary mx-auto mb-1" %>
+                  <span class="text-sm text-secondary"><%= issue.comments.approved.count %></span>
+                </div>
+              </div>
+              
+              <!-- Attachments Indicator -->
+              <% if issue.attachments.attached? %>
+                <div class="flex items-center gap-2 text-sm text-secondary mt-2">
+                  <%= lucide_icon "paperclip", class: "w-4 h-4" %>
+                  <span><%= issue.attachments.count %> 个附件</span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-8">
+      <%= paginate @major_issues %>
+    </div>
+  <% else %>
+    <div class="card card-elevated text-center py-12">
+      <%= lucide_icon "message-square", class: "w-16 h-16 text-secondary mx-auto mb-4" %>
+      <p class="text-secondary text-lg">暂无重大事项</p>
+      <p class="text-secondary text-sm mt-2">点击上方按钮创建第一个重大事项</p>
+    </div>
+  <% end %>
+</div>

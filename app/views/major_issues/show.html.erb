@@ -1,0 +1,261 @@
+<div class="container-main">
+  <!-- Breadcrumb -->
+  <div class="flex items-center gap-2 text-sm text-secondary mb-4">
+    <%= link_to major_issues_path, class: "hover:text-primary" do %>
+      重大事项研讨
+    <% end %>
+    <%= lucide_icon "chevron-right", class: "w-4 h-4" %>
+    <span><%= truncate(@major_issue.title, length: 40) %></span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div class="flex-1">
+      <div class="flex items-center gap-3 mb-2">
+        <h1 class="font-heading text-3xl font-bold text-primary"><%= @major_issue.title %></h1>
+        
+        <!-- Status Badge -->
+        <% status_class = case @major_issue.status
+             when 'pending' then 'badge-warning'
+             when 'discussing' then 'badge-info'
+             when 'resolved' then 'badge-success'
+             when 'archived' then 'badge-secondary'
+             else 'badge-secondary'
+             end %>
+        <span class="badge <%= status_class %> badge-lg"><%= @major_issue.status_display %></span>
+        
+        <!-- Priority Badge -->
+        <% priority_class = case @major_issue.priority
+             when 'low' then 'badge-secondary'
+             when 'medium' then 'badge-info'
+             when 'high' then 'badge-warning'
+             when 'urgent' then 'badge-danger'
+             else 'badge-secondary'
+             end %>
+        <span class="badge <%= priority_class %> badge-lg">优先级: <%= @major_issue.priority_display %></span>
+      </div>
+      
+      <div class="flex items-center gap-4 text-sm text-secondary">
+        <span><%= lucide_icon "tag", class: "w-4 h-4 inline mr-1" %><%= @major_issue.issue_type %></span>
+        <% if @major_issue.mentioned_lawyer.present? %>
+          <span><%= lucide_icon "at-sign", class: "w-4 h-4 inline mr-1" %>@<%= @major_issue.mentioned_lawyer.name %></span>
+        <% end %>
+        <span><%= lucide_icon "calendar", class: "w-4 h-4 inline mr-1" %>创建于 <%= l(@major_issue.created_at, format: :long) %></span>
+      </div>
+    </div>
+    
+    <div class="flex gap-2">
+      <%= link_to edit_major_issue_path(@major_issue), class: "btn btn-secondary btn-sm" do %>
+        <%= lucide_icon "edit", class: "w-4 h-4 mr-1" %>
+        编辑
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid lg:grid-cols-3 gap-6">
+    <!-- Left Column: Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Description Section -->
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h2 class="card-title">事项描述</h2>
+        </div>
+        <div class="card-body">
+          <div class="prose prose-sm max-w-none">
+            <%= simple_format(@major_issue.description) %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachments Section -->
+      <% if @major_issue.attachments.attached? %>
+        <div class="card card-elevated">
+          <div class="card-header">
+            <h2 class="card-title">
+              <%= lucide_icon "paperclip", class: "w-5 h-5 mr-2" %>
+              相关材料 (<%= @major_issue.attachments.count %>)
+            </h2>
+          </div>
+          <div class="card-body">
+            <div class="space-y-2">
+              <% @major_issue.attachments.each do |attachment| %>
+                <div class="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <%= lucide_icon "file", class: "w-5 h-5 text-secondary" %>
+                    <div>
+                      <p class="font-medium text-primary"><%= attachment.filename %></p>
+                      <p class="text-sm text-secondary"><%= number_to_human_size(attachment.byte_size) %></p>
+                    </div>
+                  </div>
+                  <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "btn btn-secondary btn-sm" do %>
+                    <%= lucide_icon "download", class: "w-4 h-4 mr-1" %>
+                    下载
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Comments Section -->
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h2 class="card-title">
+            <%= lucide_icon "message-square", class: "w-5 h-5 mr-2" %>
+            讨论意见 (<%= @comments.count %>)
+          </h2>
+        </div>
+        <div class="card-body">
+          <% if @comments.any? %>
+            <div class="space-y-4 mb-6">
+              <% @comments.each do |comment| %>
+                <div class="border-l-4 border-primary pl-4 py-2">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="font-semibold text-primary"><%= comment.author_name %></span>
+                    <span class="badge badge-secondary badge-sm"><%= comment.author_role == 'lawyer' ? '律师' : '助理' %></span>
+                    <span class="text-sm text-secondary"><%= time_ago_in_words(comment.created_at) %>前</span>
+                  </div>
+                  <div class="prose prose-sm">
+                    <%= simple_format(comment.content) %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-secondary text-center py-4">暂无讨论意见</p>
+          <% end %>
+
+          <!-- Comment Form -->
+          <% if current_lawyer %>
+            <div class="border-t pt-4">
+              <h3 class="font-semibold text-primary mb-3">发表意见</h3>
+              <%= form_with url: major_issue_comments_path(@major_issue), method: :post, local: true do |f| %>
+                <div class="form-group">
+                  <%= label_tag "comment[content]", "意见内容", class: "form-label" %>
+                  <%= text_area_tag "comment[content]", nil,
+                      class: "form-textarea", 
+                      rows: 4, 
+                      placeholder: "请输入您的意见和建议...",
+                      required: true %>
+                </div>
+
+                <div class="flex justify-end">
+                  <%= f.submit "提交意见", class: "btn btn-primary" %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Sidebar -->
+    <div class="space-y-6">
+      <!-- Timeline Card -->
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h3 class="card-title">
+            <%= lucide_icon "clock", class: "w-5 h-5 mr-2" %>
+            时间线
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="space-y-4">
+            <!-- Created -->
+            <div class="flex gap-3">
+              <div class="flex flex-col items-center">
+                <div class="w-3 h-3 rounded-full bg-primary"></div>
+                <div class="w-0.5 h-full bg-border"></div>
+              </div>
+              <div class="flex-1 pb-4">
+                <p class="font-semibold text-primary text-sm">创建</p>
+                <p class="text-xs text-secondary"><%= l(@major_issue.created_at, format: :long) %></p>
+              </div>
+            </div>
+
+            <!-- Resolved -->
+            <% if @major_issue.resolved_at.present? %>
+              <div class="flex gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                  <div class="w-0.5 h-full bg-border"></div>
+                </div>
+                <div class="flex-1 pb-4">
+                  <p class="font-semibold text-primary text-sm">解决</p>
+                  <p class="text-xs text-secondary"><%= l(@major_issue.resolved_at, format: :long) %></p>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- Archived -->
+            <% if @major_issue.archived_at.present? %>
+              <div class="flex gap-3">
+                <div class="flex flex-col items-center">
+                  <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                </div>
+                <div class="flex-1">
+                  <p class="font-semibold text-primary text-sm">归档</p>
+                  <p class="text-xs text-secondary"><%= l(@major_issue.archived_at, format: :long) %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Card -->
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h3 class="card-title">操作</h3>
+        </div>
+        <div class="card-body space-y-2">
+          <%= link_to edit_major_issue_path(@major_issue), class: "btn btn-secondary w-full justify-start" do %>
+            <%= lucide_icon "edit", class: "w-4 h-4 mr-2" %>
+            编辑事项
+          <% end %>
+          
+          <% if current_user&.role == 'boss' %>
+            <%= button_to delete_directly_major_issue_path(@major_issue), 
+                method: :post,
+                data: { confirm: '确定要删除这个重大事项吗？' },
+                class: "btn btn-danger w-full justify-start" do %>
+              <%= lucide_icon "trash-2", class: "w-4 h-4 mr-2" %>
+              删除事项
+            <% end %>
+          <% elsif current_user&.role == 'employee' %>
+            <%= button_to request_deletion_major_issue_path(@major_issue), 
+                method: :post,
+                data: { confirm: '确定要申请删除这个重大事项吗？' },
+                class: "btn btn-warning w-full justify-start" do %>
+              <%= lucide_icon "alert-circle", class: "w-4 h-4 mr-2" %>
+              申请删除
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Info Card -->
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h3 class="card-title">信息</h3>
+        </div>
+        <div class="card-body space-y-3 text-sm">
+          <div>
+            <p class="text-secondary mb-1">创建时间</p>
+            <p class="text-primary"><%= l(@major_issue.created_at, format: :long) %></p>
+          </div>
+          <div>
+            <p class="text-secondary mb-1">最后更新</p>
+            <p class="text-primary"><%= l(@major_issue.updated_at, format: :long) %></p>
+          </div>
+          <div>
+            <p class="text-secondary mb-1">讨论次数</p>
+            <p class="text-primary"><%= @comments.count %> 条意见</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

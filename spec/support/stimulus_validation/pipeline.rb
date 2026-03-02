@@ -39,7 +39,8 @@ class StimulusValidationPipeline
         end
       end
 
-      if parent_file.include?('_')
+      # Only recurse if parent is itself a partial (basename starts with _)
+      if File.basename(parent_file).start_with?('_')
         controllers.concat(get_controllers_from_parents(parent_file))
       end
     end

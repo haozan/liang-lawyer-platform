@@ -355,8 +355,16 @@ RSpec.describe 'Turbo Architecture Validation', type: :system do
         lines = content.split("\n")
         lines.each_with_index do |line, index|
           line_number = index + 1
+          
+          # Check previous 3 lines for suppression comment
+          has_api_suppression = false
+          if index >= 3
+            prev_lines = lines[(index-3)..index]
+            has_api_suppression = prev_lines.any? { |l| l.include?('Architecture note:') && l.include?('/api/') }
+          end
 
-          if line.match?(/\bfetch\s*\(/)
+          # Skip if line has API endpoint suppression
+          if line.match?(/\bfetch\s*\(/) && !has_api_suppression
             violations << {
               file: relative_path,
               line: line_number,

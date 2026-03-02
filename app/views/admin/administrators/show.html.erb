@@ -73,7 +73,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Created</label>
           <div class="text-sm text-gray-600">
-            <%= @administrator.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+            <%= @administrator.created_at.strftime("%Y年%-m月%-d日 %H:%M") %>
             <span class="text-gray-400">(<%= time_ago_in_words(@administrator.created_at) %> ago)</span>
           </div>
         </div>
@@ -82,7 +82,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Last Updated</label>
           <div class="text-sm text-gray-600">
-            <%= @administrator.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+            <%= @administrator.updated_at.strftime("%Y年%-m月%-d日 %H:%M") %>
             <span class="text-gray-400">(<%= time_ago_in_words(@administrator.updated_at) %> ago)</span>
           </div>
         </div>

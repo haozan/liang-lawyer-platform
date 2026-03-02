@@ -1,0 +1,63 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center gap-4 mb-8">
+      <%= link_to lawyer_companies_path, class: "btn-outline btn-sm" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回企业列表</span>
+      <% end %>
+      
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">新建企业</h1>
+        <p class="text-secondary">创建新的企业客户</p>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="max-w-2xl">
+      <div class="card card-elevated">
+        <div class="card-body">
+          <%= form_with model: @company, url: lawyer_companies_path, class: "space-y-6" do |f| %>
+            
+            <!-- Company Name Field -->
+            <div class="form-group">
+              <%= f.label :name, "企业名称", class: "form-label required" %>
+              <%= f.text_field :name, 
+                  class: "form-input", 
+                  placeholder: "请输入企业名称",
+                  autofocus: true,
+                  required: true %>
+              <% if @company.errors[:name].any? %>
+                <p class="form-error"><%= @company.errors[:name].first %></p>
+              <% end %>
+              <p class="form-hint">企业的全称或简称</p>
+            </div>
+
+            <!-- Info Box -->
+            <div class="alert alert-info">
+              <div class="flex items-start gap-3">
+                <%= lucide_icon "info", class: "w-5 h-5 flex-shrink-0 mt-0.5" %>
+                <div class="text-sm">
+                  <p class="font-semibold mb-1">系统将自动创建：</p>
+                  <ul class="list-disc list-inside space-y-1 text-secondary">
+                    <li>人事账号：hr@企业名称.com（用于员工管理）</li>
+                    <li>合同账号：contract@企业名称.com（用于合同管理）</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center gap-3 pt-4">
+              <%= f.submit "创建企业", class: "btn-primary" %>
+              <%= link_to "取消", lawyer_companies_path, class: "btn-outline" %>
+            </div>
+
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

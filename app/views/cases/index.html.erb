@@ -1,0 +1,141 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">案件管理</h1>
+        <p class="text-secondary">管理和跟踪所有案件进展</p>
+      </div>
+      <% if current_lawyer %>
+        <%= link_to new_case_path, class: "btn-primary" do %>
+          <%= lucide_icon "plus", class: "w-5 h-5" %>
+          <span>新建案件</span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+      <div class="card card-elevated">
+        <div class="card-body">
+          <p class="text-sm text-secondary mb-1">全部案件</p>
+          <p class="font-heading text-2xl font-bold text-primary"><%= @cases.total_count %></p>
+        </div>
+      </div>
+      <div class="card card-elevated">
+        <div class="card-body">
+          <p class="text-sm text-secondary mb-1">待立案</p>
+          <p class="font-heading text-2xl font-bold text-yellow-600"><%= @company.cases.not_deleted.where(status: 'pending').count %></p>
+        </div>
+      </div>
+      <div class="card card-elevated">
+        <div class="card-body">
+          <p class="text-sm text-secondary mb-1">调查中</p>
+          <p class="font-heading text-2xl font-bold text-blue-600"><%= @company.cases.not_deleted.where(status: 'investigating').count %></p>
+        </div>
+      </div>
+      <div class="card card-elevated">
+        <div class="card-body">
+          <p class="text-sm text-secondary mb-1">庭审中</p>
+          <p class="font-heading text-2xl font-bold text-orange-600"><%= @company.cases.not_deleted.where(status: 'in_court').count %></p>
+        </div>
+      </div>
+      <div class="card card-elevated">
+        <div class="card-body">
+          <p class="text-sm text-secondary mb-1">已结案</p>
+          <p class="font-heading text-2xl font-bold text-green-600"><%= @company.cases.not_deleted.where(status: 'closed').count %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cases List -->
+    <% if @cases.any? %>
+      <div class="space-y-4">
+        <% @cases.each do |kase| %>
+          <div class="card card-elevated hover:shadow-lg transition-shadow">
+            <div class="card-body">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <h3 class="font-heading text-xl font-bold text-primary"><%= kase.name %></h3>
+                    <% case kase.status %>
+                    <% when 'pending' %>
+                      <span class="badge badge-warning">待立案</span>
+                    <% when 'investigating' %>
+                      <span class="badge badge-info">调查中</span>
+                    <% when 'in_court' %>
+                      <span class="badge badge-danger">庭审中</span>
+                    <% when 'judgement' %>
+                      <span class="badge badge-primary">已判决</span>
+                    <% when 'closed' %>
+                      <span class="badge badge-success">已结案</span>
+                    <% end %>
+                    <% if kase.stage.present? %>
+                      <span class="badge badge-secondary"><%= kase.stage_display %></span>
+                    <% end %>
+                  </div>
+                  <div class="flex items-center gap-4 text-sm text-secondary">
+                    <span><%= lucide_icon "hash", class: "w-4 h-4 inline" %> <%= kase.case_number.present? ? kase.case_number : '待立案' %></span>
+                    <span><%= lucide_icon "folder", class: "w-4 h-4 inline" %> <%= kase.case_type %></span>
+                    <% if kase.stage.present? %>
+                      <span><%= lucide_icon "layers", class: "w-4 h-4 inline" %> <%= kase.stage_display %></span>
+                    <% end %>
+                    <% if kase.court_name.present? %>
+                      <span><%= lucide_icon "landmark", class: "w-4 h-4 inline" %> <%= kase.court_name %></span>
+                    <% end %>
+                    <% if kase.filing_at.present? %>
+                      <span><%= lucide_icon "calendar", class: "w-4 h-4 inline" %> 立案：<%= kase.filing_at.strftime('%Y-%m-%d') %></span>
+                    <% end %>
+                  </div>
+                </div>
+                <%= link_to kase, class: "btn-primary" do %>
+                  <%= lucide_icon "eye", class: "w-5 h-5" %>
+                  <span>查看详情</span>
+                <% end %>
+              </div>
+              
+              <% if kase.summary.present? %>
+                <p class="text-secondary text-sm mb-4"><%= truncate(kase.summary, length: 200) %></p>
+              <% end %>
+
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-4 text-muted">
+                  <% if kase.hearing_at.present? %>
+                    <span class="<%= kase.hearing_at < Time.current ? 'text-green-600' : 'text-orange-600' %>">
+                      <%= lucide_icon "calendar-clock", class: "w-4 h-4 inline" %>
+                      开庭：<%= kase.hearing_at.strftime('%Y-%m-%d %H:%M') %>
+                    </span>
+                  <% end %>
+                  <% if kase.judgement_received_at.present? %>
+                    <span><%= lucide_icon "file-check", class: "w-4 h-4 inline" %> 领取判决：<%= kase.judgement_received_at.strftime('%Y-%m-%d') %></span>
+                  <% end %>
+                </div>
+                <span class="text-muted">创建于 <%= kase.created_at.strftime('%Y-%m-%d') %></span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Pagination -->
+      <div class="mt-8">
+        <%= paginate @cases %>
+      </div>
+    <% else %>
+      <div class="card card-elevated">
+        <div class="card-body text-center py-12">
+          <%= lucide_icon "briefcase", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+          <h3 class="font-heading text-xl font-semibold text-secondary mb-2">暂无案件</h3>
+          <p class="text-muted mb-6">点击上方按钮创建第一个案件</p>
+          <% if current_lawyer %>
+            <%= link_to new_case_path, class: "btn-primary" do %>
+              <%= lucide_icon "plus", class: "w-5 h-5" %>
+              <span>新建案件</span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

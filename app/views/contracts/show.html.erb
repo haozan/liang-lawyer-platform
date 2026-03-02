@@ -1,4 +1,19 @@
 <div class="min-h-screen bg-surface py-8">
+  <% 
+    # ==========================================
+    # PERFORMANCE OPTIMIZATION
+    # ==========================================
+    # Batch preload ALL attachments' blob data (avoid N+1 queries for file metadata)
+    all_attachment_ids = [
+      @contract.file.attached? ? @contract.file.id : nil,
+      @contract.reconciliations.flat_map { |r| r.attachments.attached? ? r.attachments.map(&:id) : [] },
+      @comments.flat_map { |c| c.attachments.attached? ? c.attachments.map(&:id) : [] }
+    ].flatten.compact
+    
+    if all_attachment_ids.any?
+      ActiveStorage::Attachment.includes(:blob).where(id: all_attachment_ids).load
+    end
+  %>
   <div class="container-lg mx-auto px-6">
     <div class="mb-6">
       <%= link_to contracts_path, class: "inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors" do %>
@@ -51,10 +66,10 @@
             <div>
               <label class="form-label">合同文件</label>
               <% if @contract.file.attached? %>
-                <%= link_to rails_blob_path(@contract.file, disposition: "attachment"), class: "inline-flex items-center gap-2 px-4 py-2 bg-surface-elevated rounded hover:bg-border transition-colors" do %>
-                  <%= lucide_icon "file-text", class: "w-5 h-5 text-primary" %>
-                  <span class="text-primary"><%= @contract.file.filename %></span>
-                  <%= lucide_icon "download", class: "w-4 h-4 text-muted" %>
+                <%= link_to rails_blob_path(@contract.file, disposition: "attachment"), class: "inline-flex items-center gap-2 text-primary hover:text-secondary transition-colors" do %>
+                  <%= lucide_icon "paperclip", class: "w-4 h-4" %>
+                  <span><%= @contract.file.filename %></span>
+                  <%= lucide_icon "download", class: "w-3 h-3" %>
                 <% end %>
               <% else %>
                 <p class="text-muted">未上传</p>
@@ -116,14 +131,9 @@
                       <% if reconciliation.attachments.attached? %>
                         <div class="flex flex-wrap gap-2 mb-3">
                           <% reconciliation.attachments.each do |attachment| %>
-                            <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "inline-flex items-center gap-2 px-3 py-1.5 bg-surface rounded text-sm text-secondary hover:text-primary hover:bg-border transition-colors" do %>
-                              <% if attachment.content_type.start_with?('image/') %>
-                                <%= lucide_icon "image", class: "w-4 h-4" %>
-                              <% else %>
-                                <%= lucide_icon "file-text", class: "w-4 h-4" %>
-                              <% end %>
+                            <%= link_to rails_blob_path(attachment, disposition: "attachment"), class: "inline-flex items-center gap-2 px-3 py-1 bg-surface-elevated rounded text-sm text-secondary hover:text-primary transition-colors" do %>
+                              <%= lucide_icon "paperclip", class: "w-4 h-4" %>
                               <span><%= attachment.filename %></span>
-                              <%= lucide_icon "download", class: "w-3 h-3" %>
                             <% end %>
                           <% end %>
                         </div>

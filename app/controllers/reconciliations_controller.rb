@@ -49,8 +49,7 @@ class ReconciliationsController < ApplicationController
   
   def require_contract_access_or_lawyer
     return if lawyer?
-    return if company_user? && current_company_user.role == 'contract'
-    return if company_user? && current_company_user.role == 'boss'
+    return if company_user?
     
     redirect_to root_path, alert: "没有权限访问该页面"
   end

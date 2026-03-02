@@ -6,32 +6,44 @@ class CompanyUser < ApplicationRecord
   
   # Validations
   validates :name, presence: true
-  validates :email, presence: true, uniqueness: { scope: :company_id }, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :phone, presence: true, uniqueness: { scope: :company_id }, format: { with: /\A1[3-9]\d{9}\z/, message: '必须是有效的中国手机号码' }
   validates :password, length: { minimum: 6 }, allow_nil: true
-  validates :role, presence: true, inclusion: { in: %w[hr contract boss] }
+  validates :role, presence: true, inclusion: { in: %w[employee boss executive] }
   
-  # Normalize email before saving
-  before_save :normalize_email
+  # Normalize phone before saving
+  before_save :normalize_phone
   
   # Scopes
   scope :ordered, -> { order(created_at: :desc) }
-  scope :hr_users, -> { where(role: 'hr') }
-  scope :contract_users, -> { where(role: 'contract') }
-  scope :boss_users, -> { where(role: 'boss') }
+  scope :employees, -> { where(role: 'employee') }
+  scope :bosses, -> { where(role: 'boss') }
+  scope :executives, -> { where(role: 'executive') }
   
   # Display name for comments
   def display_name
     role_text = case role
-    when 'hr' then '人事'
-    when 'contract' then '合同'
+    when 'employee' then '员工'
     when 'boss' then '企业主'
+    when 'executive' then '高管'
     end
     "#{company.name} · #{role_text}"
   end
   
+  def boss?
+    role == 'boss'
+  end
+  
+  def employee?
+    role == 'employee'
+  end
+  
+  def executive?
+    role == 'executive'
+  end
+  
   private
   
-  def normalize_email
-    self.email = email.downcase.strip if email.present?
+  def normalize_phone
+    self.phone = phone.to_s.strip if phone.present?
   end
 end

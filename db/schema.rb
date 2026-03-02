@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_02_27_094130) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_02_101958) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -69,6 +69,33 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_27_094130) do
     t.index ["role"], name: "index_administrators_on_role"
   end
 
+  create_table "cases", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "name"
+    t.string "case_number"
+    t.string "case_type"
+    t.string "court_name"
+    t.string "status", default: "pending"
+    t.date "filing_at"
+    t.datetime "hearing_at"
+    t.date "judgement_received_at"
+    t.date "archived_at"
+    t.date "closing_at"
+    t.text "summary"
+    t.integer "deleted_by_employee_id"
+    t.datetime "deletion_requested_at"
+    t.integer "confirmed_by_boss_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "stage"
+    t.index ["case_number"], name: "index_cases_on_case_number"
+    t.index ["company_id"], name: "index_cases_on_company_id"
+    t.index ["deleted_at"], name: "index_cases_on_deleted_at"
+    t.index ["stage"], name: "index_cases_on_stage"
+    t.index ["status"], name: "index_cases_on_status"
+  end
+
   create_table "comments", force: :cascade do |t|
     t.string "commentable_type", null: false
     t.bigint "commentable_id", null: false
@@ -77,23 +104,36 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_27_094130) do
     t.text "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "review_status", default: "approved"
+    t.integer "reviewed_by_id"
+    t.datetime "reviewed_at"
     t.index ["commentable_type", "commentable_id"], name: "index_comments_on_commentable"
+    t.index ["review_status"], name: "index_comments_on_review_status"
+    t.index ["reviewed_by_id"], name: "index_comments_on_reviewed_by_id"
   end
 
   create_table "companies", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status", default: "active", null: false
+    t.date "service_expires_at"
+    t.datetime "suspended_at"
+    t.text "suspended_reason"
+    t.integer "suspended_by_id"
+    t.index ["service_expires_at"], name: "index_companies_on_service_expires_at"
+    t.index ["status"], name: "index_companies_on_status"
   end
 
   create_table "company_users", force: :cascade do |t|
     t.bigint "company_id"
-    t.string "email"
     t.string "password_digest"
     t.string "name"
     t.string "role", default: "hr"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "phone"
+    t.index ["company_id", "phone"], name: "index_company_users_on_company_id_and_phone", unique: true
     t.index ["company_id"], name: "index_company_users_on_company_id"
   end
 
@@ -109,25 +149,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_27_094130) do
     t.boolean "reviewed_by_lawyer", default: false
     t.datetime "last_lawyer_comment_at"
     t.index ["company_id"], name: "index_contracts_on_company_id"
-  end
-
-  create_table "employees", force: :cascade do |t|
-    t.bigint "company_id"
-    t.string "name"
-    t.string "gender"
-    t.string "id_number"
-    t.string "position"
-    t.decimal "salary"
-    t.date "hired_at"
-    t.date "probation_end_at"
-    t.date "social_insurance_at"
-    t.date "contract_signed_at"
-    t.date "contract_end_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.boolean "reviewed_by_lawyer", default: false
-    t.datetime "last_lawyer_comment_at"
-    t.index ["company_id"], name: "index_employees_on_company_id"
   end
 
   create_table "friendly_id_slugs", force: :cascade do |t|
@@ -237,7 +258,31 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_27_094130) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "role", default: "lawyer"
     t.index ["email"], name: "index_lawyer_accounts_on_email", unique: true
+    t.index ["role"], name: "index_lawyer_accounts_on_role"
+  end
+
+  create_table "major_issues", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "title"
+    t.string "issue_type"
+    t.string "priority", default: "medium"
+    t.string "status", default: "pending"
+    t.text "description"
+    t.date "resolved_at"
+    t.integer "mentioned_lawyer_id"
+    t.integer "deleted_by_employee_id"
+    t.datetime "deletion_requested_at"
+    t.integer "confirmed_by_boss_id"
+    t.datetime "deleted_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_major_issues_on_company_id"
+    t.index ["deleted_at"], name: "index_major_issues_on_deleted_at"
+    t.index ["mentioned_lawyer_id"], name: "index_major_issues_on_mentioned_lawyer_id"
+    t.index ["priority"], name: "index_major_issues_on_priority"
+    t.index ["status"], name: "index_major_issues_on_status"
   end
 
   create_table "reconciliations", force: :cascade do |t|
@@ -251,18 +296,22 @@ ActiveRecord::Schema[7.2].define(version: 2026_02_27_094130) do
     t.index ["contract_id"], name: "index_reconciliations_on_contract_id"
   end
 
-  create_table "regulations", force: :cascade do |t|
-    t.bigint "company_id"
-    t.string "name"
-    t.string "file"
+  create_table "work_logs", force: :cascade do |t|
+    t.bigint "case_id"
+    t.date "date"
+    t.string "title"
+    t.text "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "reviewed_by_lawyer", default: false
-    t.datetime "last_lawyer_comment_at"
-    t.index ["company_id"], name: "index_regulations_on_company_id"
+    t.string "submitter_type"
+    t.bigint "submitter_id"
+    t.index ["case_id"], name: "index_work_logs_on_case_id"
+    t.index ["submitter_type", "submitter_id"], name: "index_work_logs_on_submitter"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "admin_oplogs", "administrators"
+  add_foreign_key "cases", "companies"
+  add_foreign_key "major_issues", "companies"
 end
