@@ -1,0 +1,131 @@
+<details <%= 'open' unless local_assigns[:collapsed] %> class="card card-elevated" id="risk-management">
+  <summary class="card-header border-b border-border cursor-pointer hover:bg-surface-elevated transition-colors select-none">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "alert-triangle", class: "w-5 h-5" %>
+      风险管控
+      <%= lucide_icon "chevron-down", class: "w-4 h-4 text-muted transition-transform [[open]>&]:rotate-180" %>
+    </h3>
+  </summary>
+  <div class="card-body space-y-4">
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.legal_review_status.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "search", class: "w-4 h-4" %>
+            审查状态
+          </label>
+          <% case contract.legal_review_status %>
+          <% when '待审查' %>
+            <span class="badge badge-warning"><%= contract.legal_review_status %></span>
+          <% when '已审查' %>
+            <span class="badge badge-success"><%= contract.legal_review_status %></span>
+          <% when '有风险' %>
+            <span class="badge badge-warning"><%= contract.legal_review_status %></span>
+          <% when '高风险' %>
+            <span class="badge badge-danger"><%= contract.legal_review_status %></span>
+          <% end %>
+        </div>
+      <% end %>
+      <% if contract.legal_risk_level.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "shield-alert", class: "w-4 h-4" %>
+            风险等级
+          </label>
+          <% if contract.has_high_risk? %>
+            <span class="badge badge-danger"><%= contract.legal_risk_level %>风险</span>
+          <% else %>
+            <span class="badge badge-neutral"><%= contract.legal_risk_level %>风险</span>
+          <% end %>
+        </div>
+      <% end %>
+      <% if contract.dispute_status.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "alert-circle", class: "w-4 h-4" %>
+            争议状态
+          </label>
+          <% if contract.in_dispute? %>
+            <span class="badge badge-danger"><%= contract.dispute_status %></span>
+          <% else %>
+            <span class="badge badge-success"><%= contract.dispute_status %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <% if contract.legal_risk_summary.present? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "file-warning", class: "w-4 h-4" %>
+          风险摘要
+        </label>
+        <div class="alert alert-warning">
+          <%= lucide_icon "alert-triangle", class: "w-5 h-5" %>
+          <p class="text-sm whitespace-pre-wrap"><%= contract.legal_risk_summary %></p>
+        </div>
+      </div>
+    <% end %>
+    <% if contract.lawyer_suggestions.present? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "lightbulb", class: "w-4 h-4" %>
+          律师建议
+        </label>
+        <p class="text-secondary whitespace-pre-wrap bg-surface-elevated rounded p-3"><%= contract.lawyer_suggestions %></p>
+      </div>
+    <% end %>
+    <% if contract.penalty_clause.present? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "gavel", class: "w-4 h-4" %>
+          违约金条款
+        </label>
+        <p class="text-secondary whitespace-pre-wrap bg-surface-elevated rounded p-3"><%= contract.penalty_clause %></p>
+        <% if contract.liquidated_damages.present? %>
+          <p class="text-sm text-muted mt-2">约定违约金：<span class="text-danger font-bold"><%= mask_amount(contract.liquidated_damages) %></span></p>
+        <% end %>
+      </div>
+    <% end %>
+    <div class="grid md:grid-cols-2 gap-4">
+      <% if contract.dispute_resolution.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "scale", class: "w-4 h-4" %>
+            争议解决方式
+          </label>
+          <p class="text-secondary"><%= contract.dispute_resolution %></p>
+        </div>
+      <% end %>
+      <% if contract.jurisdiction_court.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "landmark", class: "w-4 h-4" %>
+            管辖法院
+          </label>
+          <p class="text-secondary"><%= contract.jurisdiction_court %></p>
+        </div>
+      <% end %>
+      <% if contract.arbitration_institution.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "building-2", class: "w-4 h-4" %>
+            仲裁机构
+          </label>
+          <p class="text-secondary"><%= contract.arbitration_institution %></p>
+        </div>
+      <% end %>
+    </div>
+    <% if contract.has_case? %>
+      <div class="alert alert-danger">
+        <%= lucide_icon "scale", class: "w-5 h-5" %>
+        <div>
+          <h4 class="font-semibold">已关联案件</h4>
+          <p class="text-sm">案件ID：<%= link_to contract.related_case_id, case_path(contract.related_case_id), class: "text-primary hover:underline" %></p>
+          <% if contract.litigation_amount.present? %>
+            <p class="text-sm">诉讼标的额：<%= mask_amount(contract.litigation_amount) %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</details>

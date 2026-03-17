@@ -1,0 +1,145 @@
+<% if case_record.property_preservation_deadline.present? || current_lawyer %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "shield", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">财产保全</h4>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0" data-collapsible-target="content">
+      <% if case_record.property_preservation_deadline.present? %>
+        <div class="space-y-3 mb-4">
+          <% if case_record.property_preservation_applied_at.present? %>
+            <div class="flex items-start">
+              <span class="text-secondary w-32 flex-shrink-0">申请日期：</span>
+              <span class="text-primary"><%= case_record.property_preservation_applied_at.strftime('%Y年%m月%d日') %></span>
+            </div>
+          <% end %>
+          
+          <div class="flex items-start">
+            <span class="text-secondary w-32 flex-shrink-0">到期日期：</span>
+            <div class="flex-1">
+              <% days_left = case_record.property_preservation_days_left %>
+              <% is_expired = days_left < 0 %>
+              <% urgency_class = if is_expired
+                  'text-gray-600 dark:text-gray-400'
+                elsif days_left <= 3
+                  'text-red-600 dark:text-red-400'
+                elsif days_left <= 7
+                  'text-orange-600 dark:text-orange-400'
+                else
+                  'text-blue-600 dark:text-blue-400'
+                end %>
+              <% bg_class = if is_expired
+                  'bg-gray-50 dark:bg-gray-950/20 border-gray-200 dark:border-gray-800'
+                elsif days_left <= 3
+                  'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                elsif days_left <= 7
+                  'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800'
+                else
+                  'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                end %>
+              <% icon_name = if is_expired
+                  'x-circle'
+                elsif days_left <= 3
+                  'alert-triangle'
+                elsif days_left <= 7
+                  'alert-circle'
+                else
+                  'shield-check'
+                end %>
+              
+              <div class="flex items-center gap-2 p-3 <%= bg_class %> rounded-lg border">
+                <%= lucide_icon icon_name, class: "w-5 h-5 #{urgency_class}" %>
+                <span class="font-semibold <%= urgency_class %>">
+                  <%= case_record.property_preservation_deadline.strftime('%Y年%m月%d日') %>
+                  <span class="text-sm font-normal">
+                    <% if is_expired %>
+                      （已过期 <%= -days_left %> 天）
+                    <% else %>
+                      （还有 <%= days_left %> 天）
+                    <% end %>
+                  </span>
+                </span>
+              </div>
+              
+              <% if case_record.property_preservation_attachments.attached? %>
+                <div class="mt-3">
+                  <%= render 'shared/collapsible_attachments', 
+                      attachments: case_record.property_preservation_attachments, 
+                      title: '财产保全文件', 
+                      threshold: 3,
+                      icon: 'shield' %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        
+        <!-- History -->
+        <% if case_record.property_preservation_records.any? %>
+          <details class="mt-4">
+            <summary class="cursor-pointer text-sm text-primary hover:text-primary-hover flex items-center gap-2 mb-2">
+              <%= lucide_icon "history", class: "w-4 h-4" %>
+              <span>查看历史记录 (<%= case_record.property_preservation_records.count %>)</span>
+            </summary>
+            <div class="ml-6 mt-3 space-y-3 border-l-2 border-border pl-4">
+              <% case_record.property_preservation_records.reverse.each_with_index do |record, index| %>
+                <div class="text-sm">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs bg-surface px-2 py-0.5 rounded">#<%= case_record.property_preservation_records.count - index %></span>
+                    <span class="text-muted"><%= Date.parse(record['applied_at']).strftime('%Y年%m月%d日') %> ~ <%= Date.parse(record['deadline']).strftime('%Y年%m月%d日') %></span>
+                    <% if Date.parse(record['deadline']) < Date.current %>
+                      <span class="text-xs text-muted">已到期</span>
+                    <% elsif Date.parse(record['deadline']) == case_record.property_preservation_deadline %>
+                      <span class="text-xs text-info">当前</span>
+                    <% end %>
+                  </div>
+                  <% if record['files'].present? && record['files'].any? %>
+                    <div class="text-xs text-muted ml-2">
+                      附件：<%= record['files'].join(', ') %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </details>
+        <% end %>
+      <% else %>
+        <p class="text-muted text-center py-4">该案件尚未设置财产保全</p>
+      <% end %>
+      
+      <% if current_lawyer %>
+        <div class="<%= case_record.property_preservation_deadline.present? ? 'pt-4 mt-4 border-t border-border' : '' %>">
+          <h5 class="font-semibold text-primary mb-4"><%= case_record.property_preservation_deadline.present? ? '续保/更新财产保全' : '设置财产保全' %></h5>
+          <%= form_with url: update_property_preservation_case_path(case_record), method: :patch, class: "space-y-4", multipart: true do |f| %>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= label_tag "case[property_preservation_applied_at]", "申请日期", class: "form-label" %>
+                <%= date_field_tag "case[property_preservation_applied_at]", case_record.property_preservation_applied_at, class: "form-input" %>
+              </div>
+              <div class="form-control">
+                <%= label_tag "case[property_preservation_deadline]", "到期日期", class: "form-label required" %>
+                <%= date_field_tag "case[property_preservation_deadline]", case_record.property_preservation_deadline, class: "form-input", required: true %>
+              </div>
+            </div>
+            <div class="form-control">
+              <%= label_tag "case[property_preservation_attachments][]", "上传附件", class: "form-label" %>
+              <%= file_field_tag "case[property_preservation_attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+              <p class="text-xs text-muted mt-1">支持上传财产保全裁定书、申请书等文件，单文件不超过40MB</p>
+            </div>
+            <div class="form-control">
+              <label class="flex items-center gap-2 text-sm">
+                <%= check_box_tag "save_to_history", "1", false, class: "form-checkbox" %>
+                <span class="text-secondary">保存当前记录到历史（续保时勾选）</span>
+              </label>
+            </div>
+            <%= f.submit (case_record.property_preservation_deadline.present? ? "更新财产保全" : "保存财产保全"), class: "btn-primary" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

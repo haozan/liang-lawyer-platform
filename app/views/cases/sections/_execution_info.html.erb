@@ -1,0 +1,57 @@
+<% if case_record.status == 'execution' && (case_record.execution_status.present? || case_record.executed_amount.present?) %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "gavel", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">执行阶段信息</h4>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0 space-y-3" data-collapsible-target="content">
+      <% if case_record.execution_status.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">执行状态：</span>
+          <span class="badge badge-<%= case_record.execution_status_color %>">
+            <%= case_record.execution_status_display %>
+          </span>
+        </div>
+      <% end %>
+      <% if case_record.execution_start_at.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">执行立案：</span>
+          <span class="text-primary"><%= case_record.execution_start_at.strftime('%Y年%m月%d日') %></span>
+        </div>
+      <% end %>
+      <% if case_record.execution_deadline.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">执行期限：</span>
+          <span class="text-primary"><%= case_record.execution_deadline.strftime('%Y年%m月%d日') %></span>
+        </div>
+      <% end %>
+      <% if case_record.executed_amount.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">已执行金额：</span>
+          <span class="text-success font-semibold"><%= case_record.formatted_executed_amount %></span>
+        </div>
+      <% end %>
+      <% if case_record.awarded_amount.present? && case_record.executed_amount.present? %>
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-secondary">执行进度</span>
+            <span class="text-sm font-semibold text-primary"><%= case_record.execution_progress %>%</span>
+          </div>
+          <div class="w-full bg-surface-elevated rounded-full h-3 overflow-hidden">
+            <div class="h-full bg-success rounded-full transition-all" style="width: <%= [case_record.execution_progress, 100].min %>%"></div>
+          </div>
+        </div>
+      <% end %>
+      <% if case_record.execution_notes.present? %>
+        <div class="mt-4 p-3 bg-surface rounded-lg">
+          <p class="text-sm text-secondary mb-1">执行备注：</p>
+          <p class="text-primary whitespace-pre-wrap"><%= case_record.execution_notes %></p>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

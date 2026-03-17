@@ -1,0 +1,23 @@
+<div id="append_<%= file_type %>_form" class="mt-3">
+  <% if defined?(success) && success.present? %>
+    <div class="alert-success mb-3">
+      <%= lucide_icon "check-circle", class: "w-5 h-5" %>
+      <p class="text-sm"><%= success %></p>
+    </div>
+  <% end %>
+  
+  <% if defined?(error) && error.present? %>
+    <div class="alert-danger mb-3">
+      <%= lucide_icon "alert-circle", class: "w-5 h-5" %>
+      <p class="text-sm"><%= error %></p>
+    </div>
+  <% end %>
+  
+  <%= form_with url: append_evidence_files_contract_path(contract), method: :post, multipart: true, class: "flex gap-2 items-end" do |f| %>
+    <%= f.hidden_field :file_type, value: file_type %>
+    <div class="flex-1">
+      <%= f.file_field :files, multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx" %>
+    </div>
+    <%= f.submit "追加文件", class: "btn-sm btn-primary flex-shrink-0" %>
+  <% end %>
+</div>

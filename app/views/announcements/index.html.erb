@@ -1,0 +1,201 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- 面包屑导航 -->
+    <nav class="flex items-center gap-2 text-sm mb-6">
+      <%= link_to workbench_index_path, class: "text-secondary hover:text-primary" do %>
+        <%= lucide_icon "home", class: "w-4 h-4" %>
+        <span>企业工作台</span>
+      <% end %>
+      <%= lucide_icon "chevron-right", class: "w-4 h-4 text-muted" %>
+      <span class="text-primary font-medium">公告列表</span>
+    </nav>
+
+    <!-- 页面标题 -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="font-heading text-4xl font-bold text-primary mb-2">📢 重要公告</h1>
+          <p class="text-secondary">
+            共 <%= @total_count %> 条公告 
+            <% if @unread_count > 0 %>
+              · <span class="text-red-600 font-semibold"><%= @unread_count %> 条未读</span>
+            <% end %>
+            <% if @urgent_count > 0 %>
+              · <span class="text-red-600 font-semibold"><%= @urgent_count %> 条紧急</span>
+            <% end %>
+          </p>
+        </div>
+        <%= link_to workbench_index_path, class: "btn-outline" do %>
+          <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
+          <span>返回工作台</span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- 左侧筛选面板 -->
+      <div class="lg:col-span-1">
+        <div class="card card-elevated sticky top-4">
+          <div class="card-body">
+            <h3 class="font-heading text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+              <%= lucide_icon "filter", class: "w-5 h-5" %>
+              <span>筛选条件</span>
+            </h3>
+
+            <%= form_with url: announcements_path, method: :get, class: "space-y-4" do |f| %>
+              <!-- 搜索框 -->
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-2">搜索公告</label>
+                <%= f.text_field :q, 
+                    value: @search_query,
+                    placeholder: "输入关键词搜索...",
+                    class: "form-input" %>
+              </div>
+
+              <!-- 优先级筛选 -->
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-2">优先级</label>
+                <%= f.select :priority,
+                    options_for_select([
+                      ["全部优先级", ""],
+                      ["🔴 紧急", "urgent"],
+                      ["🟠 重要", "important"],
+                      ["🔵 普通", "normal"]
+                    ], @selected_priority),
+                    {},
+                    class: "form-select" %>
+              </div>
+
+              <!-- 类型筛选 -->
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-2">公告类型</label>
+                <%= f.select :type,
+                    options_for_select([
+                      ["全部类型", ""],
+                      ["开庭提醒", "hearing"],
+                      ["合同到期", "contract_expiry"],
+                      ["待审查合同", "contract_review"],
+                      ["待上传对账单", "reconciliation_overdue"],
+                      ["待领取判决书", "judgement_collection"],
+                      ["自定义通知", "custom"]
+                    ], @selected_type),
+                    {},
+                    class: "form-select" %>
+              </div>
+
+              <!-- 已读状态筛选 -->
+              <div>
+                <label class="block text-sm font-medium text-secondary mb-2">已读状态</label>
+                <%= f.select :read_status,
+                    options_for_select([
+                      ["全部状态", ""],
+                      ["仅未读", "unread"],
+                      ["仅已读", "read"]
+                    ], @selected_read_status),
+                    {},
+                    class: "form-select" %>
+              </div>
+
+              <!-- 操作按钮 -->
+              <div class="flex gap-2">
+                <%= f.submit "应用筛选", class: "btn-primary flex-1" %>
+                <%= link_to "重置", announcements_path, class: "btn-outline" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧公告列表 -->
+      <div class="lg:col-span-3">
+        <% if @announcements.any? %>
+          <div class="space-y-4">
+            <% @announcements.each do |announcement| %>
+              <%= button_to enter_announcements_path(
+                    announcement_id: announcement[:id],
+                    related_type: announcement[:related]&.class&.name,
+                    related_id: announcement[:related]&.id,
+                    redirect_to: announcement[:link]
+                  ),
+                  class: "block group text-left w-full" do %>
+                <div class="card card-elevated hover:shadow-xl transition-all duration-300 <%= announcement[:priority] == 'urgent' ? 'border-l-4 border-red-500' : announcement[:priority] == 'important' ? 'border-l-4 border-orange-500' : 'border-l-4 border-blue-500' %>">
+                  <div class="card-body">
+                    <div class="flex items-start gap-4">
+                      <!-- 优先级图标 -->
+                      <div class="flex-shrink-0 mt-1">
+                        <div class="p-3 rounded-lg <%= announcement[:priority] == 'urgent' ? 'bg-red-100' : announcement[:priority] == 'important' ? 'bg-orange-100' : 'bg-blue-100' %>">
+                          <%= lucide_icon announcement[:icon], class: "w-6 h-6 #{announcement[:priority] == 'urgent' ? 'text-red-600' : announcement[:priority] == 'important' ? 'text-orange-600' : 'text-blue-600'}" %>
+                        </div>
+                      </div>
+
+                      <!-- 公告内容 -->
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <!-- 优先级徽章 -->
+                            <span class="badge <%= announcement[:priority] == 'urgent' ? 'badge-danger' : announcement[:priority] == 'important' ? 'badge-warning' : 'badge-info' %>">
+                              <%= announcement[:priority] == 'urgent' ? '🔴 紧急' : announcement[:priority] == 'important' ? '🟠 重要' : '🔵 普通' %>
+                            </span>
+                            
+                            <!-- 已读/未读徽章 -->
+                            <% if announcement[:type] == 'manual' %>
+                              <% if announcement[:read] %>
+                                <span class="inline-flex items-center px-2 py-1 rounded bg-green-100 text-xs font-medium text-green-700">
+                                  <%= lucide_icon "check", class: "w-3 h-3 mr-1" %>
+                                  已读
+                                </span>
+                              <% else %>
+                                <span class="inline-flex items-center px-2 py-1 rounded bg-red-100 text-xs font-medium text-red-700">
+                                  <%= lucide_icon "circle", class: "w-3 h-3 mr-1" %>
+                                  未读
+                                </span>
+                              <% end %>
+                            <% end %>
+                          </div>
+                          
+                          <span class="text-xs text-muted whitespace-nowrap">
+                            <%= announcement[:published_at].strftime('%Y-%m-%d %H:%M') %>
+                          </span>
+                        </div>
+
+                        <h3 class="text-lg font-semibold text-primary group-hover:text-primary-dark mb-2">
+                          <%= announcement[:title] %>
+                        </h3>
+                        
+                        <% if announcement[:content].present? %>
+                          <p class="text-sm text-secondary mb-3"><%= announcement[:content] %></p>
+                        <% end %>
+                        
+                        <div class="flex items-center justify-end">
+                          <span class="text-sm text-info group-hover:opacity-80 font-medium inline-flex items-center gap-1">
+                            <span>查看详情</span>
+                            <%= lucide_icon "arrow-right", class: "w-4 h-4" %>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+
+            <!-- 分页 -->
+            <div class="mt-8 flex justify-center">
+              <%= paginate @announcements, theme: 'twitter-bootstrap-4' %>
+            </div>
+          </div>
+        <% else %>
+          <div class="card card-elevated">
+            <div class="card-body text-center py-16">
+              <%= lucide_icon "inbox", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+              <p class="text-lg text-secondary">暂无公告</p>
+              <p class="text-sm text-muted mt-2">筛选条件下没有找到任何公告</p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+</div>

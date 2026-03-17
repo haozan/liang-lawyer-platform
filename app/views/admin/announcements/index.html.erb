@@ -1,0 +1,76 @@
+<% content_for :title, "公告管理" %>
+
+<div class="container-md">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50">公告管理</h1>
+    <%= link_to new_admin_announcement_path, class: "btn-primary" do %>
+      <%= lucide_icon "plus", class: "w-4 h-4 mr-2" %>
+      发布新公告
+    <% end %>
+  </div>
+
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <% if @announcements.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-100 dark:bg-gray-800">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">公告标题</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">优先级</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">范围</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">发布时间</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">过期时间</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">操作</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              <% @announcements.each do |announcement| %>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= announcement.title %></div>
+                    <% if announcement.content.present? %>
+                      <div class="text-sm text-gray-500 dark:text-gray-400 truncate max-w-md"><%= announcement.content %></div>
+                    <% end %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="badge <%= announcement.priority == 'urgent' ? 'badge-danger' : announcement.priority == 'important' ? 'badge-warning' : 'badge-secondary' %>">
+                      <%= announcement.priority_display %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <%= announcement.company_id ? announcement.company&.name : '全局' %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <%= announcement.published_at&.strftime('%Y-%m-%d %H:%M') %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <%= announcement.expires_at ? announcement.expires_at.strftime('%Y-%m-%d %H:%M') : '永久' %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex items-center justify-end space-x-2">
+                      <%= link_to edit_admin_announcement_path(announcement), class: "text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" do %>
+                        <%= lucide_icon "edit", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= button_to admin_announcement_path(announcement), method: :delete, data: { confirm: '确定删除此公告？' }, class: "text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" do %>
+                        <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-6">
+          <%= paginate @announcements %>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <p class="text-gray-500 dark:text-gray-400">暂无公告</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -7,6 +7,7 @@ gem "bootsnap", require: false
 gem "rack-cors"
 
 gem "pg", ">= 1.1"
+gem "redis", "~> 5.0"
 gem "figaro"
 gem "cssbundling-rails"
 gem "jsbundling-rails"
@@ -25,6 +26,8 @@ gem "aws-sdk-s3", "~> 1.206"
 gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2.2"
 gem "rubyzip", "~> 2.3"
+gem "aasm", "~> 5.5"
+gem "groupdate", "~> 6.5"
 
 group :development do
   gem "error_highlight", ">= 0.4.0", platforms: [ :ruby ]

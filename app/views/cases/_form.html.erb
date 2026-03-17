@@ -1,0 +1,845 @@
+<%= form_with model: @case, class: "space-y-6" do |f| %>
+  
+  <!-- Error Messages -->
+  <% if @case.errors.any? %>
+    <div class="alert alert-danger mb-6">
+      <h3 class="font-semibold mb-2">提交失败，请检查以下问题：</h3>
+      <ul class="list-disc list-inside">
+        <% @case.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  
+  <!-- 隐藏字段：从合同创建标记 -->
+  <% if params[:from_contract_id].present? %>
+    <%= hidden_field_tag :from_contract_id, params[:from_contract_id] %>
+    
+    <div class="alert-info">
+      <%= lucide_icon "info", class: "w-5 h-5" %>
+      <div>
+        <h4 class="font-semibold">从合同快速创建案件</h4>
+        <p class="text-sm">
+          已从合同《<%= @source_contract.name %>》预填充数据，请检查并补充完整信息。
+        </p>
+      </div>
+    </div>
+  <% end %>
+  
+  <!-- 律师需要选择企业 -->
+  <% if lawyer? %>
+    <div class="bg-warning/10 border border-warning/30 rounded-lg p-4 mb-6">
+      <%= lucide_icon "alert-triangle", class: "w-5 h-5 text-warning inline mr-2" %>
+      <span class="text-warning font-semibold">重要：请选择案件所属企业，确保客户数据隔离</span>
+    </div>
+    
+    <div class="form-control">
+      <%= f.label :company_id, "所属企业", class: "form-label required" %>
+      <%= f.select :company_id,
+        options_from_collection_for_select(@companies, :id, :name, @selected_company&.id),
+        { prompt: '请选择案件所属的企业' },
+        class: "form-select",
+        required: true %>
+      <p class="text-xs text-muted mt-1">该企业的老板和员工将能查看此案件，其他企业无法访问</p>
+    </div>
+  <% end %>
+  
+  <!-- 案件团队配置 -->
+  <% if lawyer? %>
+    <div class="space-y-4" data-controller="case-team">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-heading text-lg font-semibold text-primary">案件团队配置</h3>
+        <button type="button" 
+                data-case-team-target="addButton"
+                data-action="click->case-team#addMember"
+                class="btn-sm btn-primary">
+          <%= lucide_icon "user-plus", class: "w-4 h-4 mr-1 inline" %>
+          添加成员
+        </button>
+      </div>
+      
+      <div class="bg-info/10 border border-info/30 rounded-lg p-4">
+        <%= lucide_icon "info", class: "w-5 h-5 text-info inline mr-2" %>
+        <span class="text-info text-sm">
+          <strong>建议配置：</strong>
+          复杂案件(2名资深律师+1名助理) · 重要案件(1名资深律师+1名辅助律师+1名助理) · 简单案件(1名律师+1名助理)
+        </span>
+      </div>
+      
+      <!-- 团队成员列表 -->
+      <div data-case-team-target="container" class="space-y-3">
+        <%= f.fields_for :case_team_members do |member_fields| %>
+          <div class="team-member-row bg-surface border border-muted rounded-lg p-4">
+            <%= member_fields.hidden_field :id %>
+            <%= member_fields.hidden_field :_destroy, value: '0' %>
+            
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="form-control">
+                <%= member_fields.label :role, "团队角色", class: "form-label required" %>
+                <%= member_fields.select :role,
+                  options_for_select([
+                    ['主办律师', 'lead_lawyer'],
+                    ['辅助律师', 'assistant_lawyer'],
+                    ['律师助理', 'legal_assistant']
+                  ], member_fields.object.role),
+                  { prompt: '请选择角色' },
+                  class: "form-select",
+                  required: true,
+                  data: { action: "change->case-team#roleChanged" } %>
+              </div>
+              
+              <div class="form-control">
+                <%= member_fields.label :lawyer_account_id, "选择人员", class: "form-label required" %>
+                <div class="flex gap-2">
+                  <%= member_fields.select :lawyer_account_id,
+                    grouped_options_for_select(
+                      [
+                        ['律师', LawyerAccount.lawyers.ordered.map { |l| [l.display_name, l.id, { 'data-role': 'lawyer' }] }],
+                        ['律师助理', LawyerAccount.assistants.ordered.map { |l| [l.display_name, l.id, { 'data-role': 'assistant' }] }]
+                      ],
+                      member_fields.object.lawyer_account_id
+                    ),
+                    { prompt: '请选择人员' },
+                    class: "form-select flex-1",
+                    required: true %>
+                  
+                  <button type="button" 
+                          data-action="click->case-team#removeMember"
+                          class="btn-sm btn-outline text-danger hover:bg-danger/10"
+                          title="删除成员">
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <!-- 模板：用于动态添加新成员 -->
+      <template data-case-team-target="template">
+        <div class="team-member-row bg-surface border border-muted rounded-lg p-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="form-control">
+              <label class="form-label required">团队角色</label>
+              <select name="case[case_team_members_attributes][NEW_RECORD][role]" 
+                      class="form-select"
+                      required
+                      data-action="change->case-team#roleChanged">
+                <option value="">请选择角色</option>
+                <option value="lead_lawyer">主办律师</option>
+                <option value="assistant_lawyer">辅助律师</option>
+                <option value="legal_assistant">律师助理</option>
+              </select>
+            </div>
+            
+            <div class="form-control">
+              <label class="form-label required">选择人员</label>
+              <div class="flex gap-2">
+                <select name="case[case_team_members_attributes][NEW_RECORD][lawyer_account_id]" 
+                        class="form-select flex-1"
+                        required>
+                  <option value="">请选择人员</option>
+                  <optgroup label="律师">
+                    <% LawyerAccount.lawyers.ordered.each do |lawyer| %>
+                      <option value="<%= lawyer.id %>" data-role="lawyer"><%= lawyer.display_name %></option>
+                    <% end %>
+                  </optgroup>
+                  <optgroup label="律师助理">
+                    <% LawyerAccount.assistants.ordered.each do |assistant| %>
+                      <option value="<%= assistant.id %>" data-role="assistant"><%= assistant.display_name %></option>
+                    <% end %>
+                  </optgroup>
+                </select>
+                
+                <button type="button" 
+                        data-action="click->case-team#removeMember"
+                        class="btn-sm btn-outline text-danger hover:bg-danger/10"
+                        title="删除成员">
+                  <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  <% end %>
+  
+  <!-- Basic Information -->
+  <div class="space-y-4" data-controller="case-status-toggle">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">基本信息</h3>
+    
+    <div class="form-control">
+      <%= f.label :name, "案件名称", class: "form-label required" %>
+      <%= f.text_field :name, class: "form-input", placeholder: "请输入案件名称", required: true %>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :case_number, "案号", class: "form-label" %>
+        <%= f.text_field :case_number, class: "form-input", placeholder: "如：(2024)粤01民初1234号" %>
+        <p class="text-xs text-muted mt-1">准备立案状态可以留空，立案后填写</p>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :case_type, "案件类型", class: "form-label required" %>
+        <%= f.select :case_type, 
+          options_for_select([
+            ['民事案件', '民事案件'],
+            ['刑事案件', '刑事案件'],
+            ['行政案件', '行政案件'],
+            ['经济案件', '经济案件'],
+            ['劳动争议', '劳动争议'],
+            ['知识产权', '知识产权'],
+            ['其他', '其他']
+          ], @case.case_type), 
+          { prompt: '请选择案件类型' },
+          class: "form-select", required: true %>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :court_name, "法院名称", class: "form-label" %>
+        <%= f.text_field :court_name, class: "form-input", placeholder: "如：广州市中级人民法院" %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :status, "案件状态", class: "form-label required" %>
+        <%= f.select :status,
+          options_for_select([
+            ['准备立案', 'preparing'],
+            ['已立案待审', 'filed'],
+            ['审理中', 'trial'],
+            ['已判决', 'judged'],
+            ['执行中', 'execution'],
+            ['调解结案', 'settled'],
+            ['已归档', 'closed']
+          ], @case.status || 'pending'),
+          {},
+          class: "form-select", 
+          required: true,
+          data: { 
+            "case-status-toggle-target": "statusSelect",
+            action: "change->case-status-toggle#toggleExecutionSection"
+          } %>
+      </div>
+      
+      <div class="form-control" data-controller="party-role-selector">
+        <%= f.label :stage, "案件阶段", class: "form-label" %>
+        <%= f.select :stage,
+          options_for_select([
+            ['仲裁', 'arbitration'],
+            ['一审', 'first_trial'],
+            ['二审', 'second_trial'],
+            ['执行', 'execution'],
+            ['再审', 'retrial'],
+            ['恢复执行', 'resume_execution']
+          ], @case.stage),
+          { prompt: '请选择案件阶段' },
+          class: "form-select",
+          data: { 
+            action: "change->party-role-selector#updateRoles",
+            "party-role-selector-target": "stage"
+          } %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :our_party_role, "我方诉讼地位", class: "form-label" %>
+        <%= f.select :our_party_role,
+          options_for_select(@case.available_party_roles, @case.our_party_role),
+          { prompt: '请选择我方诉讼地位' },
+          class: "form-select",
+          data: { "party-role-selector-target": "ourRole" } %>
+        <p class="text-xs text-muted mt-1">选择后将自动调整表单字段名称（如立案/应诉日期）</p>
+      </div>
+    </div>
+    
+    <!-- 审判员和书记员信息 -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :judge_name, "审判员姓名", class: "form-label" %>
+        <%= f.text_field :judge_name, class: "form-input", placeholder: "请输入审判员姓名" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :judge_phone, "审判员联系电话", class: "form-label" %>
+        <%= f.text_field :judge_phone, class: "form-input", placeholder: "请输入审判员联系电话" %>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :clerk_name, "书记员姓名", class: "form-label" %>
+        <%= f.text_field :clerk_name, class: "form-input", placeholder: "请输入书记员姓名" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :clerk_phone, "书记员联系电话", class: "form-label" %>
+        <%= f.text_field :clerk_phone, class: "form-input", placeholder: "请输入书记员联系电话" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 律师费回款与开票信息 -->
+  <div class="space-y-4">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">律师费回款与开票信息</h3>
+    
+    <div class="bg-info/10 border border-info/30 rounded-lg p-4">
+      <%= lucide_icon "info", class: "w-5 h-5 text-info inline mr-2" %>
+      <span class="text-info text-sm">
+        <strong>说明：</strong>用于记录律师费的回款情况和发票信息，供律师费数据分析使用。
+      </span>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="form-control">
+        <%= f.label :lawyer_fee_payment_status, "付款状态", class: "form-label" %>
+        <%= f.select :lawyer_fee_payment_status,
+          options_for_select([
+            ['待付款', 'pending'],
+            ['部分付款', 'partial'],
+            ['已付清', 'completed']
+          ], @case.lawyer_fee_payment_status || 'pending'),
+          {},
+          class: "form-select" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :lawyer_fee_received, "已回款金额（元）", class: "form-label" %>
+        <%= f.number_field :lawyer_fee_received, class: "form-input", step: "0.01", placeholder: "如：100000.00" %>
+        <p class="text-xs text-muted mt-1">实际已收到的律师费金额</p>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :lawyer_fee_received_at, "回款日期", class: "form-label" %>
+        <%= f.date_field :lawyer_fee_received_at, class: "form-input" %>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-1 gap-4">
+      <div class="form-control">
+        <%= f.label :lawyer_fee_payment_terms, "付款条款", class: "form-label" %>
+        <%= f.text_area :lawyer_fee_payment_terms, rows: 2, class: "form-textarea", placeholder: "例如：分期付款，首期50%，判决后付清余款..." %>
+      </div>
+    </div>
+    
+    <div class="border-t border-border pt-4 mt-4">
+      <h4 class="font-semibold text-primary mb-4">开票信息</h4>
+      
+      <div class="grid md:grid-cols-4 gap-4">
+        <div class="form-control">
+          <%= f.label :lawyer_fee_invoice_issued, "是否已开票", class: "form-label" %>
+          <label class="flex items-center gap-2 mt-2 cursor-pointer">
+            <%= f.check_box :lawyer_fee_invoice_issued, class: "form-checkbox" %>
+            <span class="text-sm text-secondary">已开具发票</span>
+          </label>
+        </div>
+        
+        <div class="form-control">
+          <%= f.label :lawyer_fee_invoice_number, "发票号码", class: "form-label" %>
+          <%= f.text_field :lawyer_fee_invoice_number, class: "form-input", placeholder: "如：1234567890" %>
+        </div>
+        
+        <div class="form-control">
+          <%= f.label :lawyer_fee_invoice_amount, "开票金额（元）", class: "form-label" %>
+          <%= f.number_field :lawyer_fee_invoice_amount, class: "form-input", step: "0.01", placeholder: "如：100000.00" %>
+        </div>
+        
+        <div class="form-control">
+          <%= f.label :lawyer_fee_invoice_issued_at, "开票日期", class: "form-label" %>
+          <%= f.date_field :lawyer_fee_invoice_issued_at, class: "form-input" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 多委托人管理 -->
+  <% if lawyer? %>
+    <div class="space-y-4" data-controller="case-clients">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-heading text-lg font-semibold text-primary">多委托人管理</h3>
+        <button type="button" 
+                data-case-clients-target="addButton"
+                data-action="click->case-clients#addClient"
+                class="btn-sm btn-primary">
+          <%= lucide_icon "building-2", class: "w-4 h-4 mr-1 inline" %>
+          添加委托人
+        </button>
+      </div>
+      
+      <div class="bg-info/10 border border-info/30 rounded-lg p-4">
+        <%= lucide_icon "info", class: "w-5 h-5 text-info inline mr-2" %>
+        <span class="text-info text-sm">
+          <strong>说明：</strong>支持一个案件关联多个委托企业。第一个委托人为主委托人,其他为共同委托人。
+        </span>
+      </div>
+      
+      <!-- 委托人列表 -->
+      <div data-case-clients-target="container" class="space-y-3">
+        <%= f.fields_for :case_clients do |client_fields| %>
+          <div class="case-client-row bg-surface border border-muted rounded-lg p-4">
+            <%= client_fields.hidden_field :id %>
+            <%= client_fields.hidden_field :_destroy, value: '0' %>
+            
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="form-control">
+                <%= client_fields.label :company_id, "委托企业", class: "form-label required" %>
+                <%= client_fields.select :company_id,
+                  options_from_collection_for_select(@companies, :id, :name, client_fields.object.company_id),
+                  { prompt: '请选择委托企业' },
+                  class: "form-select",
+                  required: true %>
+              </div>
+              
+              <div class="form-control">
+                <%= client_fields.label :role, "委托人角色", class: "form-label required" %>
+                <%= client_fields.select :role,
+                  options_for_select([
+                    ['主委托人', 'primary_client'],
+                    ['共同委托人', 'co_client'],
+                    ['第三人', 'third_party']
+                  ], client_fields.object.role || 'co_client'),
+                  {},
+                  class: "form-select",
+                  required: true %>
+              </div>
+              
+              <div class="form-control flex items-end">
+                <button type="button" 
+                        data-action="click->case-clients#removeClient"
+                        class="btn-sm btn-outline text-danger hover:bg-danger/10 w-full">
+                  <%= lucide_icon "trash-2", class: "w-4 h-4 mr-1 inline" %>
+                  删除
+                </button>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <!-- 模板：用于动态添加新委托人 -->
+      <template data-case-clients-target="template">
+        <div class="case-client-row bg-surface border border-muted rounded-lg p-4">
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="form-control">
+              <label class="form-label required">委托企业</label>
+              <select name="case[case_clients_attributes][NEW_RECORD][company_id]" class="form-select" required>
+                <option value="">请选择委托企业</option>
+                <% @companies.each do |company| %>
+                  <option value="<%= company.id %>"><%= company.name %></option>
+                <% end %>
+              </select>
+            </div>
+            
+            <div class="form-control">
+              <label class="form-label required">委托人角色</label>
+              <select name="case[case_clients_attributes][NEW_RECORD][role]" class="form-select" required>
+                <option value="co_client">共同委托人</option>
+                <option value="primary_client">主委托人</option>
+                <option value="third_party">第三人</option>
+              </select>
+            </div>
+            
+            <div class="form-control flex items-end">
+              <button type="button" 
+                      data-action="click->case-clients#removeClient"
+                      class="btn-sm btn-outline text-danger hover:bg-danger/10 w-full">
+                <%= lucide_icon "trash-2", class: "w-4 h-4 mr-1 inline" %>
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  <% end %>
+
+  <!-- 当事人信息 -->
+  <div class="space-y-4">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">当事人信息</h3>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :our_party_name, "我方当事人名称", class: "form-label" %>
+        <%= f.text_field :our_party_name, class: "form-input", placeholder: "如：某某公司" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :counterparty_name, "对方当事人名称", class: "form-label" %>
+        <%= f.text_field :counterparty_name, class: "form-input", placeholder: "如：某某公司" %>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :counterparty_role, "对方诉讼地位", class: "form-label" %>
+        <%= f.text_field :counterparty_role, class: "form-input", placeholder: "如：被告/原告" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :counterparty_lawyer, "对方代理律师", class: "form-label" %>
+        <%= f.text_field :counterparty_lawyer, class: "form-input", placeholder: "对方律师姓名" %>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :counterparty_lawfirm, "对方律师事务所", class: "form-label" %>
+        <%= f.text_field :counterparty_lawfirm, class: "form-input", placeholder: "对方律所名称" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :counterparty_contact, "对方联系方式", class: "form-label" %>
+        <%= f.text_field :counterparty_contact, class: "form-input", placeholder: "电话或邮箱" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标的额管理 -->
+  <div class="space-y-4">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">标的额管理</h3>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :claim_amount, "诉讼标的额（元）", class: "form-label" %>
+        <%= f.number_field :claim_amount, class: "form-input", step: "0.01", placeholder: "如：1000000.00" %>
+        <p class="text-xs text-muted mt-1">诉讼请求的总金额</p>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :awarded_amount, "判决/调解金额（元）", class: "form-label" %>
+        <%= f.number_field :awarded_amount, class: "form-input", step: "0.01", placeholder: "如：800000.00" %>
+        <p class="text-xs text-muted mt-1">法院判决或调解的金额</p>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="form-control">
+        <%= f.label :litigation_fee, "诉讼费（元）", class: "form-label" %>
+        <%= f.number_field :litigation_fee, class: "form-input", step: "0.01", placeholder: "如：50000.00" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :lawyer_fee, "律师费（元）", class: "form-label" %>
+        <%= f.number_field :lawyer_fee, class: "form-input", step: "0.01", placeholder: "如：100000.00" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :amount_status, "金额状态", class: "form-label" %>
+        <%= f.select :amount_status,
+          options_for_select([
+            ['待判决', 'pending'],
+            ['已判决', 'awarded'],
+            ['已支付', 'paid'],
+            ['部分支付', 'partial_paid']
+          ], @case.amount_status),
+          { prompt: '请选择金额状态' },
+          class: "form-select" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 诉讼请求与判决对比 -->
+  <div class="space-y-4" data-controller="claims-manager">
+    <div class="flex items-center justify-between border-b pb-2">
+      <h3 class="font-heading text-lg font-semibold text-primary">诉讼请求与判决对比</h3>
+      <button type="button" 
+              data-action="click->claims-manager#addClaim"
+              class="btn-sm btn-primary">
+        <%= lucide_icon "plus", class: "w-4 h-4 mr-1 inline" %>
+        添加诉讼请求
+      </button>
+    </div>
+    
+    <!-- 诉讼请求列表 -->
+    <div data-claims-manager-target="claimsContainer" class="space-y-3">
+      <% ((@case.claims_list.is_a?(Array) ? @case.claims_list : []) || []).each_with_index do |claim, index| %>
+        <div class="claim-row bg-surface border border-muted rounded-lg p-4">
+          <div class="grid md:grid-cols-12 gap-4 items-start">
+            <div class="md:col-span-6 form-control">
+              <label class="form-label">请求内容</label>
+              <input type="text" 
+                     name="case[claims][][content]" 
+                     value="<%= claim['content'] %>" 
+                     class="form-input" 
+                     placeholder="如：支付货款" />
+            </div>
+            
+            <div class="md:col-span-2 form-control">
+              <label class="form-label">金额（元）</label>
+              <input type="number" 
+                     name="case[claims][][amount]" 
+                     value="<%= claim['amount'] %>" 
+                     class="form-input" 
+                     step="0.01" 
+                     placeholder="0.00" />
+            </div>
+            
+            <div class="md:col-span-3 form-control">
+              <label class="form-label">判决结果</label>
+              <select name="case[claims][][status]" class="form-select">
+                <option value="" <%= 'selected' unless claim['status'] %>>待判决</option>
+                <option value="approved" <%= 'selected' if claim['status'] == 'approved' %>>支持</option>
+                <option value="partial" <%= 'selected' if claim['status'] == 'partial' %>>部分支持</option>
+                <option value="rejected" <%= 'selected' if claim['status'] == 'rejected' %>>驳回</option>
+              </select>
+            </div>
+            
+            <div class="md:col-span-1 flex items-end">
+              <button type="button" 
+                      data-action="click->claims-manager#removeClaim"
+                      class="btn-sm btn-outline text-danger hover:bg-danger/10">
+                <%= lucide_icon "x", class: "w-4 h-4" %>
+              </button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- 模板 -->
+    <template data-claims-manager-target="template">
+      <div class="claim-row bg-surface border border-muted rounded-lg p-4">
+        <div class="grid md:grid-cols-12 gap-4 items-start">
+          <div class="md:col-span-6 form-control">
+            <label class="form-label">请求内容</label>
+            <input type="text" name="case[claims][][content]" class="form-input" placeholder="如：支付货款" />
+          </div>
+          
+          <div class="md:col-span-2 form-control">
+            <label class="form-label">金额（元）</label>
+            <input type="number" name="case[claims][][amount]" class="form-input" step="0.01" placeholder="0.00" />
+          </div>
+          
+          <div class="md:col-span-3 form-control">
+            <label class="form-label">判决结果</label>
+            <select name="case[claims][][status]" class="form-select">
+              <option value="">待判决</option>
+              <option value="approved">支持</option>
+              <option value="partial">部分支持</option>
+              <option value="rejected">驳回</option>
+            </select>
+          </div>
+          
+          <div class="md:col-span-1 flex items-end">
+            <button type="button" 
+                    data-action="click->claims-manager#removeClaim"
+                    class="btn-sm btn-outline text-danger hover:bg-danger/10">
+              <%= lucide_icon "x", class: "w-4 h-4" %>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- 执行阶段细化 -->
+  <div class="space-y-4" id="execution-section" data-case-status-toggle-target="executionSection" style="<%= @case.status == 'execution' ? '' : 'display:none;' %>">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">执行阶段管理</h3>
+    
+    <div class="bg-warning/10 border border-warning/30 rounded-lg p-4">
+      <%= lucide_icon "alert-triangle", class: "w-5 h-5 text-warning inline mr-2" %>
+      <span class="text-warning text-sm">
+        <strong>提示：</strong>本版块仅在案件状态为"执行中"时显示。
+      </span>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :execution_start_at, "执行立案日期", class: "form-label" %>
+        <%= f.date_field :execution_start_at, class: "form-input" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :execution_deadline, "执行期限", class: "form-label" %>
+        <%= f.date_field :execution_deadline, class: "form-input" %>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="form-control">
+        <%= f.label :execution_status, "执行状态", class: "form-label" %>
+        <%= f.select :execution_status,
+          options_for_select([
+            ['执行中', 'executing'],
+            ['终本', 'terminated'],
+            ['和解执行', 'settled'],
+            ['执行完毕', 'completed']
+          ], @case.execution_status),
+          { prompt: '请选择执行状态' },
+          class: "form-select" %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :executed_amount, "已执行金额（元）", class: "form-label" %>
+        <%= f.number_field :executed_amount, class: "form-input", step: "0.01", placeholder: "如：500000.00" %>
+      </div>
+      
+      <div class="form-control">
+        <label class="form-label">执行进度</label>
+        <% if @case.awarded_amount.present? && @case.awarded_amount > 0 && @case.executed_amount.present? %>
+          <div class="flex items-center gap-2 mt-2">
+            <div class="flex-1 bg-surface-elevated rounded-full h-3 overflow-hidden">
+              <div class="h-full bg-success rounded-full" style="width: <%= [@case.execution_progress, 100].min %>%"></div>
+            </div>
+            <span class="text-sm font-semibold text-primary"><%= @case.execution_progress %>%</span>
+          </div>
+        <% else %>
+          <p class="text-xs text-muted mt-2">填写判决金额和已执行金额后自动计算</p>
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="form-control">
+      <%= f.label :execution_notes, "执行备注", class: "form-label" %>
+      <%= f.text_area :execution_notes, rows: 3, class: "form-textarea", placeholder: "记录执行过程中的重要信息..." %>
+    </div>
+  </div>
+
+  <!-- 案件关联管理 -->
+  <div class="space-y-4" data-controller="case-relations">
+    <div class="flex items-center justify-between border-b pb-2">
+      <h3 class="font-heading text-lg font-semibold text-primary">案件关联管理</h3>
+      <button type="button" 
+              data-action="click->case-relations#addRelation"
+              class="btn-sm btn-primary">
+        <%= lucide_icon "link", class: "w-4 h-4 mr-1 inline" %>
+        添加关联案件
+      </button>
+    </div>
+    
+    <div class="bg-info/10 border border-info/30 rounded-lg p-4">
+      <%= lucide_icon "info", class: "w-5 h-5 text-info inline mr-2" %>
+      <span class="text-info text-sm">
+        <strong>说明：</strong>建立案件之间的关联关系，如系列案件、上诉案件、再审案件等。
+      </span>
+    </div>
+    
+    <!-- 关联案件列表 -->
+    <div data-case-relations-target="container" class="space-y-3">
+      <!-- 现有关联案件 -->
+      <% if @case.persisted? %>
+        <% @case.case_relations_as_from.each do |relation| %>
+          <div class="relation-row bg-surface border border-muted rounded-lg p-4">
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="form-control">
+                <label class="form-label">关联类型</label>
+                <select name="case[case_relations_attributes][][relation_type]" class="form-select" disabled>
+                  <option value="<%= relation.relation_type %>" selected><%= relation.relation_display %></option>
+                </select>
+              </div>
+              
+              <div class="form-control">
+                <label class="form-label">关联案件</label>
+                <input type="text" value="<%= relation.to_case.name %>" class="form-input" disabled />
+              </div>
+              
+              <div class="form-control flex items-end">
+                <%= link_to case_path(relation.to_case), class: "btn-sm btn-info w-full", target: "_blank" do %>
+                  <%= lucide_icon "external-link", class: "w-4 h-4 mr-1 inline" %>
+                  查看案件
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    
+    <p class="text-xs text-muted">
+      <strong>提示：</strong>案件创建后，可在案件详情页管理关联关系。新建案件暂不支持添加关联。
+    </p>
+  </div>
+
+  <!-- Important Dates -->
+  <div class="space-y-4">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2">重要日期</h3>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :filing_at, @case.filing_label, class: "form-label" %>
+        <%= f.date_field :filing_at, class: "form-input" %>
+        <p class="text-xs text-muted mt-1">待立案状态可以留空，立案后填写</p>
+        <%= f.label :filing_attachments, "上传#{@case.filing_attachment_label}", class: "form-label text-sm mt-2" %>
+        <%= f.file_field :filing_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+        <p class="text-xs text-muted mt-1">上传《<%= @case.filing_attachment_label %>》扫描件</p>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :hearing_at, "开庭时间", class: "form-label" %>
+        <%= f.datetime_local_field :hearing_at, class: "form-input" %>
+        <%= f.label :hearing_attachments, "上传传票", class: "form-label text-sm mt-2" %>
+        <%= f.file_field :hearing_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+        <p class="text-xs text-muted mt-1">上传《传票》扫描件</p>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :judgement_received_at, "领取判决书日期", class: "form-label" %>
+        <%= f.date_field :judgement_received_at, class: "form-input", data: { controller: "appeal-calculator", action: "change->appeal-calculator#calculate" } %>
+        <%= f.label :judgement_attachments, "上传判决书", class: "form-label text-sm mt-2" %>
+        <%= f.file_field :judgement_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+        <p class="text-xs text-muted mt-1">上传判决书扫描件</p>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :appeal_deadline_date, "上诉/再审期限届满日", class: "form-label" %>
+        <%= f.date_field :appeal_deadline_date, 
+          class: "form-input", 
+          data: { "appeal-calculator-target": "deadline" },
+          placeholder: "填写判决日期后可自动计算" %>
+        <p class="text-xs text-muted mt-1">
+          <strong>参考规则：</strong>一审判决后15天上诉期 · 二审/仲裁判决后6个月再审期
+          <% if @case.judgement_received_at.present? && @case.stage.present? && @case.appeal_deadline.present? %>
+            <br>
+            <span class="text-primary font-semibold">
+              💡 建议日期：<%= @case.appeal_deadline.strftime('%Y年%m月%d日') %>
+              （<%= @case.appeal_deadline_type %>）
+            </span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :archived_at, "归档日期", class: "form-label" %>
+        <%= f.date_field :archived_at, class: "form-input" %>
+        <%= f.label :archived_attachments, "上传归档文件", class: "form-label text-sm mt-2" %>
+        <%= f.file_field :archived_attachments, multiple: true, class: "form-input", accept: "image/*,.pdf" %>
+        <p class="text-xs text-muted mt-1">上传归档相关文件</p>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :closing_at, "结案日期", class: "form-label" %>
+        <%= f.date_field :closing_at, class: "form-input" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Case Summary -->
+  <div class="form-control">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2 mb-4">案件概要</h3>
+    <%= f.label :summary, "案情描述", class: "form-label" %>
+    <%= f.text_area :summary, rows: 6, class: "form-textarea", placeholder: "请详细描述案件情况、涉及主体、争议焦点等信息..." %>
+  </div>
+
+  <!-- Attachments -->
+  <div class="form-control">
+    <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2 mb-4">案件材料</h3>
+    <%= f.label :attachments, "上传文件", class: "form-label" %>
+    <%= f.file_field :attachments, multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+    <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word、Excel文件，单个文件不超过40MB</p>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center gap-3 pt-4">
+    <%= f.submit @case.new_record? ? "创建案件" : "更新案件", class: "btn-primary" %>
+    <%= link_to "取消", @case.new_record? ? cases_path : case_path(@case), class: "btn-outline" %>
+  </div>
+
+<% end %>

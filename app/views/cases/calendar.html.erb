@@ -1,0 +1,240 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- 页面标题和操作 -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="font-heading text-3xl font-bold text-primary mb-2">
+          <%= lucide_icon "calendar", class: "inline w-8 h-8 mr-2" %>
+          案件关键日期日历
+        </h1>
+        <p class="text-secondary">可视化查看所有案件的重要日期节点</p>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <%= link_to cases_path, class: "btn-neutral" do %>
+          <%= lucide_icon "list", class: "w-4 h-4" %>
+          <span>列表视图</span>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- 筛选器和月份导航 -->
+    <div class="card card-elevated mb-6" data-controller="case-calendar">
+      <div class="card-body">
+        
+        <!-- 月份导航 -->
+        <div class="flex items-center justify-between mb-6">
+          <button type="button" 
+                  data-action="click->case-calendar#previousMonth"
+                  class="btn-neutral btn-sm">
+            <%= lucide_icon "chevron-left", class: "w-4 h-4" %>
+            <span>上月</span>
+          </button>
+          
+          <h2 class="font-heading text-2xl font-bold text-primary">
+            <%= @current_date.strftime('%Y年%m月') %>
+          </h2>
+          
+          <button type="button"
+                  data-action="click->case-calendar#nextMonth" 
+                  class="btn-neutral btn-sm">
+            <span>下月</span>
+            <%= lucide_icon "chevron-right", class: "w-4 h-4" %>
+          </button>
+        </div>
+        
+        <!-- 筛选器 -->
+        <%= form_with url: calendar_cases_path, method: :get, class: "space-y-4", data: { turbo_frame: "_top" } do |f| %>
+          <!-- 隐藏的年月字段 -->
+          <%= f.hidden_field :year, value: @year, data: { "case-calendar-target": "yearInput" } %>
+          <%= f.hidden_field :month, value: @month, data: { "case-calendar-target": "monthInput" } %>
+          
+          <div class="grid md:grid-cols-2 gap-4">
+            <!-- 案件状态筛选 -->
+            <div>
+              <label class="form-label">案件状态</label>
+              <%= f.select :status, 
+                  options_for_select([
+                    ['全部状态', ''],
+                    ['准备立案', 'preparing'],
+                    ['已立案待审', 'filed'],
+                    ['审理中', 'trial'],
+                    ['已判决', 'judged'],
+                    ['执行中', 'execution'],
+                    ['调解结案', 'settled'],
+                    ['已归档', 'closed']
+                  ], @status_filter),
+                  {},
+                  class: "form-select",
+                  onchange: "this.form.requestSubmit()" %>
+            </div>
+            
+            <!-- 事件类型筛选 -->
+            <div>
+              <label class="form-label">显示事件类型</label>
+              <div class="relative" data-controller="dropdown">
+                <button type="button" 
+                        data-action="click->dropdown#toggle"
+                        class="form-select text-left flex items-center justify-between">
+                  <span>已选择 <%= @event_types.size %> 种事件</span>
+                  <%= lucide_icon "chevron-down", class: "w-4 h-4" %>
+                </button>
+                
+                <div data-dropdown-target="menu" 
+                     class="hidden absolute z-10 mt-2 w-full bg-surface border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg max-h-96 overflow-y-auto">
+                  <div class="p-3 space-y-2">
+                    <% ['立案日期', '开庭时间', '判决领取', '归档日期', '保全到期', '执行到期'].each do |event_type| %>
+                      <label class="flex items-center gap-2 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded cursor-pointer">
+                        <%= check_box_tag 'event_types[]', event_type, @event_types.include?(event_type), 
+                            class: "form-checkbox",
+                            onchange: "this.form.requestSubmit()" %>
+                        <span class="text-sm"><%= event_type %></span>
+                      </label>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        
+      </div>
+    </div>
+    
+    <!-- 日历网格 -->
+    <div class="card card-elevated">
+      <div class="card-body p-0">
+        
+        <!-- 星期标题行 -->
+        <div class="grid grid-cols-7 border-b border-neutral-200 dark:border-neutral-700">
+          <% ['周一', '周二', '周三', '周四', '周五', '周六', '周日'].each do |day| %>
+            <div class="p-4 text-center font-semibold text-secondary border-r border-neutral-200 dark:border-neutral-700 last:border-r-0">
+              <%= day %>
+            </div>
+          <% end %>
+        </div>
+        
+        <!-- 日历格子 -->
+        <div class="grid grid-cols-7">
+          <% 
+            # 计算月初是星期几（Monday = 1, Sunday = 7）
+            month_start = @current_date
+            month_end = month_start.end_of_month
+            first_weekday = month_start.cwday  # 1-7 (Monday-Sunday)
+            
+            # 填充前面的空白日期（上个月）
+            days_before = first_weekday - 1
+            start_date = month_start - days_before.days
+            
+            # 计算需要显示的总天数（确保显示完整的周）
+            total_days = (month_end - start_date).to_i + 1
+            weeks = (total_days / 7.0).ceil
+            end_date = start_date + (weeks * 7 - 1).days
+            
+            # 渲染所有日期
+            current_date = start_date
+            while current_date <= end_date
+              is_current_month = current_date.month == @month
+              is_today = current_date == Date.today
+              day_events = @events_by_date[current_date] || []
+          %>
+            <div class="min-h-32 p-2 border-r border-b border-neutral-200 dark:border-neutral-700 last:border-r-0 <%= 'bg-neutral-50 dark:bg-neutral-900' unless is_current_month %> <%= 'ring-2 ring-primary ring-inset' if is_today %>">
+              <!-- 日期数字 -->
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-semibold <%= is_current_month ? 'text-primary' : 'text-muted' %> <%= 'bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center' if is_today %>">
+                  <%= current_date.day %>
+                </span>
+                <% if day_events.any? %>
+                  <span class="badge badge-primary badge-sm"><%= day_events.size %></span>
+                <% end %>
+              </div>
+              
+              <!-- 事件列表 -->
+              <% if day_events.any? %>
+                <div class="space-y-1">
+                  <% day_events.first(3).each do |event| %>
+                    <%= link_to case_path(event[:case]), 
+                        class: "block p-1.5 rounded text-xs hover:shadow-md transition-shadow truncate bg-#{event[:color]}-100 text-#{event[:color]}-700 dark:bg-#{event[:color]}-900 dark:text-#{event[:color]}-300",
+                        title: event[:label] do %>
+                      <%= lucide_icon event[:icon], class: "w-3 h-3 inline mr-1" %>
+                      <span class="font-medium"><%= event[:type] %></span>
+                    <% end %>
+                  <% end %>
+                  
+                  <% if day_events.size > 3 %>
+                    <button type="button" 
+                            class="block w-full p-1 text-xs text-center text-muted hover:text-primary transition-colors"
+                            data-action="click->case-calendar#showDayEvents"
+                            data-date="<%= current_date.to_s %>"
+                            data-events="<%= day_events.to_json.gsub('"', '&quot;') %>">
+                      +<%= day_events.size - 3 %> 更多
+                    </button>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% 
+              current_date += 1.day
+            end 
+          %>
+        </div>
+        
+      </div>
+    </div>
+    
+    <!-- 图例说明 -->
+    <div class="card mt-6">
+      <div class="card-body">
+        <h3 class="font-semibold text-primary mb-3">颜色图例</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-info-500 rounded"></div>
+            <span class="text-sm text-secondary">立案/一般事项</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-success-500 rounded"></div>
+            <span class="text-sm text-secondary">已完成事项</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-warning-500 rounded"></div>
+            <span class="text-sm text-secondary">即将到期/开庭</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-danger-500 rounded"></div>
+            <span class="text-sm text-secondary">紧急/逾期</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-neutral-500 rounded"></div>
+            <span class="text-sm text-secondary">归档记录</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- 日期事件详情模态框（通过 Stimulus 动态显示） -->
+<div id="day-events-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" data-case-calendar-target="modal">
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" data-action="click->case-calendar#closeModal"></div>
+    
+    <div class="relative bg-surface rounded-lg shadow-xl max-w-2xl w-full p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-heading text-xl font-bold text-primary" data-case-calendar-target="modalTitle">
+          <!-- 动态标题 -->
+        </h3>
+        <button type="button" 
+                data-action="click->case-calendar#closeModal"
+                class="text-muted hover:text-primary">
+          <%= lucide_icon "x", class: "w-5 h-5" %>
+        </button>
+      </div>
+      
+      <div class="space-y-3" data-case-calendar-target="modalContent">
+        <!-- 动态内容 -->
+      </div>
+    </div>
+  </div>
+</div>

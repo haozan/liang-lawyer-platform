@@ -1,0 +1,31 @@
+<%#
+  Collapsible attachments section
+  
+  Parameters:
+    - attachments: ActiveStorage::Attached collection
+    - title: Section title (default: "附件")
+    - threshold: Auto-collapse threshold (default: 3)
+    - icon: Icon name (default: "paperclip")
+%>
+
+<% attachments ||= [] %>
+<% title ||= "附件" %>
+<% threshold ||= 3 %>
+<% icon ||= "paperclip" %>
+
+<% if attachments.attached? && attachments.any? %>
+  <%= collapsible_section(
+    title: title,
+    count: attachments.count,
+    threshold: threshold,
+    icon: icon
+  ) do %>
+    <div class="space-y-2">
+      <% attachments.each do |attachment| %>
+        <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: true) %>
+      <% end %>
+    </div>
+  <% end %>
+<% else %>
+  <p class="text-xs text-muted"><%= title %>：暂无</p>
+<% end %>

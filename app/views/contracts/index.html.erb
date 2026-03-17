@@ -17,10 +17,20 @@
         <h1 class="font-heading text-4xl font-bold text-primary mb-2">合同档案管理</h1>
         <p class="text-secondary">管理企业合同全周期跟踪与证据链保存</p>
       </div>
-      <%= link_to new_contract_path, class: "btn-primary" do %>
-        <%= lucide_icon "plus", class: "w-5 h-5" %>
-        <span>新建合同档案</span>
-      <% end %>
+      <div class="flex items-center gap-3">
+        <%= link_to calendar_contracts_path, class: "btn-info" do %>
+          <%= lucide_icon "calendar-days", class: "w-5 h-5" %>
+          <span>日历视图</span>
+        <% end %>
+        <%= link_to dashboard_contract_risks_path, class: "btn-warning" do %>
+          <%= lucide_icon "alert-triangle", class: "w-5 h-5" %>
+          <span>合同风险预警</span>
+        <% end %>
+        <%= link_to new_contract_path, class: "btn-primary" do %>
+          <%= lucide_icon "plus", class: "w-5 h-5" %>
+          <span>新建合同档案</span>
+        <% end %>
+      </div>
     </div>
 
     <%= form_with url: contracts_path, method: :get, class: "mb-6" do |f| %>

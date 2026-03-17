@@ -1,0 +1,82 @@
+<div class="card card-elevated">
+  <div class="card-header border-b border-border">
+    <h3 class="font-heading text-xl font-bold text-primary flex items-center gap-2">
+      <%= lucide_icon "users", class: "w-5 h-5" %>
+      内部协作讨论
+      <span class="badge badge-secondary badge-sm">仅团队可见</span>
+    </h3>
+  </div>
+  <div class="card-body space-y-6">
+    <% internal_comments = comments.select { |c| c.commentable_type == 'Contract' && c.visibility == 'internal' } %>
+    
+    <% if internal_comments.any? %>
+      <div>
+        <h4 class="font-semibold text-primary mb-3 flex items-center gap-2">
+          <%= lucide_icon "history", class: "w-4 h-4" %>
+          历史讨论记录
+        </h4>
+        <div class="space-y-4">
+          <% internal_comments.each do |comment| %>
+            <div class="border border-border rounded-lg p-4 bg-surface-elevated hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-primary"><%= comment.author_name %></span>
+                  <span class="text-xs text-muted"><%= comment.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+                  <span class="badge badge-info badge-sm">内部</span>
+                </div>
+                <% current_user = current_lawyer || current_company_user %>
+                <% if comment.deletable_by?(current_user) %>
+                  <%= link_to comment_path(comment), 
+                    data: { turbo_method: :delete, turbo_confirm: "确定删除该讨论吗？" },
+                    class: "text-danger hover:text-danger-hover text-xs",
+                    title: "删除讨论（30分钟内可删）" do %>
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  <% end %>
+                <% end %>
+              </div>
+              <p class="text-secondary text-sm whitespace-pre-wrap mb-3"><%= comment.content %></p>
+              <% if comment.attachments.attached? %>
+                <div class="flex flex-col gap-2">
+                  <% comment.attachments.each do |attachment| %>
+                    <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: true) %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <p class="text-muted text-center py-4">暂无内部讨论</p>
+    <% end %>
+    
+    <!-- 添加内部讨论表单（仅律师团队可用） -->
+    <% if lawyer? %>
+      <div class="border-t border-border pt-6 mt-6">
+        <h4 class="font-semibold text-primary mb-4 flex items-center gap-2">
+          <%= lucide_icon "pen-tool", class: "w-4 h-4" %>
+          发起内部讨论
+        </h4>
+        <div class="alert alert-info mb-4">
+          <%= lucide_icon "info", class: "w-5 h-5" %>
+          <div class="flex-1">
+            <p class="text-sm">
+              此区域仅主责律师团队成员可见，可用于内部讨论合同风险、处理策略等敏感信息。
+              使用 <code>@律师名</code> 可提醒团队成员。
+            </p>
+          </div>
+        </div>
+        <%= form_with model: Comment.new, url: contract_comments_path(contract), class: "space-y-4", multipart: true do |f| %>
+          <%= hidden_field_tag 'comment[visibility]', 'internal' %>
+          <%= f.text_area :content, rows: 4, placeholder: "请输入内部讨论内容，可使用 @律师名 提醒团队成员...", class: "form-textarea", required: true %>
+          <div>
+            <%= f.label :attachments, "附件上传 (可选)", class: "form-label" %>
+            <%= f.file_field :attachments, multiple: true, class: "form-input", accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" %>
+            <p class="form-help">可上传内部分析报告、法律意见书等，支持PDF、Word、Excel、图片等格式</p>
+          </div>
+          <%= f.submit "发布讨论", class: "btn btn-primary" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

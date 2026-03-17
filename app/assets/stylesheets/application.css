@@ -43,13 +43,17 @@
    * Use semantic variables only for maintainability and theme consistency.
    */
   :root {
-    --color-primary: 210 40% 30%;
-    --color-primary-light: 210 35% 45%;
-    --color-primary-dark: 210 50% 20%;
+    /* 方案一：专业法律风格配色 */
+    
+    /* Primary: 创建/提交操作 - 深蓝色（沉稳可靠） */
+    --color-primary: 210 70% 45%;
+    --color-primary-light: 210 65% 55%;
+    --color-primary-dark: 210 75% 35%;
 
-    --color-secondary: 30 60% 50%;
-    --color-secondary-light: 30 65% 65%;
-    --color-secondary-dark: 30 55% 40%;
+    /* Secondary: 次要操作 - 中性灰（低调稳重） */
+    --color-secondary: 220 15% 50%;
+    --color-secondary-light: 220 15% 65%;
+    --color-secondary-dark: 220 15% 35%;
 
     /* Text colors - high contrast for readability */
     --color-text-primary: 0 0% 15%;    /* Main headings, important text */
@@ -64,10 +68,14 @@
     /*  Neutral color - use only in special cases, avoid for text */
     --color-neutral: 0 0% 64%;
 
-    --color-success: 142 76% 36%;
-    --color-warning: 38 92% 50%;
-    --color-danger: 0 84% 60%;
-    --color-info: 188 94% 42%;
+    /* Success: 批准/成功/下载操作 - 森林绿（正面积极） */
+    --color-success: 145 70% 42%;
+    /* Warning: 编辑/修改操作 - 琥珀色（醒目但不刺激） */
+    --color-warning: 35 90% 55%;
+    /* Danger: 删除/危险操作 - 深红（强警示） */
+    --color-danger: 0 75% 55%;
+    /* Info: 查看/详情操作 - 青蓝色（信息展示） */
+    --color-info: 200 85% 45%;
 
     --color-success-bg: 138 76% 97%;
     --color-warning-bg: 48 100% 96%;
@@ -118,10 +126,10 @@
     --color-border: 0 0% 20%;          /* Borders, adequate contrast */
 
     /* Status colors optimization for dark mode - brighter and more saturated */
-    --color-success: 145 80% 50%;      /* Brighter green */
-    --color-warning: 45 95% 60%;       /* Brighter yellow */
-    --color-danger: 0 85% 65%;         /* Brighter red */
-    --color-info: 200 95% 55%;         /* Brighter blue */
+    --color-success: 145 75% 52%;      /* Brighter forest green */
+    --color-warning: 35 95% 65%;       /* Brighter amber */
+    --color-danger: 0 80% 65%;         /* Brighter deep red */
+    --color-info: 200 90% 55%;         /* Brighter cyan blue */
 
     /* Status background colors - semi-transparent for dark mode */
     --color-success-bg: 145 80% 50% / 0.15; /* Semi-transparent green background */

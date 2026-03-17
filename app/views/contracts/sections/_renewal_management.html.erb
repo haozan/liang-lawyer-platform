@@ -1,0 +1,59 @@
+<details <%= 'open' unless local_assigns[:collapsed] %> class="card card-elevated" id="renewal-management">
+  <summary class="card-header border-b border-border cursor-pointer hover:bg-surface-elevated transition-colors select-none">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "repeat", class: "w-5 h-5" %>
+      续约管理
+      <%= lucide_icon "chevron-down", class: "w-4 h-4 text-muted transition-transform [[open]>&]:rotate-180" %>
+    </h3>
+  </summary>
+  <div class="card-body space-y-4">
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.auto_renewal %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "refresh-cw", class: "w-4 h-4" %>
+            自动续约
+          </label>
+          <span class="badge badge-success">是</span>
+          <% if contract.renewal_notice_period.present? %>
+            <p class="text-sm text-muted mt-1">需提前 <%= contract.renewal_notice_period %> 天通知不续约</p>
+          <% end %>
+        </div>
+      <% end %>
+      <% if contract.renewal_intention.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "thumbs-up", class: "w-4 h-4" %>
+            续约意向
+          </label>
+          <% case contract.renewal_intention %>
+          <% when '续约' %>
+            <span class="badge badge-success"><%= contract.renewal_intention %></span>
+          <% when '不续约' %>
+            <span class="badge badge-danger"><%= contract.renewal_intention %></span>
+          <% when '待定' %>
+            <span class="badge badge-warning"><%= contract.renewal_intention %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <% if contract.needs_renewal_notice? %>
+      <div class="alert alert-warning">
+        <%= lucide_icon "alert-circle", class: "w-5 h-5" %>
+        <div>
+          <h4 class="font-semibold">续约提醒</h4>
+          <p class="text-sm">合同即将到期，请及时决定是否续约并通知对方</p>
+        </div>
+      </div>
+    <% end %>
+    <% if contract.renewal_notes.present? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "message-square", class: "w-4 h-4" %>
+          续约备注
+        </label>
+        <p class="text-secondary whitespace-pre-wrap bg-surface-elevated rounded p-3"><%= contract.renewal_notes %></p>
+      </div>
+    <% end %>
+  </div>
+</details>

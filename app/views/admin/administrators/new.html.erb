@@ -1,14 +1,14 @@
-<% content_for :title, "New Administrator" %>
+<% content_for :title, "新建管理员" %>
 
 <div class="container-md">
   <div class="flex items-center space-x-4">
     <%= link_to admin_administrators_path, class: "btn-ghost text-sm py-1 px-3" do %>
       <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
-      Back to Administrators
+      返回管理员列表
     <% end %>
   </div>
 
-  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">Create New Administrator</h1>
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">创建新管理员</h1>
 
   <!-- Form -->
   <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
@@ -17,19 +17,25 @@
         <!-- Name -->
         <div class="form-group">
           <%= form.label :name %>
-          <%= form.text_field :name, placeholder: "Enter name..." %>
+          <%= form.text_field :name, placeholder: "请输入管理员姓名..." %>
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <%= form.label :phone, "手机号" %>
+          <%= form.telephone_field :phone, placeholder: "请输入11位手机号", required: true %>
         </div>
 
         <!-- Password -->
         <div class="form-group">
           <%= form.label :password %>
-          <%= form.password_field :password, placeholder: "Enter password..." %>
+          <%= form.password_field :password, placeholder: "请输入密码..." %>
         </div>
 
         <!-- Password Confirmation -->
         <div class="form-group">
           <%= form.label :password_confirmation %>
-          <%= form.password_field :password_confirmation, placeholder: "Confirm password..." %>
+          <%= form.password_field :password_confirmation, placeholder: "确认密码..." %>
         </div>
 
         <!-- Role (only for super admins) -->
@@ -43,9 +49,9 @@
         <!-- Form Actions -->
         <div class="flex justify-end space-x-3">
           <%= link_to admin_administrators_path, class: "btn-ghost" do %>
-            Cancel
+            取消
           <% end %>
-          <%= form.submit "Create Administrator", class: "btn-primary" %>
+          <%= form.submit "创建管理员", class: "btn-primary" %>
         </div>
       <% end %>
     </div>

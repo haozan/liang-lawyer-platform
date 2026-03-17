@@ -1,0 +1,118 @@
+<% content_for :title, @business_team_ownership.respond_to?(:name) ? @business_team_ownership.name : "Business team ownership" %>
+
+<div class="container-lg">
+  <div class="mb-6">
+    <div class="flex items-center space-x-4">
+      <%= link_to admin_business_team_ownerships_path, class: "btn-ghost text-sm py-1 px-3" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+        Back to Business team ownerships
+      <% end %>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50"><%= @business_team_ownership.respond_to?(:name) ? @business_team_ownership.name : "Business team ownership ##{@business_team_ownership.id}" %></h1>
+
+      <div class="flex items-center space-x-3">
+        <%= link_to edit_admin_business_team_ownership_path(@business_team_ownership.id), class: "btn-primary" do %>
+          <%= lucide_icon "pencil", class: "w-5 h-5 mr-2" %>
+          Edit
+        <% end %>
+
+        <%= link_to admin_business_team_ownership_path(@business_team_ownership.id),
+            method: :delete,
+            data: { confirm: "Are you sure you want to delete this business_team_ownership?" },
+            class: "btn-danger" do %>
+          <%= lucide_icon "trash-2", class: "w-5 h-5 mr-2" %>
+          Delete
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business team ownership Content -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <div class="space-y-6">
+        <!-- Business type -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Business type</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.business_type %></div>
+        </div>
+
+        <!-- Is primary -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Is primary</label>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= @business_team_ownership.is_primary ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' %>">
+            <%= @business_team_ownership.is_primary ? 'Yes' : 'No' %>
+          </span>
+        </div>
+
+        <!-- Access level -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Access level</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.access_level %></div>
+        </div>
+
+        <!-- Authorized at -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Authorized at</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.authorized_at&.strftime('%Y-%m-%d %H:%M') %></div>
+        </div>
+
+        <!-- Expires at -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Expires at</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.expires_at&.strftime('%Y-%m-%d %H:%M') %></div>
+        </div>
+
+        <!-- Business -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Business</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.business&.id %></div>
+        </div>
+
+        <!-- Lawyer team -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lawyer team</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.lawyer_team&.name %></div>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.company&.name %></div>
+        </div>
+
+        <!-- Authorized by -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Authorized by</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @business_team_ownership.authorized_by&.name %></div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="pt-6 border-t border-gray-200 dark:border-gray-600">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID</label>
+              <div class="text-sm text-gray-900 dark:text-gray-100 font-mono"><%= @business_team_ownership.id %></div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created</label>
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                <%= @business_team_ownership.created_at.strftime("%Y年%-m月%-d日 %H:%M") %>
+                <span class="text-gray-400">(<%= time_ago_in_words(@business_team_ownership.created_at) %> ago)</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Updated</label>
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                <%= @business_team_ownership.updated_at.strftime("%Y年%-m月%-d日 %H:%M") %>
+                <span class="text-gray-400">(<%= time_ago_in_words(@business_team_ownership.updated_at) %> ago)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

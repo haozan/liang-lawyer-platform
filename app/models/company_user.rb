@@ -1,8 +1,12 @@
 class CompanyUser < ApplicationRecord
   has_secure_password
   
+  # Concerns
+  include LockableAccount
+  
   # Associations
   belongs_to :company
+  has_many :case_filters, as: :user, dependent: :destroy
   
   # Validations
   validates :name, presence: true
@@ -39,6 +43,11 @@ class CompanyUser < ApplicationRecord
   
   def executive?
     role == 'executive'
+  end
+  
+  # 判断企业用户是否可以管理附件（删除等操作）
+  def can_manage_attachments?
+    executive? || boss?  # 只有主管和老板能删附件
   end
   
   private

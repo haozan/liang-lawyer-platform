@@ -1,1 +1,5 @@
-<%= render 'form' %>
+<% if @mode == 'quick' %>
+  <%= render 'quick_form' %>
+<% else %>
+  <%= render 'form' %>
+<% end %>

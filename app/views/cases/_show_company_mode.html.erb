@@ -1,0 +1,281 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-lg mx-auto px-6">
+    <!-- 返回按钮 -->
+    <div class="mb-6">
+      <%= link_to cases_path, class: "inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回列表</span>
+      <% end %>
+    </div>
+
+    <!-- 案件标题区域 -->
+    <div class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <h1 class="font-heading text-4xl font-bold text-primary"><%= @case.name %></h1>
+        <% case @case.status %>
+        <% when 'pending' %>
+          <span class="badge badge-warning">准备立案</span>
+        <% when 'filed' %>
+          <span class="badge badge-info">已立案待审</span>
+        <% when 'trial' %>
+          <span class="badge badge-danger">审理中</span>
+        <% when 'judged' %>
+          <span class="badge badge-primary">已判决</span>
+        <% when 'execution' %>
+          <span class="badge badge-warning">执行中</span>
+        <% when 'settled' %>
+          <span class="badge badge-success">调解结案</span>
+        <% when 'closed' %>
+          <span class="badge badge-neutral">已归档</span>
+        <% end %>
+        <% if @case.stage.present? %>
+          <span class="badge badge-secondary"><%= @case.stage_display %></span>
+        <% end %>
+      </div>
+      <p class="text-secondary">案号：<%= @case.case_number.present? ? @case.case_number : '准备立案' %></p>
+    </div>
+
+    <div class="flex gap-6">
+      <!-- 主内容区 -->
+      <div class="flex-1">
+        <!-- 标签页导航 -->
+        <div class="card card-elevated mb-6" data-controller="tabs" data-tabs-active-tab-value="overview">
+          <div class="border-b border-border">
+            <nav class="flex gap-6 overflow-x-auto" role="tablist" data-controller="horizontal-scroll">
+              <button type="button" role="tab" 
+                      data-tabs-target="button" 
+                      data-action="click->tabs#select" 
+                      data-tab="overview"
+                      class="tab-button px-6 py-3 border-b-2 border-primary text-primary font-semibold whitespace-nowrap active">
+                <%= lucide_icon "info", class: "w-4 h-4 inline mr-2" %>
+                案件概览
+              </button>
+              <button type="button" role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="progress"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "calendar-check", class: "w-4 h-4 inline mr-2" %>
+                审理进度
+              </button>
+              <button type="button" role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="documents"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "folder-open", class: "w-4 h-4 inline mr-2" %>
+                案件文档
+                <% total_attachments = @case.attachments.count + 
+                   (@case.filing_attachments.attached? ? @case.filing_attachments.count : 0) +
+                   (@case.hearing_attachments.attached? ? @case.hearing_attachments.count : 0) +
+                   (@case.judgement_attachments.attached? ? @case.judgement_attachments.count : 0) +
+                   (@case.archived_attachments.attached? ? @case.archived_attachments.count : 0) %>
+                <% if total_attachments > 0 %>
+                  <span class="badge badge-neutral ml-1"><%= total_attachments %></span>
+                <% end %>
+              </button>
+              <button type="button" role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="work-logs"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "clipboard-list", class: "w-4 h-4 inline mr-2" %>
+                工作记录
+                <% if @work_logs.any? %>
+                  <span class="badge badge-neutral ml-1"><%= @work_logs.count %></span>
+                <% end %>
+              </button>
+              <button type="button" role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="comments"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "message-square", class: "w-4 h-4 inline mr-2" %>
+                律师意见
+                <% if @comments.any? %>
+                  <span class="badge badge-neutral ml-1"><%= @comments.count %></span>
+                <% end %>
+              </button>
+            </nav>
+          </div>
+
+          <!-- 标签页内容 -->
+          <div class="card-body">
+            <!-- 📄 案件概览标签页 -->
+            <div data-tabs-target="panel" data-tab="overview" class="space-y-6">
+              <%= render 'cases/sections/case_team', case_record: @case %>
+              <%= render 'cases/sections/case_clients', case_record: @case %>
+              <%= render 'cases/sections/basic_info', case_record: @case %>
+              <%= render 'cases/sections/parties_info', case_record: @case %>
+              <%= render 'cases/sections/claim_amounts', case_record: @case %>
+              <%= render 'cases/sections/lawyer_fee_payment', case_record: @case %>
+              <%= render 'cases/sections/related_cases', case_record: @case %>
+              <%= render 'cases/sections/case_summary', case_record: @case %>
+            </div>
+
+            <!-- 📅 审理进度标签页 -->
+            <div data-tabs-target="panel" data-tab="progress" class="space-y-6 hidden">
+              <%= render 'cases/sections/important_dates', case_record: @case %>
+              <%= render 'cases/sections/claims_comparison', case_record: @case %>
+              <%= render 'cases/sections/execution_info', case_record: @case %>
+              <%= render 'cases/sections/property_preservation', case_record: @case %>
+            </div>
+
+            <!-- 📂 案件文档标签页 -->
+            <div data-tabs-target="panel" data-tab="documents" class="space-y-6 hidden">
+              <%= render 'cases/sections/documents_by_stage', case_record: @case %>
+            </div>
+
+            <!-- 📝 工作记录标签页 -->
+            <div data-tabs-target="panel" data-tab="work-logs" class="hidden">
+              <%= render 'cases/sections/work_logs', case_record: @case, work_logs: @work_logs %>
+            </div>
+
+            <!-- 💬 律师意见标签页 -->
+            <div data-tabs-target="panel" data-tab="comments" class="hidden">
+              <%= render 'cases/sections/lawyer_comments', case_record: @case, comments: @comments %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🧭 右侧固定侧边栏 -->
+      <div class="w-64 flex-shrink-0 hidden lg:block">
+        <div class="sticky top-8 space-y-6">
+          <!-- 关键指标摘要 -->
+          <div class="card card-elevated">
+            <div class="card-body space-y-4">
+              <h4 class="font-semibold text-primary flex items-center gap-2">
+                <%= lucide_icon "bar-chart-2", class: "w-4 h-4" %>
+                关键指标
+              </h4>
+              <div class="space-y-3">
+                <div>
+                  <p class="text-xs text-muted mb-1">诉讼标的额</p>
+                  <p class="text-lg font-bold text-primary">
+                    <% if @case.claim_amount.present? && @case.claim_amount > 0 %>
+                      <%= @case.formatted_claim_amount %>
+                    <% else %>
+                      <span class="text-sm text-muted">未设置</span>
+                    <% end %>
+                  </p>
+                </div>
+                <% if @case.awarded_amount.present? %>
+                  <div>
+                    <p class="text-xs text-muted mb-1">判决金额</p>
+                    <p class="text-lg font-bold text-success">
+                      <%= mask_amount(@case.awarded_amount) %>
+                    </p>
+                  </div>
+                <% end %>
+                <% if @case.claim_amount.present? && @case.awarded_amount.present? && @case.win_rate.present? %>
+                  <div>
+                    <p class="text-xs text-muted mb-1">胜诉率</p>
+                    <p class="text-lg font-bold <%= @case.win_rate >= 80 ? 'text-success' : 'text-warning' %>">
+                      <%= @case.win_rate %>%
+                    </p>
+                  </div>
+                <% end %>
+                <% if @case.status == 'execution' && @case.awarded_amount.present? && @case.executed_amount.present? %>
+                  <div>
+                    <p class="text-xs text-muted mb-1">执行进度</p>
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 bg-surface-secondary rounded-full h-2">
+                        <div class="bg-success rounded-full h-2" style="width: <%= [@case.execution_progress, 100].min %>%"></div>
+                      </div>
+                      <span class="text-sm font-bold text-success"><%= @case.execution_progress %>%</span>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- 案件时间线 -->
+          <div class="card card-elevated">
+            <div class="card-body">
+              <h4 class="font-semibold text-primary mb-4 flex items-center gap-2">
+                <%= lucide_icon "calendar", class: "w-4 h-4" %>
+                案件时间线
+              </h4>
+              <div class="space-y-4">
+                <% if @case.filing_at %>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 bg-success rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p class="text-sm font-semibold text-primary"><%= @case.filing_label %></p>
+                      <p class="text-xs text-muted"><%= @case.filing_at.strftime('%Y-%m-%d') %></p>
+                    </div>
+                  </div>
+                <% end %>
+                <% if @case.hearing_at %>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 <%= @case.hearing_at < Time.current ? 'bg-success' : 'bg-warning' %> rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p class="text-sm font-semibold text-primary">开庭</p>
+                      <p class="text-xs text-muted"><%= @case.hearing_at.strftime('%Y-%m-%d %H:%M') %></p>
+                    </div>
+                  </div>
+                <% end %>
+                <% if @case.judgement_received_at %>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 bg-success rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p class="text-sm font-semibold text-primary">领取判决</p>
+                      <p class="text-xs text-muted"><%= @case.judgement_received_at.strftime('%Y-%m-%d') %></p>
+                    </div>
+                  </div>
+                <% end %>
+                <% if @case.status == 'execution' && @case.execution_start_at.present? %>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 bg-info rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p class="text-sm font-semibold text-primary">执行立案</p>
+                      <p class="text-xs text-muted"><%= @case.execution_start_at.strftime('%Y-%m-%d') %></p>
+                    </div>
+                  </div>
+                <% end %>
+                <% if @case.archived_at %>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 bg-success rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p class="text-sm font-semibold text-primary">归档</p>
+                      <p class="text-xs text-muted"><%= @case.archived_at.strftime('%Y-%m-%d') %></p>
+                    </div>
+                  </div>
+                <% end %>
+                <% if @case.closing_at %>
+                  <div class="flex items-start gap-3">
+                    <div class="w-2 h-2 bg-neutral rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p class="text-sm font-semibold text-primary">结案</p>
+                      <p class="text-xs text-muted"><%= @case.closing_at.strftime('%Y-%m-%d') %></p>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- 快捷操作 -->
+          <% if current_company_user && @case.can_boss_download_archive?(current_company_user) %>
+            <div class="card card-elevated">
+              <div class="card-body">
+                <h4 class="font-semibold text-primary mb-4 flex items-center gap-2">
+                  <%= lucide_icon "zap", class: "w-4 h-4" %>
+                  快捷操作
+                </h4>
+                <div class="space-y-2">
+                  <%= link_to download_archive_case_path(@case), class: "btn-success w-full justify-start" do %>
+                    <%= lucide_icon "download", class: "w-4 h-4" %>
+                    <span>下载归档档案</span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

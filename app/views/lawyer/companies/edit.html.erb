@@ -104,6 +104,114 @@
                 <% end %>
               </div>
             </div>
+            
+            <!-- Team Access Management -->
+            <% if @company.persisted? %>
+              <div class="alert alert-info">
+                <div class="space-y-4">
+                  <div class="flex items-center gap-3">
+                    <%= lucide_icon "users", class: "w-5 h-5 flex-shrink-0" %>
+                    <div class="flex-1">
+                      <p class="font-semibold text-primary">主责团队</p>
+                      <p class="text-sm text-secondary mt-1">
+                        <%= @company.lawyer_team&.name || '未分配' %>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <%# 协作团队功能已隐藏 - 2025-03-15 %>
+                  <%#
+                  <div class="border-t border-surface-elevated pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <p class="font-semibold text-primary">协作团队</p>
+                      <% if current_lawyer.super_admin? || current_lawyer.team_leader_of?(@company.lawyer_team) %>
+                        <div data-controller="dropdown" class="relative">
+                          <button type="button"
+                                  data-dropdown-target="trigger"
+                                  data-action="click->dropdown#toggle"
+                                  class="btn-outline btn-sm">
+                            <%= lucide_icon "plus", class: "w-4 h-4" %>
+                            <span>添加团队</span>
+                          </button>
+                          
+                          <div data-dropdown-target="menu"
+                               class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
+                            <div class="p-4">
+                              <h4 class="font-semibold text-primary mb-3">授权协作团队</h4>
+                              <%= form_with url: lawyer_company_company_team_accesses_path(@company), method: :post, class: "space-y-3", data: { turbo_frame: "_top" } do |form| %>
+                                <div class="form-group">
+                                  <%= form.label :lawyer_team_id, "选择团队", class: "form-label required" %>
+                                  <% available_teams = LawyerTeam.active.where.not(id: [@company.lawyer_team_id] + @company.company_team_accesses.pluck(:lawyer_team_id)) %>
+                                  <% if available_teams.any? %>
+                                    <%= form.select :lawyer_team_id,
+                                        options_for_select(available_teams.map { |t| [t.name, t.id] }),
+                                        { include_blank: '请选择团队' },
+                                        { class: "form-input", required: true } %>
+                                  <% else %>
+                                    <p class="text-sm text-secondary">没有可用的团队</p>
+                                  <% end %>
+                                </div>
+                                <div class="form-group">
+                                  <%= form.label :access_level, "权限级别", class: "form-label required" %>
+                                  <%= form.select :access_level,
+                                      options_for_select([["查看者", "viewer"], ["编辑者", "editor"], ["管理者", "manager"]]),
+                                      {},
+                                      { class: "form-input", required: true } %>
+                                  <p class="form-hint">查看者只能查看，编辑者可以修改，管理者可以删除</p>
+                                </div>
+                                <div class="form-group">
+                                  <%= form.label :notes, "备注", class: "form-label" %>
+                                  <%= form.text_area :notes, class: "form-input", rows: 2, placeholder: "可选：记录授权原因" %>
+                                </div>
+                                <div class="flex gap-2">
+                                  <%= form.submit "确认授权", class: "btn-primary flex-1 btn-sm" %>
+                                  <button type="button"
+                                          data-action="click->dropdown#toggle"
+                                          class="btn-outline btn-sm">
+                                    取消
+                                  </button>
+                                </div>
+                              <% end %>
+                            </div>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                    
+                    <% if @company.company_team_accesses.any? %>
+                      <div class="space-y-2">
+                        <% @company.company_team_accesses.includes(:lawyer_team, :authorized_by).each do |access| %>
+                          <div class="flex items-center justify-between p-3 bg-surface rounded-lg">
+                            <div class="flex-1">
+                              <p class="font-medium text-primary"><%= access.lawyer_team.name %></p>
+                              <p class="text-xs text-secondary mt-1">
+                                <span class="badge badge-sm <%= access.access_level == 'manager' ? 'badge-primary' : (access.access_level == 'editor' ? 'badge-info' : 'badge-secondary') %>">
+                                  <%= access.access_level_text %>
+                                </span>
+                                <span class="ml-2">授权人：<%= access.authorized_by&.name || '系统' %></span>
+                                <% if access.expires_at.present? %>
+                                  <span class="ml-2">到期：<%= access.expires_at.strftime('%Y-%m-%d') %></span>
+                                <% end %>
+                              </p>
+                            </div>
+                            <% if current_lawyer.super_admin? || current_lawyer.team_leader_of?(@company.lawyer_team) %>
+                              <%= link_to lawyer_company_company_team_access_path(@company, access),
+                                  data: { turbo_method: :delete, turbo_confirm: "确定要撤销该团队的访问权限吗？" },
+                                  class: "btn-outline btn-sm btn-danger" do %>
+                                <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                              <% end %>
+                            <% end %>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% else %>
+                      <p class="text-sm text-secondary">暂无协作团队</p>
+                    <% end %>
+                  </div>
+                  %>
+                </div>
+              </div>
+            <% end %>
 
             <!-- Form Actions -->
             <div class="flex items-center gap-3 pt-4 border-t border-surface-elevated">
@@ -126,7 +234,7 @@
                            class="hidden absolute right-0 bottom-full mb-2 w-80 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
                         <div class="p-4">
                           <h4 class="font-semibold text-primary mb-3">暂停企业服务</h4>
-                          <%= form_with url: suspend_lawyer_company_path(@company), method: :post, class: "space-y-3" do |form| %>
+                          <%= form_with url: suspend_lawyer_company_path(@company), method: :post, class: "space-y-3", data: { turbo_frame: "_top" } do |form| %>
                             <div class="form-group">
                               <%= form.label :reason, "暂停原因", class: "form-label required" %>
                               <%= form.text_area :reason, class: "form-input", rows: 3, required: true, placeholder: "例如：服务期满未续约" %>
@@ -157,7 +265,7 @@
                            class="hidden absolute right-0 bottom-full mb-2 w-80 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
                         <div class="p-4">
                           <h4 class="font-semibold text-primary mb-3">恢复企业服务</h4>
-                          <%= form_with url: resume_lawyer_company_path(@company), method: :post, class: "space-y-3" do |form| %>
+                          <%= form_with url: resume_lawyer_company_path(@company), method: :post, class: "space-y-3", data: { turbo_frame: "_top" } do |form| %>
                             <div class="form-group">
                               <%= form.label :service_expires_at, "服务到期日期", class: "form-label" %>
                               <%= form.date_field :service_expires_at, class: "form-input", min: Date.today, placeholder: "留空表示永久服务" %>
@@ -177,11 +285,85 @@
                     </div>
                   <% end %>
                   
-                  <%= link_to "删除企业", lawyer_company_path(@company), 
-                      data: { turbo_method: :delete, turbo_confirm: "确定删除该企业吗？删除后将无法恢复。" }, 
-                      class: "btn-danger btn-sm" do %>
-                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
-                    <span>删除企业</span>
+                  <% if @company.can_be_deleted_by?(current_lawyer) %>
+                    <div data-controller="dropdown" class="relative">
+                      <button type="button"
+                              data-dropdown-target="trigger"
+                              data-action="click->dropdown#toggle"
+                              class="btn-danger btn-sm">
+                        <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                        <span>删除企业</span>
+                      </button>
+                      
+                      <div data-dropdown-target="menu"
+                           class="hidden absolute right-0 bottom-full mb-2 w-96 bg-surface-elevated rounded-lg shadow-xl border border-surface-elevated z-50">
+                        <div class="p-4">
+                          <div class="flex items-start gap-3 mb-4">
+                            <%= lucide_icon "alert-triangle", class: "w-5 h-5 text-danger flex-shrink-0 mt-0.5" %>
+                            <div>
+                              <h4 class="font-semibold text-danger mb-2">删除企业：<%= @company.name %></h4>
+                              <p class="text-sm text-secondary">
+                                <% if @company.safe_to_delete? %>
+                                  该操作不可逆转，请输入您的密码以确认删除。
+                                <% else %>
+                                  <span class="text-warning font-semibold">警告：</span>该企业还有关联数据，删除前需要先清理。
+                                <% end %>
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <%= form_with url: lawyer_company_path(@company), method: :delete, class: "space-y-3", data: { turbo_frame: "_top" } do |form| %>
+                            <div class="form-group">
+                              <%= form.label :confirm_password, "输入您的密码以确认删除", class: "form-label required" %>
+                              <%= form.password_field :confirm_password, 
+                                  class: "form-input", 
+                                  required: true,
+                                  placeholder: "请输入您的登录密码",
+                                  autocomplete: "current-password" %>
+                              <p class="form-hint">为了安全，删除企业需要验证您的身份</p>
+                            </div>
+                            
+                            <% unless @company.safe_to_delete? %>
+                              <div class="alert alert-warning">
+                                <div class="flex items-start gap-2">
+                                  <%= lucide_icon "info", class: "w-4 h-4 flex-shrink-0 mt-0.5" %>
+                                  <div class="text-xs">
+                                    <% summary = @company.associated_data_summary %>
+                                    <p class="font-semibold mb-1">关联数据统计：</p>
+                                    <ul class="list-disc list-inside space-y-0.5">
+                                      <% if summary[:contracts_count] > 0 %>
+                                        <li>合同：<%= summary[:contracts_count] %> 个</li>
+                                      <% end %>
+                                      <% if summary[:cases_count] > 0 %>
+                                        <li>案件：<%= summary[:cases_count] %> 个</li>
+                                      <% end %>
+                                      <% if summary[:major_issues_count] > 0 %>
+                                        <li>重大事项：<%= summary[:major_issues_count] %> 个</li>
+                                      <% end %>
+                                      <% if summary[:company_users_count] > 0 %>
+                                        <li>企业账户：<%= summary[:company_users_count] %> 个</li>
+                                      <% end %>
+                                    </ul>
+                                    <p class="mt-2 text-danger">请先删除或转移这些数据后再试</p>
+                                  </div>
+                                </div>
+                              </div>
+                            <% end %>
+                            
+                            <div class="flex gap-2">
+                              <%= form.submit "确认删除企业", 
+                                  class: "btn-danger flex-1 btn-sm",
+                                  disabled: !@company.safe_to_delete? %>
+                              <button type="button"
+                                      data-action="click->dropdown#toggle"
+                                      class="btn-outline btn-sm">
+                                取消
+                              </button>
+                            </div>
+                          <% end %>
+                        </div>
+                      </div>
+                    </div>
                   <% end %>
                 </div>
               <% end %>

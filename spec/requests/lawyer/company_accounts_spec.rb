@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe "Lawyer::CompanyAccounts", type: :request do
-  let(:lawyer) { LawyerAccount.create!(name: '测试律师', email: 'test@lawyer.com', password: 'password123') }
+  let(:lawyer) { LawyerAccount.create!(name: '测试律师', phone: '13800000000', password: 'password123', role: 'lawyer') }
   let(:company) { Company.create!(name: '测试企业') }
   
   before do

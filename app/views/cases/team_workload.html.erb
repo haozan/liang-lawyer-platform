@@ -1,0 +1,89 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="font-heading text-4xl font-bold text-primary mb-2">团队工作量统计</h1>
+        <p class="text-secondary">查看所有律师的案件负荷情况</p>
+      </div>
+      <%= link_to cases_path, class: "btn-outline" do %>
+        <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
+        <span>返回案件列表</span>
+      <% end %>
+    </div>
+
+    <!-- Workload Stats Cards -->
+    <div class="space-y-4">
+      <% @workload_stats.each do |stat| %>
+        <div class="card card-elevated">
+          <div class="card-body">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                  <%= lucide_icon "user", class: "w-7 h-7 text-primary" %>
+                </div>
+                <div>
+                  <h3 class="font-heading text-2xl font-bold text-primary"><%= stat[:lawyer].name %></h3>
+                  <p class="text-sm text-secondary"><%= stat[:lawyer].display_name %></p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-4">
+                <div class="text-right">
+                  <p class="text-sm text-secondary">总案件数</p>
+                  <p class="font-heading text-3xl font-bold text-primary"><%= stat[:total_cases] %></p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-secondary">主办案件</p>
+                  <p class="font-heading text-3xl font-bold text-info"><%= stat[:lead_cases] %></p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-secondary">活跃案件</p>
+                  <p class="font-heading text-3xl font-bold text-warning"><%= stat[:active_cases] %></p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Workload Progress Bar -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-secondary">工作负荷</span>
+                <span class="text-muted"><%= stat[:active_cases] %> / <%= stat[:total_cases] %> 活跃</span>
+              </div>
+              <div class="w-full bg-surface-elevated rounded-full h-3 overflow-hidden">
+                <% workload_percentage = stat[:total_cases] > 0 ? (stat[:active_cases].to_f / stat[:total_cases] * 100).round : 0 %>
+                <div class="h-full rounded-full transition-all duration-500 <%= 
+                  case workload_percentage
+                  when 0..30 then 'bg-success'
+                  when 31..70 then 'bg-warning'
+                  else 'bg-danger'
+                  end
+                %>" style="width: <%= [workload_percentage, 100].min %>%"></div>
+              </div>
+              <p class="text-xs text-muted">
+                <% if workload_percentage < 30 %>
+                  负荷较轻，可承接更多案件
+                <% elsif workload_percentage < 70 %>
+                  负荷适中，工作状态良好
+                <% else %>
+                  负荷较重，建议适当调配案件
+                <% end %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    
+    <% if @workload_stats.empty? %>
+      <div class="card card-elevated">
+        <div class="card-body text-center py-12">
+          <%= lucide_icon "users", class: "w-16 h-16 text-muted mx-auto mb-4" %>
+          <h3 class="font-heading text-xl font-semibold text-secondary mb-2">暂无律师数据</h3>
+          <p class="text-muted">系统中还没有律师账户</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

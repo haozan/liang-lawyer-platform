@@ -1,0 +1,106 @@
+<details <%= 'open' unless local_assigns[:collapsed] %> class="card card-elevated" id="performance-tracking">
+  <summary class="card-header border-b border-border cursor-pointer hover:bg-surface-elevated transition-colors select-none">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "trending-up", class: "w-5 h-5" %>
+      履行跟踪
+      <%= lucide_icon "chevron-down", class: "w-4 h-4 text-muted transition-transform [[open]>&]:rotate-180" %>
+    </h3>
+  </summary>
+  <div class="card-body space-y-4">
+    <% if contract.performance_progress.present? %>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "activity", class: "w-4 h-4" %>
+            履行进度
+          </label>
+          <span class="text-primary font-bold"><%= contract.performance_progress %>%</span>
+        </div>
+        <div class="w-full bg-surface-elevated rounded-full h-3">
+          <div class="bg-primary rounded-full h-3 transition-all" style="width: <%= contract.performance_progress %>%"></div>
+        </div>
+      </div>
+    <% end %>
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.performance_start_date.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "play-circle", class: "w-4 h-4" %>
+            履行开始日期
+          </label>
+          <p class="text-secondary"><%= contract.performance_start_date.strftime('%Y年%m月%d日') %></p>
+        </div>
+      <% end %>
+      <% if contract.performance_end_date.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "stop-circle", class: "w-4 h-4" %>
+            履行截止日期
+          </label>
+          <p class="text-secondary"><%= contract.performance_end_date.strftime('%Y年%m月%d日') %></p>
+        </div>
+      <% end %>
+      <% if contract.delivery_date.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "truck", class: "w-4 h-4" %>
+            交付日期
+          </label>
+          <p class="text-secondary"><%= contract.delivery_date.strftime('%Y年%m月%d日') %></p>
+        </div>
+      <% end %>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.delivery_location.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "map-pin", class: "w-4 h-4" %>
+            交付地点
+          </label>
+          <p class="text-secondary"><%= contract.delivery_location %></p>
+        </div>
+      <% end %>
+      <% if contract.acceptance_date.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "check-circle", class: "w-4 h-4" %>
+            验收日期
+          </label>
+          <p class="text-secondary"><%= contract.acceptance_date.strftime('%Y年%m月%d日') %></p>
+        </div>
+      <% end %>
+      <% if contract.warranty_period.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "shield", class: "w-4 h-4" %>
+            质保期
+          </label>
+          <p class="text-secondary">
+            <%= contract.warranty_period %>
+            <% if contract.warranty_end_date.present? %>
+              （至<%= contract.warranty_end_date.strftime('%Y年%m月%d日') %>）
+            <% end %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+    <% if contract.performance_notes.present? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "message-square", class: "w-4 h-4" %>
+          履行备注
+        </label>
+        <p class="text-secondary whitespace-pre-wrap bg-surface-elevated rounded p-3"><%= contract.performance_notes %></p>
+      </div>
+    <% end %>
+    <% if contract.next_follow_up_date.present? %>
+      <div class="alert alert-info">
+        <%= lucide_icon "bell", class: "w-5 h-5" %>
+        <div>
+          <h4 class="font-semibold">下次跟进提醒</h4>
+          <p class="text-sm"><%= contract.next_follow_up_date.strftime('%Y年%m月%d日') %></p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</details>

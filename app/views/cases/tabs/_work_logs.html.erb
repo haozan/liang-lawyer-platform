@@ -1,0 +1,77 @@
+<!-- Work Logs Tab Panel -->
+<div data-case-tabs-target="panel" data-tab-panel="work-logs" class="hidden">
+  <div class="card card-elevated">
+    <div class="card-body">
+      <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">工作大事记</h3>
+      
+      <% if @work_logs.any? %>
+        <div class="space-y-4 mb-6">
+          <% @work_logs.each do |work_log| %>
+            <div class="p-4 bg-surface-hover rounded-lg border border-gray-200 dark:border-gray-700">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-1">
+                    <%= lucide_icon "calendar", class: "w-4 h-4 text-primary" %>
+                    <span class="text-sm text-muted"><%= work_log.date.strftime('%Y年%m月%d日') %></span>
+                    <span class="text-xs text-muted px-2 py-0.5 bg-surface rounded">
+                      <%= work_log.submitter_name %>
+                    </span>
+                  </div>
+                  <h4 class="font-semibold text-primary text-lg mb-2"><%= work_log.title %></h4>
+                </div>
+                <% if current_lawyer || (current_company_user && @case.can_company_user_edit_work_logs?(current_company_user)) %>
+                  <%= button_to case_work_log_path(@case, work_log), 
+                    method: :delete, 
+                    data: { turbo_confirm: '确定删除该工作记录吗？' },
+                    class: "text-red-600 hover:text-red-800" do %>
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  <% end %>
+                <% end %>
+              </div>
+              
+              <div class="text-secondary whitespace-pre-wrap mb-3"><%= work_log.content %></div>
+              
+              <% if work_log.attachments.attached? %>
+                <div class="space-y-2">
+                  <p class="text-xs text-muted">附件：</p>
+                  <% work_log.attachments.each do |attachment| %>
+                    <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: false) %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-muted text-center py-8">暂无工作记录</p>
+      <% end %>
+      
+      <!-- Add Work Log Form (Lawyer Only) -->
+      <% if current_lawyer %>
+        <div class="<%= @work_logs.any? ? 'pt-4 border-t border-gray-200 dark:border-gray-700' : '' %>">
+          <h4 class="font-semibold text-primary mb-4">添加工作记录</h4>
+          <%= form_with url: case_work_logs_path(@case), method: :post, class: "space-y-4", multipart: true do |f| %>
+            <div class="form-control">
+              <%= label_tag "work_log[date]", "日期", class: "form-label required" %>
+              <%= date_field_tag "work_log[date]", Date.current, class: "form-input", required: true %>
+            </div>
+            <div class="form-control">
+              <%= label_tag "work_log[title]", "标题", class: "form-label required" %>
+              <%= text_field_tag "work_log[title]", nil, class: "form-input", placeholder: "工作记录标题", required: true %>
+            </div>
+            <div class="form-control">
+              <%= label_tag "work_log[content]", "内容", class: "form-label required" %>
+              <%= text_area_tag "work_log[content]", nil, class: "form-textarea", rows: 5, placeholder: "详细描述工作内容", required: true %>
+            </div>
+            <div class="form-control">
+              <%= label_tag "work_log[attachments][]", "附件", class: "form-label" %>
+              <%= file_field_tag "work_log[attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+              <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word、Excel文件，单文件不超过40MB</p>
+            </div>
+            <%= f.submit "添加工作记录", class: "btn-primary" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

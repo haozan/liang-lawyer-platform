@@ -1,0 +1,78 @@
+<div class="space-y-6">
+  <!-- 快捷操作 -->
+  <div class="card card-elevated">
+    <div class="card-body">
+      <h3 class="font-heading text-lg font-bold text-primary mb-4 flex items-center gap-2">
+        <%= lucide_icon "zap", class: "w-5 h-5" %>
+        快捷操作
+      </h3>
+      <div class="space-y-2">
+        <%= link_to export_archive_contract_path(contract), class: "btn btn-success w-full justify-start" do %>
+          <%= lucide_icon "download", class: "w-4 h-4" %>
+          <span>下载完整档案</span>
+        <% end %>
+        <%= link_to edit_contract_path(contract), class: "btn btn-warning w-full justify-start" do %>
+          <%= lucide_icon "edit", class: "w-4 h-4" %>
+          <span>编辑档案</span>
+        <% end %>
+        <% if contract.dispute_status.present? && contract.dispute_status != 'none' && !contract.has_case? %>
+          <%= link_to new_case_from_contract_contract_path(contract), class: "btn btn-primary w-full justify-start" do %>
+            <%= lucide_icon "gavel", class: "w-4 h-4" %>
+            <span>快速创建案件</span>
+          <% end %>
+        <% elsif contract.has_case? %>
+          <%= link_to case_path(contract.related_case), class: "btn btn-neutral w-full justify-start" do %>
+            <%= lucide_icon "external-link", class: "w-4 h-4" %>
+            <span>查看关联案件</span>
+          <% end %>
+        <% end %>
+        <%= link_to contract_path(contract), data: { turbo_method: :delete, turbo_confirm: "确定删除该合同档案吗?此操作不可恢复。请输入您的密码确认:" }, class: "btn btn-danger w-full justify-start" do %>
+          <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+          <span>删除档案</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- 智能提示 -->
+  <% if key_metrics[:is_expiring] || key_metrics[:is_expired] %>
+    <div class="alert <%= key_metrics[:is_expired] ? 'alert-danger' : 'alert-warning' %>">
+      <%= lucide_icon "alert-circle", class: "w-5 h-5" %>
+      <div>
+        <h4 class="font-semibold"><%= key_metrics[:is_expired] ? '合同已过期' : '合同即将到期' %></h4>
+        <p class="text-sm">请及时处理合同续签事宜</p>
+      </div>
+    </div>
+  <% end %>
+
+  <% if key_metrics[:has_high_risk] %>
+    <div class="alert alert-danger">
+      <%= lucide_icon "alert-triangle", class: "w-5 h-5 animate-pulse" %>
+      <div>
+        <h4 class="font-semibold">高风险警示</h4>
+        <p class="text-sm">该合同存在高风险，请律师重点关注</p>
+      </div>
+    </div>
+  <% end %>
+  
+  <% if contract.renewal_intention == '续约' && contract.status == 'active' %>
+    <div class="card card-elevated border-2 border-success">
+      <div class="card-body">
+        <h4 class="font-semibold text-success mb-2 flex items-center gap-2">
+          <%= lucide_icon "zap", class: "w-5 h-5" %>
+          <span>一键续签</span>
+        </h4>
+        <p class="text-sm text-muted mb-3">
+          已确认续签意向，可快速创建新合同
+        </p>
+        <%= button_to renew_contract_path(contract), 
+            method: :post,
+            class: "btn btn-primary w-full",
+            data: { turbo_confirm: "确定执行一键续签吗？\n\n系统将：\n1. 基于当前合同创建新合同\n2. 自动复制合同信息\n3. 更新原合同状态为'已完成'\n\n需要手动上传新合同文件。" } do %>
+          <%= lucide_icon "repeat", class: "w-4 h-4" %>
+          <span>执行一键续签</span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

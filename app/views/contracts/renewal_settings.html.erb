@@ -1,0 +1,166 @@
+<div class="container-card">
+  <div class="card-header-compact">
+    <div class="flex items-center gap-3">
+      <%= lucide_icon "repeat", class: "w-6 h-6 text-blue-600" %>
+      <div>
+        <h1 class="card-title-compact">续签配置</h1>
+        <p class="text-sm text-gray-500 mt-1">配置合同续签提醒和自动续约设置</p>
+      </div>
+    </div>
+    <%= link_to contract_path(@contract), class: "btn-secondary-sm" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+      <span>返回合同详情</span>
+    <% end %>
+  </div>
+
+  <div class="card-body">
+    <!-- 当前合同信息 -->
+    <div class="alert-info mb-6">
+      <div class="flex items-start gap-3">
+        <%= lucide_icon "file-text", class: "w-5 h-5 mt-0.5" %>
+        <div class="flex-1">
+          <div class="font-medium mb-1"><%= @contract.name %></div>
+          <div class="text-sm opacity-90">
+            签订日期：<%= @contract.signed_at.strftime('%Y年%m月%d日') %> | 
+            到期日期：<%= @contract.end_at.strftime('%Y年%m月%d日') %>
+            <% if @contract.expiring_soon? %>
+              <span class="ml-2 badge-warning">即将到期</span>
+            <% elsif @contract.expired? %>
+              <span class="ml-2 badge-danger">已到期</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <%= form_with model: @contract, url: contract_path(@contract), method: :patch, local: true do |f| %>
+      <!-- 续签意向 -->
+      <div class="form-section">
+        <h3 class="form-section-title">
+          <%= lucide_icon "check-circle", class: "w-5 h-5" %>
+          续签意向
+        </h3>
+        
+        <div class="form-group">
+          <%= f.label :renewal_intention, "续签意向", class: "form-label" %>
+          <%= f.select :renewal_intention, 
+              [
+                ['待定', '待定'],
+                ['续约', '续约'],
+                ['不续约', '不续约']
+              ],
+              { include_blank: '请选择续签意向' },
+              class: "form-select",
+              data: { controller: "renewal-intention" }
+          %>
+          <p class="form-hint">
+            选择"续约"后可使用「一键续签」功能快速创建新合同
+          </p>
+        </div>
+      </div>
+
+      <!-- 自动续签提醒 -->
+      <div class="form-section">
+        <h3 class="form-section-title">
+          <%= lucide_icon "bell", class: "w-5 h-5" %>
+          续签提醒设置
+        </h3>
+
+        <div class="form-group">
+          <div class="flex items-center gap-2">
+            <%= f.check_box :auto_renewal, class: "form-checkbox" %>
+            <%= f.label :auto_renewal, "启用自动续签提醒", class: "form-label-inline" %>
+          </div>
+          <p class="form-hint ml-6">
+            开启后，系统将在合同到期前自动发送续签提醒
+          </p>
+        </div>
+
+        <div class="form-group" data-controller="conditional-field" data-conditional-field-dependent-value="true">
+          <%= f.label :renewal_notice_period, "提前提醒天数", class: "form-label" %>
+          <div class="flex items-center gap-3">
+            <%= f.number_field :renewal_notice_period, 
+                class: "form-input w-32",
+                min: 1,
+                max: 365,
+                placeholder: "例如：30"
+            %>
+            <span class="text-gray-600">天</span>
+          </div>
+          <p class="form-hint">
+            系统将在合同到期前指定天数发送续签提醒
+          </p>
+        </div>
+      </div>
+
+      <!-- 续签备注 -->
+      <div class="form-section">
+        <h3 class="form-section-title">
+          <%= lucide_icon "file-text", class: "w-5 h-5" %>
+          续签备注
+        </h3>
+
+        <div class="form-group">
+          <%= f.label :renewal_notes, "续签相关备注", class: "form-label" %>
+          <%= f.text_area :renewal_notes,
+              class: "form-textarea",
+              rows: 4,
+              placeholder: "记录续签相关的重要信息，如：续签条件、费用调整、特殊约定等"
+          %>
+          <p class="form-hint">
+            记录与续签相关的重要信息，方便后续跟进
+          </p>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="form-actions">
+        <%= f.submit "保存续签配置", class: "btn-primary" %>
+        <%= link_to "取消", contract_path(@contract), class: "btn-secondary" %>
+      </div>
+    <% end %>
+
+    <!-- 续签预览信息 -->
+    <% if @contract.auto_renewal && @contract.renewal_notice_period %>
+      <div class="alert-success mt-6">
+        <div class="flex items-start gap-3">
+          <%= lucide_icon "info", class: "w-5 h-5 mt-0.5" %>
+          <div>
+            <div class="font-medium mb-1">续签提醒已启用</div>
+            <div class="text-sm opacity-90">
+              系统将在 <%= (@contract.end_at - @contract.renewal_notice_period.days).strftime('%Y年%m月%d日') %> 
+              （到期前 <%= @contract.renewal_notice_period %> 天）开始发送续签提醒
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- 一键续签说明 -->
+    <% if @contract.renewal_intention == '续约' %>
+      <div class="alert-info mt-6">
+        <div class="flex items-start gap-3">
+          <%= lucide_icon "zap", class: "w-5 h-5 mt-0.5" %>
+          <div>
+            <div class="font-medium mb-2">一键续签功能</div>
+            <div class="text-sm opacity-90 mb-3">
+              已设置续签意向为"续约"，可使用一键续签功能快速创建新合同。续签后：
+            </div>
+            <ul class="text-sm opacity-90 space-y-1 ml-4 list-disc">
+              <li>自动复制合同基本信息、双方信息、金额、条款等</li>
+              <li>新合同日期从原合同到期次日开始</li>
+              <li>原合同状态更新为"已完成"并记录续签关联</li>
+              <li>需要手动上传新合同文件并补充其他信息</li>
+            </ul>
+            <div class="mt-3">
+              <%= link_to contract_path(@contract), class: "btn-primary-sm" do %>
+                <%= lucide_icon "arrow-right", class: "w-4 h-4" %>
+                <span>返回合同页面执行续签</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

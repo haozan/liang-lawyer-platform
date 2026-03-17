@@ -1,6 +1,8 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    aasm (5.5.2)
+      concurrent-ruby (~> 1.0)
     actioncable (7.2.2.2)
       actionpack (= 7.2.2.2)
       activesupport (= 7.2.2.2)
@@ -163,6 +165,8 @@ GEM
       fugit (>= 1.11.0)
       railties (>= 6.1.0)
       thor (>= 1.0.0)
+    groupdate (6.7.0)
+      activesupport (>= 7.1)
     herb (0.7.5)
     herb (0.7.5-arm64-darwin)
     herb (0.7.5-x86_64-darwin)
@@ -326,6 +330,10 @@ GEM
       erb
       psych (>= 4.0.0)
       tsort
+    redis (5.4.1)
+      redis-client (>= 0.22.0)
+    redis-client (0.27.0)
+      connection_pool
     regexp_parser (2.11.3)
     reline (0.6.3)
       io-console (~> 0.5)
@@ -422,6 +430,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  aasm (~> 5.5)
   aws-sdk-s3 (~> 1.206)
   bcrypt
   bootsnap
@@ -436,6 +445,7 @@ DEPENDENCIES
   figaro
   friendly_id (~> 5.5)
   good_job (~> 4.6)
+  groupdate (~> 6.5)
   herb (~> 0.7.5)
   image_processing (~> 1.2)
   jbuilder
@@ -454,6 +464,7 @@ DEPENDENCIES
   rack-cors
   rails (= 7.2.2.2)
   rails-i18n (~> 7.0.10)
+  redis (~> 5.0)
   rspec-rails
   rubocop-rails-omakase
   rubyzip (~> 2.3)

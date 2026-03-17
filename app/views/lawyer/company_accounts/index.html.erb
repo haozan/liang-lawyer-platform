@@ -13,6 +13,22 @@
       <% end %>
     </div>
 
+    <!-- New Company Alert -->
+    <% if params[:new_company_id].present? %>
+      <% new_company = Company.find_by(id: params[:new_company_id]) %>
+      <% if new_company %>
+        <div class="alert alert-success mb-6">
+          <div class="flex items-start gap-3">
+            <%= lucide_icon "check-circle", class: "w-5 h-5 flex-shrink-0 mt-0.5" %>
+            <div class="flex-1">
+              <p class="font-semibold mb-1">企业「<%= new_company.name %>」创建成功！</p>
+              <p class="text-sm">请点击下方“添加账户”按钮为该企业创建第一个用户账号（建议先创建老板账号）</p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+
     <!-- Companies and Accounts -->
     <div class="space-y-8">
       <% @companies.each do |company| %>

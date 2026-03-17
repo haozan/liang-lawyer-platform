@@ -1,0 +1,47 @@
+<div id="add-member-form">
+  <%= form_with model: case_team_member, url: case_case_team_members_path(case_record), method: :post, class: "space-y-4" do |f| %>
+    <% if case_team_member.errors.any? %>
+      <div class="alert alert-danger">
+        <ul class="list-disc list-inside text-sm">
+          <% case_team_member.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :role, "团队角色", class: "form-label required" %>
+        <%= f.select :role,
+          options_for_select([
+            ['主办律师', 'lead_lawyer'],
+            ['辅助律师', 'assistant_lawyer'],
+            ['律师助理', 'legal_assistant']
+          ], case_team_member.role),
+          { prompt: '请选择角色' },
+          class: "form-select",
+          required: true %>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :lawyer_account_id, "选择人员", class: "form-label required" %>
+        <%= f.select :lawyer_account_id,
+          grouped_options_for_select(
+            [
+              ['律师', LawyerAccount.lawyers.ordered.map { |l| [l.display_name, l.id] }],
+              ['律师助理', LawyerAccount.assistants.ordered.map { |l| [l.display_name, l.id] }]
+            ],
+            case_team_member.lawyer_account_id
+          ),
+          { prompt: '请选择人员' },
+          class: "form-select",
+          required: true %>
+      </div>
+    </div>
+    
+    <div class="flex gap-2">
+      <%= f.submit "添加成员", class: "btn-primary" %>
+    </div>
+  <% end %>
+</div>

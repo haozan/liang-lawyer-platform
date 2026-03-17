@@ -1,0 +1,42 @@
+<details <%= 'open' unless local_assigns[:collapsed] %> class="card card-elevated">
+  <summary class="card-header border-b border-border cursor-pointer hover:bg-surface-elevated transition-colors select-none">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "dollar-sign", class: "w-5 h-5" %>
+      金额与付款
+      <%= lucide_icon "chevron-down", class: "w-4 h-4 text-muted transition-transform [[open]>&]:rotate-180" %>
+    </h3>
+  </summary>
+  <div class="card-body space-y-4">
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.contract_amount.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "coins", class: "w-4 h-4" %>
+            合同金额
+          </label>
+          <p class="text-primary font-bold text-xl">
+            <%= mask_amount(contract.contract_amount) %>
+          </p>
+        </div>
+      <% end %>
+      <% if contract.payment_method.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "credit-card", class: "w-4 h-4" %>
+            付款方式
+          </label>
+          <p class="text-secondary"><%= contract.payment_method %></p>
+        </div>
+      <% end %>
+    </div>
+    <% if contract.payment_terms.present? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "file-text", class: "w-4 h-4" %>
+          付款条款
+        </label>
+        <p class="text-secondary whitespace-pre-wrap bg-surface-elevated rounded p-3"><%= contract.payment_terms %></p>
+      </div>
+    <% end %>
+  </div>
+</details>

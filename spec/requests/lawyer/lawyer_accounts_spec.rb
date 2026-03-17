@@ -40,9 +40,10 @@ RSpec.describe "Lawyer/lawyer accounts", type: :request do
     it "creates a new lawyer_account" do
       lawyer_params = {
         name: '新律师',
-        email: "new_lawyer_#{rand(10000)}@example.com",
+        phone: "139#{rand(10000000).to_s.rjust(8, '0')}",
         password: 'password123',
-        password_confirmation: 'password123'
+        password_confirmation: 'password123',
+        role: 'lawyer'
       }
       
       expect {

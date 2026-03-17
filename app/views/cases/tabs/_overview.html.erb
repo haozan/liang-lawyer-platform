@@ -1,0 +1,81 @@
+<!-- Overview Tab Panel -->
+<div data-case-tabs-target="panel" data-tab-panel="overview">
+  <!-- Case Team Members -->
+  <% if @case.case_team_members.any? %>
+    <div class="card card-elevated mb-6">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-4 border-b pb-2">
+          <h3 class="font-heading text-xl font-semibold text-primary">案件团队</h3>
+          <span class="text-xs text-muted">共 <%= @case.team_size %> 人</span>
+        </div>
+        
+        <div class="space-y-3">
+          <% @case.case_team_members.ordered.each do |member| %>
+            <div class="flex items-center justify-between p-3 bg-surface-hover rounded-lg border border-muted">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <%= lucide_icon "user", class: "w-5 h-5 text-primary" %>
+                </div>
+                <div>
+                  <p class="font-semibold text-primary"><%= member.lawyer_account.name %></p>
+                  <p class="text-xs text-secondary"><%= member.lawyer_account.display_name %></p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <% case member.role %>
+                <% when 'lead_lawyer' %>
+                  <span class="badge badge-primary">主办律师</span>
+                <% when 'assistant_lawyer' %>
+                  <span class="badge badge-info">辅助律师</span>
+                <% when 'legal_assistant' %>
+                  <span class="badge badge-secondary">律师助理</span>
+                <% end %>
+                <span class="text-xs text-muted">
+                  <%= member.joined_at.strftime('%Y-%m-%d') %> 加入
+                </span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+  
+  <!-- Basic Information -->
+  <div class="card card-elevated mb-6">
+    <div class="card-body">
+      <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">基本信息</h3>
+      <div class="space-y-3">
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">案件类型：</span>
+          <span class="text-primary font-semibold"><%= @case.case_type %></span>
+        </div>
+        <% if @case.stage.present? %>
+          <div class="flex items-start">
+            <span class="text-secondary w-32 flex-shrink-0">案件阶段：</span>
+            <span class="text-primary font-semibold"><%= @case.stage_display %></span>
+          </div>
+        <% end %>
+        <% if @case.court_name.present? %>
+          <div class="flex items-start">
+            <span class="text-secondary w-32 flex-shrink-0">法院名称：</span>
+            <span class="text-primary"><%= @case.court_name %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <%= render 'cases/tabs/important_dates' %>
+  <%= render 'cases/tabs/property_preservation' %>
+  
+  <!-- Case Summary -->
+  <% if @case.summary.present? %>
+    <div class="card card-elevated">
+      <div class="card-body">
+        <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">案情概要</h3>
+        <div class="text-secondary whitespace-pre-wrap"><%= @case.summary %></div>
+      </div>
+    </div>
+  <% end %>
+</div>

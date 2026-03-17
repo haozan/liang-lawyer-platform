@@ -1,0 +1,84 @@
+<% content_for :title, "发布新公告" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4 mb-6">
+    <%= link_to admin_announcements_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      返回公告列表
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-8">发布新公告</h1>
+
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @announcement], local: true, class: "space-y-6" do |form| %>
+        
+        <% if @announcement.errors.any? %>
+          <div class="alert alert-danger">
+            <h3 class="font-semibold mb-2">表单验证失败：</h3>
+            <ul class="list-disc list-inside">
+              <% @announcement.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+        
+        <!-- 公告标题 -->
+        <div class="form-group">
+          <%= form.label :title, "公告标题 *" %>
+          <%= form.text_field :title, placeholder: "请输入公告标题", class: "form-input" %>
+        </div>
+
+        <!-- 公告内容 -->
+        <div class="form-group">
+          <%= form.label :content, "公告内容" %>
+          <%= form.text_area :content, rows: 5, placeholder: "请输入公告详细内容", class: "form-input" %>
+        </div>
+
+        <!-- 优先级 -->
+        <div class="form-group">
+          <%= form.label :priority, "优先级 *" %>
+          <%= form.select :priority, 
+              [['紧急', 'urgent'], ['重要', 'important'], ['普通', 'normal']], 
+              {}, 
+              class: "form-input" %>
+          <p class="text-sm text-gray-500 mt-1">紧急公告将以红色高亮显示</p>
+        </div>
+
+        <!-- 公告范围 -->
+        <div class="form-group">
+          <%= form.label :company_id, "公告范围" %>
+          <%= form.select :company_id, 
+              [['全局（所有企业可见）', '']] + @companies.map { |c| [c.name, c.id] }, 
+              {}, 
+              class: "form-input" %>
+          <p class="text-sm text-gray-500 mt-1">选择特定企业或留空为全局公告</p>
+        </div>
+
+        <!-- 发布时间 -->
+        <div class="form-group">
+          <%= form.label :published_at, "发布时间 *" %>
+          <%= form.datetime_local_field :published_at, class: "form-input" %>
+          <p class="text-sm text-gray-500 mt-1">可以设置为未来时间实现定时发布</p>
+        </div>
+
+        <!-- 过期时间 -->
+        <div class="form-group">
+          <%= form.label :expires_at, "过期时间" %>
+          <%= form.datetime_local_field :expires_at, class: "form-input" %>
+          <p class="text-sm text-gray-500 mt-1">留空表示永不过期</p>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_announcements_path, class: "btn-ghost" do %>
+            取消
+          <% end %>
+          <%= form.submit "发布公告", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

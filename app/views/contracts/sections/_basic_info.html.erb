@@ -1,0 +1,204 @@
+<details <%= 'open' unless local_assigns[:collapsed] %> class="card card-elevated">
+  <summary class="card-header border-b border-border cursor-pointer hover:bg-surface-elevated transition-colors select-none">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "file-text", class: "w-5 h-5" %>
+      合同基本信息
+      <%= lucide_icon "chevron-down", class: "w-4 h-4 text-muted transition-transform [[open]>&]:rotate-180" %>
+    </h3>
+  </summary>
+  <div class="card-body space-y-6">
+    <!-- 合同档案名称 -->
+    <div>
+      <label class="form-label">合同档案名称</label>
+      <p class="text-primary font-semibold text-lg"><%= contract.name %></p>
+    </div>
+    
+    <!-- 合同编号和原始标题 -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <% if contract.contract_number.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "hash", class: "w-4 h-4" %>
+            合同编号
+          </label>
+          <p class="text-secondary font-mono"><%= contract.contract_number %></p>
+        </div>
+      <% end %>
+      <% if contract.contract_title.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "file-signature", class: "w-4 h-4" %>
+            合同原始标题
+          </label>
+          <p class="text-secondary"><%= contract.contract_title %></p>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- 合同类型、日期 -->
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.contract_type.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "tag", class: "w-4 h-4" %>
+            合同类型
+          </label>
+          <p class="text-secondary"><span class="badge badge-neutral"><%= contract.contract_type %></span></p>
+        </div>
+      <% end %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "calendar-check", class: "w-4 h-4" %>
+          签订日期
+        </label>
+        <p class="text-secondary"><%= contract.signed_at&.strftime('%Y年%m月%d日') %></p>
+      </div>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "calendar-x", class: "w-4 h-4" %>
+          到期日期
+        </label>
+        <p class="text-secondary">
+          <%= contract.end_at&.strftime('%Y年%m月%d日') %>
+          <% if contract.expiring_soon? %>
+            <span class="badge badge-warning ml-2">即将到期</span>
+          <% elsif contract.expired? %>
+            <span class="badge badge-danger ml-2">已过期</span>
+          <% end %>
+        </p>
+      </div>
+    </div>
+    
+    <!-- 签订地点、状态 -->
+    <div class="grid md:grid-cols-3 gap-4">
+      <% if contract.signing_location.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "map-pin", class: "w-4 h-4" %>
+            签订地点
+          </label>
+          <p class="text-secondary"><%= contract.signing_location %></p>
+        </div>
+      <% end %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "activity", class: "w-4 h-4" %>
+          合同状态
+        </label>
+        <% case contract.status %>
+        <% when 'active' %>
+          <span class="badge badge-success"><%= contract.status_display %></span>
+        <% when 'completed' %>
+          <span class="badge badge-neutral"><%= contract.status_display %></span>
+        <% when 'breach' %>
+          <span class="badge badge-warning"><%= contract.status_display %></span>
+        <% when 'litigation' %>
+          <span class="badge badge-danger"><%= contract.status_display %></span>
+        <% end %>
+      </div>
+      <% if contract.performance_status.present? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "trending-up", class: "w-4 h-4" %>
+            履行状态
+          </label>
+          <% if contract.performance_on_track? %>
+            <span class="badge badge-success"><%= contract.performance_status %></span>
+          <% else %>
+            <span class="badge badge-warning"><%= contract.performance_status %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- 分隔线 -->
+    <div class="border-t border-border pt-6">
+      <h4 class="font-heading text-base font-semibold text-primary mb-4 flex items-center gap-2">
+        <%= lucide_icon "users", class: "w-5 h-5" %>
+        合同双方
+      </h4>
+      
+      <!-- 我方和对方信息 -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- 我方信息 -->
+        <div class="bg-surface-elevated rounded-lg p-4">
+          <h5 class="font-semibold text-primary mb-3 flex items-center gap-2">
+            <%= lucide_icon "building", class: "w-4 h-4" %>
+            <span>我方信息</span>
+          </h5>
+          <div class="space-y-2">
+            <% if contract.our_party_role.present? %>
+              <div class="flex">
+                <label class="form-label w-24">合同地位</label>
+                <p class="text-secondary flex-1"><%= contract.our_party_role %></p>
+              </div>
+            <% end %>
+            <% if contract.our_signatory.present? %>
+              <div class="flex">
+                <label class="form-label w-24">签约代表</label>
+                <p class="text-secondary flex-1"><%= contract.our_signatory %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- 对方信息 -->
+        <div class="bg-surface-elevated rounded-lg p-4">
+          <h5 class="font-semibold text-primary mb-3 flex items-center gap-2">
+            <%= lucide_icon "user-check", class: "w-4 h-4" %>
+            <span>对方信息</span>
+          </h5>
+          <div class="space-y-2">
+            <% if contract.counterparty_name.present? %>
+              <div class="flex">
+                <label class="form-label w-24">名称</label>
+                <p class="text-secondary flex-1 font-semibold"><%= contract.counterparty_name %></p>
+              </div>
+            <% end %>
+            <% if contract.counterparty_role.present? %>
+              <div class="flex">
+                <label class="form-label w-24">合同地位</label>
+                <p class="text-secondary flex-1"><%= contract.counterparty_role %></p>
+              </div>
+            <% end %>
+            <% if contract.counterparty_type.present? %>
+              <div class="flex">
+                <label class="form-label w-24">类型</label>
+                <p class="text-secondary flex-1"><%= contract.counterparty_type %></p>
+              </div>
+            <% end %>
+            <% if contract.counterparty_unified_code.present? %>
+              <div class="flex">
+                <label class="form-label w-24">信用代码</label>
+                <p class="text-secondary flex-1 font-mono text-sm"><%= contract.counterparty_unified_code %></p>
+              </div>
+            <% end %>
+            <% if contract.counterparty_legal_rep.present? %>
+              <div class="flex">
+                <label class="form-label w-24">法定代表人</label>
+                <p class="text-secondary flex-1"><%= contract.counterparty_legal_rep %></p>
+              </div>
+            <% end %>
+            <% if contract.counterparty_address.present? %>
+              <div class="flex">
+                <label class="form-label w-24">地址</label>
+                <p class="text-secondary flex-1"><%= contract.counterparty_address %></p>
+              </div>
+            <% end %>
+            <% if contract.counterparty_contact.present? || contract.counterparty_phone.present? %>
+              <div class="flex">
+                <label class="form-label w-24">联系方式</label>
+                <p class="text-secondary flex-1">
+                  <%= contract.counterparty_contact %>
+                  <% if contract.counterparty_phone.present? %>
+                    <%= contract.counterparty_phone %>
+                  <% end %>
+                </p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</details>

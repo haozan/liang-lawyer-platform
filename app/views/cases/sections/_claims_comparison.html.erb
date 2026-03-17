@@ -1,0 +1,49 @@
+<% if case_record.claims_list.is_a?(Array) && case_record.claims_list.any? %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "balance-scale", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">诉讼请求与判决对比</h4>
+        <span class="badge badge-neutral"><%= case_record.claims_list.count %></span>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0 space-y-3" data-collapsible-target="content">
+      <% case_record.claims_list.each_with_index do |claim, index| %>
+        <div class="p-4 bg-surface-hover rounded-lg border border-muted">
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">请求 #<%= index + 1 %></span>
+                <% if claim['status'] %>
+                  <span class="badge badge-sm <%= 
+                    case claim['status']
+                    when 'approved' then 'badge-success'
+                    when 'partial' then 'badge-warning'
+                    when 'rejected' then 'badge-danger'
+                    else 'badge-neutral'
+                    end
+                  %>">
+                    <%= 
+                      case claim['status']
+                      when 'approved' then '✓ 支持'
+                      when 'partial' then '部分支持'
+                      when 'rejected' then '✗ 驳回'
+                      else '待判决'
+                      end
+                    %>
+                  </span>
+                <% end %>
+              </div>
+              <p class="text-primary font-semibold mb-1"><%= claim['content'] %></p>
+              <% if claim['amount'].present? && claim['amount'].to_f > 0 %>
+                <p class="text-sm text-secondary">金额：<%= mask_amount(claim['amount']) %></p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

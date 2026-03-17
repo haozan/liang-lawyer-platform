@@ -54,4 +54,26 @@ RSpec.describe "Contracts", type: :request do
       expect(response).to be_success_with_view_check
     end
   end
+
+  describe "GET /contracts/calendar" do
+    it "returns http success" do
+      get calendar_contracts_path
+      expect(response).to be_success_with_view_check('calendar')
+    end
+    
+    it "accepts year and month parameters" do
+      get calendar_contracts_path, params: { year: 2026, month: 3 }
+      expect(response).to be_success_with_view_check('calendar')
+    end
+    
+    it "accepts event_types filter" do
+      get calendar_contracts_path, params: { event_types: ['签订日期', '到期日期'] }
+      expect(response).to be_success_with_view_check('calendar')
+    end
+    
+    it "accepts status filter" do
+      get calendar_contracts_path, params: { status: 'active' }
+      expect(response).to be_success_with_view_check('calendar')
+    end
+  end
 end

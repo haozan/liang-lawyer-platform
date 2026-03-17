@@ -1,7 +1,7 @@
 <div class="container-main">
   <!-- Page Header -->
   <div class="mb-6">
-    <h1 class="font-heading text-3xl font-bold text-primary mb-2">待办事项</h1>
+    <h1 class="font-heading text-3xl font-bold text-primary mb-2">全部待办</h1>
     <p class="text-secondary">查看和管理所有待办任务</p>
   </div>
 
@@ -97,16 +97,16 @@
                       
                       <% type_info = case commentable_type
                            when 'Contract'
-                             { icon: 'file-text', label: '合同', color: 'green', name: commentable.name }
+                             { icon: 'file-text', label: '合同', color_class: 'text-green-600', name: commentable.name }
                            when 'Case'
-                             { icon: 'briefcase', label: '案件', color: 'blue', name: commentable.name }
+                             { icon: 'briefcase', label: '案件', color_class: 'text-blue-600', name: commentable.name }
                            when 'MajorIssue'
-                             { icon: 'message-square', label: '重大事项', color: 'purple', name: commentable.title }
+                             { icon: 'message-square', label: '重大事项', color_class: 'text-purple-600', name: commentable.title }
                            else
-                             { icon: 'circle', label: '其他', color: 'gray', name: '未知' }
+                             { icon: 'circle', label: '其他', color_class: 'text-gray-600', name: '未知' }
                            end %>
                       
-                      <%= link_to polymorphic_path(commentable), class: "inline-flex items-center gap-1 text-sm text-#{type_info[:color]}-600 hover:underline" do %>
+                      <%= link_to polymorphic_path(commentable), class: "inline-flex items-center gap-1 text-sm #{type_info[:color_class]} hover:underline" do %>
                         <%= lucide_icon type_info[:icon], class: "w-4 h-4" %>
                         <span><%= type_info[:label] %>: <%= type_info[:name] %></span>
                       <% end %>

@@ -43,6 +43,6 @@ class Lawyer::LawyerAccountsController < ApplicationController
   end
 
   def lawyer_account_params
-    params.require(:lawyer_account).permit(:name, :email, :password, :password_confirmation)
+    params.require(:lawyer_account).permit(:name, :phone, :password, :password_confirmation, :role)
   end
 end

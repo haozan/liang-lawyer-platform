@@ -4,14 +4,12 @@ class TodosController < ApplicationController
   def index
     @filter = params[:filter] || 'all'
     
-    # Get todo data based on user type
+    # Get todo data based on user type using UnifiedTodoService
     if lawyer?
-      # Lawyers use LawyerTodoService
-      todo_service = LawyerTodoService.new
+      todo_service = UnifiedTodoService.new(user_type: :lawyer)
       todo_data = todo_service.call
     elsif company_user?
-      # Company users use CompanyTodoService
-      todo_service = CompanyTodoService.new(company: @company)
+      todo_service = UnifiedTodoService.new(company: @company, user_type: :company)
       todo_data = todo_service.call
     else
       redirect_to root_path, alert: '无权访问'

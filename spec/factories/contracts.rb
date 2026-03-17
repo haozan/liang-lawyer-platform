@@ -6,6 +6,10 @@ FactoryBot.define do
     signed_at { 6.months.ago }
     end_at { 6.months.from_now }
     status { "active" }
+    counterparty_name { "测试公司有限公司" }
+    counterparty_role { "卖方" }
+    our_party_role { "买方" }
+    contract_type { "买卖合同" }
     
     after(:build) do |contract|
       contract.file.attach(

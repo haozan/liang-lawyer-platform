@@ -1,0 +1,235 @@
+<% content_for :title, "业务授权管理" %>
+
+<div class="container-xl">
+  <!-- Page Title and Actions -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50">业务授权管理</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-2">管理团队对业务（合同/案件/重大问题）的访问权限</p>
+    </div>
+    <%= link_to new_admin_business_team_ownership_path, class: "btn-primary" do %>
+      <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
+      创建授权
+    <% end %>
+  </div>
+
+  <!-- Filters -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 mb-6">
+    <div class="card-body">
+      <%= form_with url: admin_business_team_ownerships_path, method: :get, local: true, class: "grid grid-cols-1 md:grid-cols-4 gap-4" do |f| %>
+        <!-- 业务类型 -->
+        <div class="form-group mb-0">
+          <%= f.label :business_type, "业务类型", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+          <%= f.select :business_type, 
+              options_for_select([['全部类型', ''], ['合同', 'Contract'], ['案件', 'Case'], ['重大问题', 'MajorIssue']], params[:business_type]),
+              {}, { class: "form-select" } %>
+        </div>
+
+        <!-- 团队 -->
+        <div class="form-group mb-0">
+          <%= f.label :lawyer_team_id, "团队", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+          <%= f.select :lawyer_team_id,
+              options_for_select([['全部团队', '']] + LawyerTeam.all.map { |t| [t.name, t.id] }, params[:lawyer_team_id]),
+              {}, { class: "form-select" } %>
+        </div>
+
+        <!-- 访问级别 -->
+        <div class="form-group mb-0">
+          <%= f.label :access_level, "访问级别", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+          <%= f.select :access_level,
+              options_for_select([['全部级别', ''], ['所有者', 'owner'], ['协作者', 'collaborator'], ['查看者', 'viewer']], params[:access_level]),
+              {}, { class: "form-select" } %>
+        </div>
+
+        <!-- 是否主团队 -->
+        <div class="form-group mb-0">
+          <%= f.label :is_primary, "主团队", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" %>
+          <%= f.select :is_primary,
+              options_for_select([['全部', ''], ['是', 'true'], ['否', 'false']], params[:is_primary]),
+              {}, { class: "form-select" } %>
+        </div>
+
+        <div class="flex items-end space-x-2 md:col-span-4">
+          <%= f.submit "筛选", class: "btn-primary" %>
+          <%= link_to "重置", admin_business_team_ownerships_path, class: "btn-ghost" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Business team ownerships Table -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body p-0">
+      <% if @business_team_ownerships.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">业务信息</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">团队</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">访问级别</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">主团队</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">授权信息</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">到期时间</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">操作</th>
+              </tr>
+            </thead>
+            <tbody class="bg-gray-50 dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              <% @business_team_ownerships.each do |ownership| %>
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <!-- 业务信息 -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <%= link_to ownership.business&.respond_to?(:title) ? ownership.business.title : "##{ownership.business_id}",
+                              admin_business_team_ownership_path(ownership),
+                              class: "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" %>
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                          <% case ownership.business_type %>
+                          <% when 'Contract' %>
+                            <span class="badge badge-info text-xs">合同</span>
+                          <% when 'Case' %>
+                            <span class="badge badge-success text-xs">案件</span>
+                          <% when 'MajorIssue' %>
+                            <span class="badge badge-warning text-xs">重大问题</span>
+                          <% end %>
+                          ID: <%= ownership.business_id %>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- 团队 -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <%= ownership.lawyer_team.name %>
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      <%= ownership.lawyer_team.code %>
+                    </div>
+                  </td>
+
+                  <!-- 访问级别 -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <% case ownership.access_level %>
+                    <% when 'owner' %>
+                      <span class="badge badge-danger">所有者</span>
+                    <% when 'collaborator' %>
+                      <span class="badge badge-warning">协作者</span>
+                    <% when 'viewer' %>
+                      <span class="badge badge-info">查看者</span>
+                    <% end %>
+                  </td>
+
+                  <!-- 主团队 -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <% if ownership.is_primary %>
+                      <span class="badge badge-success">是</span>
+                    <% else %>
+                      <span class="badge badge-secondary">否</span>
+                    <% end %>
+                  </td>
+
+                  <!-- 授权信息 -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900 dark:text-gray-100">
+                      <%= ownership.authorized_by&.name || '系统' %>
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      <%= ownership.authorized_at&.strftime("%Y-%m-%d") || '—' %>
+                    </div>
+                  </td>
+
+                  <!-- 到期时间 -->
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <% if ownership.expires_at.present? %>
+                      <% if ownership.expires_at < Time.current %>
+                        <span class="badge badge-danger">已过期</span>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <%= ownership.expires_at.strftime("%Y-%m-%d") %>
+                        </div>
+                      <% else %>
+                        <span class="badge badge-success">有效</span>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          <%= ownership.expires_at.strftime("%Y-%m-%d") %>
+                        </div>
+                      <% end %>
+                    <% else %>
+                      <span class="badge badge-info">永久</span>
+                    <% end %>
+                  </td>
+
+                  <!-- 操作 -->
+                  <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <div class="flex justify-center space-x-2">
+                      <%= link_to admin_business_team_ownership_path(ownership), class: "p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors", title: "查看" do %>
+                        <%= lucide_icon "eye", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= link_to edit_admin_business_team_ownership_path(ownership), class: "p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors", title: "编辑" do %>
+                        <%= lucide_icon "pencil", class: "w-4 h-4" %>
+                      <% end %>
+                      <%= link_to admin_business_team_ownership_path(ownership), method: :delete,
+                          data: { confirm: "确定要删除此授权吗？" },
+                          class: "p-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors", title: "删除" do %>
+                        <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Statistics -->
+        <div class="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-900 dark:text-gray-100"><%= @business_team_ownerships.total_count %></div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">总授权数</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <%= @business_team_ownerships.where(business_type: 'Contract').count %>
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">合同授权</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+                <%= @business_team_ownerships.where(business_type: 'Case').count %>
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">案件授权</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                <%= @business_team_ownerships.where(business_type: 'MajorIssue').count %>
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">重大问题授权</div>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <div class="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+            <%= lucide_icon "shield", class: "w-12 h-12 text-gray-400" %>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-50 mb-2">暂无业务授权</h3>
+          <p class="text-gray-500 dark:text-gray-400 mb-6">开始创建团队对业务的访问授权</p>
+          <%= link_to new_admin_business_team_ownership_path, class: "btn-primary" do %>
+            <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
+            创建授权
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <% if @business_team_ownerships.respond_to?(:current_page) %>
+    <div class="mt-6">
+      <%= paginate @business_team_ownerships %>
+    </div>
+  <% end %>
+</div>

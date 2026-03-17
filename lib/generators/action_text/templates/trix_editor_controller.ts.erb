@@ -51,8 +51,8 @@ export default class extends Controller<HTMLElement> {
 
     if (!attachment.file) return
 
-    // File size validation (optional, e.g., 10MB limit)
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    // File size validation (optional, e.g., 40MB limit)
+    const maxSize = 40 * 1024 * 1024 // 40MB
     if (attachment.file.size > maxSize) {
       this.notify(`File size must be less than ${maxSize / 1024 / 1024}MB`, 'error')
       attachment.remove()

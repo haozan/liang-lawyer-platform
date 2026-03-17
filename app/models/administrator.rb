@@ -1,9 +1,13 @@
 class Administrator < ApplicationRecord
   validates :name, presence: true, uniqueness: true
+  validates :phone, presence: true, uniqueness: true, format: { with: /\A1[3-9]\d{9}\z/, message: '必须是有效的中国手机号码' }
   validates :role, presence: true, inclusion: { in: %w[admin super_admin] }
   has_secure_password
 
   has_many :admin_oplogs, dependent: :destroy
+  
+  # Normalize phone before saving
+  before_save :normalize_phone
 
   # Role constants
   ROLES = %w[admin super_admin].freeze
@@ -51,5 +55,11 @@ class Administrator < ApplicationRecord
       ['Admin', 'admin'],
       ['Super Admin', 'super_admin']
     ]
+  end
+  
+  private
+  
+  def normalize_phone
+    self.phone = phone.to_s.strip if phone.present?
   end
 end

@@ -110,7 +110,7 @@ class ActionTextGenerator < Rails::Generators::Base
     say "Features:", :magenta
     say "  • Trix rich text editor with Tailwind styling", :white
     say "  • File uploads via ActiveStorage with progress", :white
-    say "  • File size validation (10MB limit)", :white
+    say "  • File size validation (40MB limit)", :white
     say "  • Link dialog support", :white
     say "  • Dark mode support", :white
     say "\n"

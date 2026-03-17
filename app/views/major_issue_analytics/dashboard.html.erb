@@ -1,0 +1,458 @@
+<div class="container-main">
+  <!-- Analytics Tabs Navigation -->
+  <%= render 'shared/analytics_tabs', current_tab: 'major_issue' %>
+  
+  <!-- 🎯 固定顶部栏 - 关键指标快速浏览 -->
+  <% sticky_metrics = [
+    { 
+      name: '事项总数', 
+      value: @total_issues, 
+      icon: 'folder', 
+      color: 'bg-primary/10',
+      icon_color: 'text-primary',
+      link: major_issues_path,
+      status: {
+        value: @total_issues,
+        thresholds: { green: 20, yellow: 10 },
+        reverse: false
+      }
+    },
+    { 
+      name: '待处理', 
+      value: @pending_issues + @discussing_issues, 
+      icon: 'clock', 
+      color: 'bg-warning/10',
+      icon_color: 'text-warning',
+      link: major_issues_path(filter: { status: ['pending', 'discussing'] }),
+      status: {
+        value: @pending_issues + @discussing_issues,
+        thresholds: { green: 5, yellow: 10 },
+        reverse: true
+      }
+    },
+    { 
+      name: '已解决', 
+      value: @resolved_issues, 
+      icon: 'check-circle', 
+      color: 'bg-success/10',
+      icon_color: 'text-success',
+      link: major_issues_path(filter: { status: 'resolved' }),
+      trend: @current_month_issues && @last_month_issues ? { value: @current_month_issues - @last_month_issues } : nil
+    },
+    { 
+      name: '完成率', 
+      value: "#{@completion_rate}%", 
+      icon: 'trending-up', 
+      color: 'bg-info/10',
+      icon_color: 'text-info',
+      status: {
+        value: @completion_rate,
+        thresholds: { green: 70, yellow: 50 },
+        reverse: false
+      }
+    }
+  ] %>
+  
+  <%= render 'shared/dashboard_sticky_bar', metrics: sticky_metrics %>
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="font-heading text-3xl font-bold text-primary mb-2">重大事项数据分析仪表盘</h1>
+      <p class="text-secondary">
+        <% if @company %>
+          <%= @company.name %> · 专业事项跟踪与监控
+        <% else %>
+          全部企业 · 综合事项数据分析
+        <% end %>
+      </p>
+    </div>
+    <div class="flex gap-3">
+      <%= link_to major_issues_path, class: "btn btn-secondary" do %>
+        <%= lucide_icon "arrow-left", class: "w-5 h-5 mr-2" %>
+        返回列表
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Date Range Filter with Quick Options -->
+  <div class="card card-elevated mb-6">
+    <div class="card-body">
+      <%= form_with url: dashboard_major_issue_analytics_path, method: :get, local: true do |f| %>
+        <div class="space-y-4">
+          <!-- Quick Date Options -->
+          <div class="flex gap-2 flex-wrap">
+            <% today = Date.today %>
+            <%= link_to "今天", dashboard_major_issue_analytics_path(date_from: today, date_to: today), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "本周", dashboard_major_issue_analytics_path(date_from: today.beginning_of_week, date_to: today.end_of_week), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "本月", dashboard_major_issue_analytics_path(date_from: today.beginning_of_month, date_to: today.end_of_month), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "本季度", dashboard_major_issue_analytics_path(date_from: today.beginning_of_quarter, date_to: today.end_of_quarter), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "本年", dashboard_major_issue_analytics_path(date_from: today.beginning_of_year, date_to: today.end_of_year), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "最近30天", dashboard_major_issue_analytics_path(date_from: 30.days.ago, date_to: today), class: "btn btn-sm btn-secondary" %>
+            <%= link_to "全部", dashboard_major_issue_analytics_path, class: "btn btn-sm btn-secondary" %>
+          </div>
+          
+          <div class="flex flex-wrap items-end gap-4">
+            <div class="form-group flex-1 min-w-[200px]">
+              <%= label_tag "date_from", "开始日期", class: "form-label" %>
+              <%= date_field_tag "date_from", @date_from, class: "form-input" %>
+            </div>
+            
+            <div class="form-group flex-1 min-w-[200px]">
+              <%= label_tag "date_to", "结束日期", class: "form-label" %>
+              <%= date_field_tag "date_to", @date_to, class: "form-input" %>
+            </div>
+            
+            <% if @company.nil? && lawyer? %>
+              <div class="form-group flex-1 min-w-[200px]">
+                <%= label_tag "company_id", "选择企业", class: "form-label" %>
+                <%= select_tag "company_id", 
+                    options_for_select([["全部企业", nil]] + Company.ordered.map { |c| [c.name, c.id] }, params[:company_id]),
+                    class: "form-select" %>
+              </div>
+            <% end %>
+            
+            <%= f.submit "应用筛选", class: "btn btn-primary" %>
+            <%= link_to "重置", dashboard_major_issue_analytics_path, class: "btn btn-secondary" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 🤖 智能洞察提示卡 -->
+  <% if @overdue_issues > 0 || (@pending_issues + @discussing_issues > 0 && @priority_distribution['urgent'].to_i > 0) %>
+    <% urgent_pending = @priority_distribution['urgent'].to_i %>
+    <%= render 'shared/smart_insight_card',
+      type: 'danger',
+      icon: 'alert-triangle',
+      title: '需要立即关注',
+      message: "检测到#{@overdue_issues}个逾期事项（超过7天未处理）和#{urgent_pending}个紧急待处理事项，请尽快安排处理。",
+      action_text: '查看紧急事项',
+      action_url: major_issues_path(filter: { priority: 'urgent', status: ['pending', 'discussing'] })
+    %>
+  <% elsif @completion_rate >= 80 %>
+    <%= render 'shared/smart_insight_card',
+      type: 'success',
+      icon: 'trending-up',
+      title: '处理效率优秀',
+      message: "当前完成率达到#{@completion_rate}%，平均处理时长#{@avg_processing_days}天，团队协作高效。"
+    %>
+  <% elsif @current_month_issues && @last_month_issues && (@current_month_issues - @last_month_issues) > 5 %>
+    <%= render 'shared/smart_insight_card',
+      type: 'info',
+      icon: 'lightbulb',
+      title: '事项增长提示',
+      message: "本月新增#{@current_month_issues}个重大事项，较上月增加#{@current_month_issues - @last_month_issues}个。建议及时评估资源分配。",
+      action_text: '查看最新事项',
+      action_url: major_issues_path
+    %>
+  <% end %>
+
+  <!-- 🎯 专业仪表盘组件区 -->
+  <div class="grid lg:grid-cols-3 gap-6 mb-6">
+    <!-- 完成率仪表盘 -->
+    <% completion_gauge_data = {
+      value: @completion_rate,
+      max: 100,
+      name: '完成率'
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'gauge',
+      data: completion_gauge_data,
+      title: '事项完成率',
+      height: '280px'
+    %>
+
+    <!-- 状态分布环形图 -->
+    <% status_donut_data = {
+      name: '事项状态',
+      data: @status_distribution.map do |status, count|
+        status_names = {
+          'pending' => '待讨论',
+          'discussing' => '讨论中',
+          'resolved' => '已解决',
+          'closed' => '已关闭'
+        }
+        { name: status_names[status] || status, value: count }
+      end
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'donut',
+      data: status_donut_data,
+      title: '状态分布',
+      height: '280px'
+    %>
+
+    <!-- 优先级分布环形图 -->
+    <% priority_donut_data = {
+      name: '优先级',
+      data: @priority_distribution.map do |priority, count|
+        priority_names = {
+          'urgent' => '紧急',
+          'high' => '高',
+          'medium' => '中',
+          'low' => '低'
+        }
+        { name: priority_names[priority] || priority, value: count }
+      end
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'donut',
+      data: priority_donut_data,
+      title: '优先级分布',
+      height: '280px'
+    %>
+  </div>
+
+  <!-- Core KPI Panel with Enhanced Design -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <%= link_to major_issues_path, class: "card card-elevated hover:shadow-lg transition-shadow bg-gradient-to-br from-primary/5 to-primary/10" do %>
+      <div class="card-body text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <%= lucide_icon "folder", class: "w-6 h-6 text-primary" %>
+          <p class="text-sm text-secondary font-medium">事项总数</p>
+        </div>
+        <p class="font-heading text-5xl font-bold text-primary mb-2"><%= @total_issues %></p>
+        <% if @current_month_issues && @last_month_issues %>
+          <% trend = @current_month_issues - @last_month_issues %>
+          <% if trend != 0 %>
+            <div class="inline-flex items-center gap-1 px-3 py-1 <%= trend > 0 ? 'bg-success/10' : 'bg-danger/10' %> rounded-full">
+              <%= lucide_icon trend > 0 ? "trending-up" : "trending-down", class: "w-3 h-3 #{trend > 0 ? 'text-success' : 'text-danger'}" %>
+              <span class="text-xs <%= trend > 0 ? 'text-success' : 'text-danger' %> font-medium">
+                <%= trend > 0 ? '+' : '' %><%= trend %> 本月
+              </span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+    
+    <%= link_to major_issues_path(filter: { status: ['pending', 'discussing'] }), class: "card card-elevated hover:shadow-lg transition-shadow bg-gradient-to-br from-warning/5 to-warning/10" do %>
+      <div class="card-body text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <%= lucide_icon "clock", class: "w-6 h-6 text-warning" %>
+          <p class="text-sm text-secondary font-medium">待处理</p>
+        </div>
+        <p class="font-heading text-5xl font-bold text-warning mb-2"><%= @pending_issues + @discussing_issues %></p>
+        <div class="flex items-center justify-center gap-2 text-xs text-secondary">
+          <span>待讨论 <%= @pending_issues %></span>
+          <span>•</span>
+          <span>讨论中 <%= @discussing_issues %></span>
+        </div>
+      </div>
+    <% end %>
+    
+    <%= link_to major_issues_path(filter: { status: 'resolved' }), class: "card card-elevated hover:shadow-lg transition-shadow bg-gradient-to-br from-success/5 to-success/10" do %>
+      <div class="card-body text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <%= lucide_icon "check-circle", class: "w-6 h-6 text-success" %>
+          <p class="text-sm text-secondary font-medium">已解决</p>
+        </div>
+        <p class="font-heading text-5xl font-bold text-success mb-2"><%= @resolved_issues %></p>
+        <p class="text-xs text-secondary">
+          平均 <%= @avg_processing_days %> 天
+        </p>
+      </div>
+    <% end %>
+    
+    <div class="card card-elevated bg-gradient-to-br from-info/5 to-info/10">
+      <div class="card-body text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <%= lucide_icon "trending-up", class: "w-6 h-6 text-info" %>
+          <p class="text-sm text-secondary font-medium">完成率</p>
+        </div>
+        <p class="font-heading text-5xl font-bold text-info mb-2"><%= @completion_rate %>%</p>
+        <div class="w-full bg-surface-secondary rounded-full h-3 mt-3">
+          <div class="bg-info h-3 rounded-full transition-all duration-1000" style="width: <%= @completion_rate %>%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trend Visualization with ECharts -->
+  <% if @daily_creation_trend.any? %>
+    <% sorted_trend = @daily_creation_trend.sort %>
+    <% trend_line_data = {
+      categories: sorted_trend.map { |date, _| date.strftime('%m/%d') },
+      series: [{
+        name: '创建数量',
+        type: 'line',
+        data: sorted_trend.map(&:last),
+        smooth: true,
+        areaStyle: { opacity: 0.3 },
+        lineStyle: { width: 3 },
+        itemStyle: { color: '#5470c6' }
+      }]
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'line',
+      data: trend_line_data,
+      title: "创建趋势分析 (#{@date_from.strftime('%Y-%m-%d')} 至 #{@date_to.strftime('%Y-%m-%d')})",
+      height: '350px'
+    %>
+  <% end %>
+
+  <!-- 事项类型分布横向条形图 -->
+  <% if @category_distribution&.any? %>
+    <% category_bar_data = {
+      categories: @category_distribution.keys,
+      series: [{
+        name: '事项数量',
+        type: 'bar',
+        data: @category_distribution.values,
+        itemStyle: {
+          color: '#5470c6',
+          borderRadius: [0, 4, 4, 0]
+        },
+        label: {
+          show: true,
+          position: 'right'
+        }
+      }]
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'bar',
+      data: category_bar_data,
+      title: '事项类型分布（Top 10）',
+      height: '400px'
+    %>
+  <% end %>
+
+  <!-- Processing Performance -->
+  <div class="card card-elevated mb-6">
+    <div class="card-header">
+      <h3 class="card-title flex items-center gap-2">
+        <%= lucide_icon "clock", class: "w-5 h-5" %>
+        处理效率分析
+      </h3>
+    </div>
+    <div class="card-body">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-surface-secondary rounded-lg hover:bg-surface-secondary/80 transition-all hover:scale-105">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-info/20 flex items-center justify-center">
+              <%= lucide_icon "activity", class: "w-6 h-6 text-info" %>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">平均处理时长</p>
+              <p class="text-2xl font-bold text-primary"><%= @avg_processing_days %> 天</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 bg-surface-secondary rounded-lg hover:bg-surface-secondary/80 transition-all hover:scale-105">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
+              <%= lucide_icon "zap", class: "w-6 h-6 text-success" %>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">最快处理</p>
+              <p class="text-2xl font-bold text-primary"><%= @min_processing_days %> 天</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 bg-surface-secondary rounded-lg hover:bg-surface-secondary/80 transition-all hover:scale-105">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-warning/20 flex items-center justify-center">
+              <%= lucide_icon "turtle", class: "w-6 h-6 text-warning" %>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">最慢处理</p>
+              <p class="text-2xl font-bold text-primary"><%= @max_processing_days %> 天</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-4 bg-surface-secondary rounded-lg hover:bg-surface-secondary/80 transition-all hover:scale-105">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-danger/20 flex items-center justify-center">
+              <%= lucide_icon "alert-circle", class: "w-6 h-6 text-danger" %>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">逾期事项</p>
+              <p class="text-2xl font-bold text-primary"><%= @overdue_issues %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team & Responsible Party Analysis -->
+  <div class="grid lg:grid-cols-2 gap-6">
+    <!-- Responsible Party Workload with Heatmap Style -->
+    <% if @responsible_party_distribution&.any? %>
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h3 class="card-title flex items-center gap-2">
+            <%= lucide_icon "users", class: "w-5 h-5" %>
+            负责人事项分布（Top 10）
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="space-y-3">
+            <% max_workload = @responsible_party_distribution.values.max %>
+            <% @responsible_party_distribution.first(10).each_with_index do |(party, count), index| %>
+              <% percentage = max_workload > 0 ? (count.to_f / max_workload * 100).round(1) : 0 %>
+              <% heat_intensity = (percentage / 100.0 * 0.2).round(2) %>
+              <div class="p-3 rounded-lg transition-all hover:shadow-md" style="background: rgba(84, 112, 198, <%= heat_intensity %>);">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-surface-elevated flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <span class="text-sm font-bold text-primary"><%= index + 1 %></span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-sm font-semibold text-primary"><%= party.present? ? party : '未分配' %></span>
+                      <span class="badge badge-primary">
+                        <%= count %> 件
+                      </span>
+                    </div>
+                    <div class="w-full bg-surface-secondary rounded-full h-2 mt-2">
+                      <div class="bg-primary h-2 rounded-full transition-all" style="width: <%= percentage %>%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Company Rankings -->
+    <% if @company_rankings&.any? %>
+      <div class="card card-elevated">
+        <div class="card-header">
+          <h3 class="card-title flex items-center gap-2">
+            <%= lucide_icon "trophy", class: "w-5 h-5" %>
+            企业事项数排行（Top 10）
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="space-y-2">
+            <% @company_rankings.each_with_index do |ranking, index| %>
+              <% medal_colors = ['bg-yellow-500', 'bg-gray-400', 'bg-amber-700'] %>
+              <%= link_to dashboard_major_issue_analytics_path(company_id: ranking[:company_id], date_from: @date_from, date_to: @date_to),
+                  class: "flex items-center gap-3 p-3 bg-surface-secondary rounded-lg hover:bg-surface-secondary/80 transition-all hover:scale-102 hover:shadow-md" do %>
+                <div class="w-10 h-10 rounded-full <%= index < 3 ? medal_colors[index] : 'bg-info/20' %> flex items-center justify-center flex-shrink-0">
+                  <% if index < 3 %>
+                    <%= lucide_icon "award", class: "w-5 h-5 text-white" %>
+                  <% else %>
+                    <span class="text-sm font-bold text-info"><%= index + 1 %></span>
+                  <% end %>
+                </div>
+                <span class="text-sm font-medium text-primary flex-1 truncate"><%= ranking[:company_name] %></span>
+                <span class="badge badge-info"><%= ranking[:issues_count] %></span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Floating Quick Navigation Button -->
+  <%= render 'shared/analytics_quick_nav', current_module: 'major_issue' %>
+</div>

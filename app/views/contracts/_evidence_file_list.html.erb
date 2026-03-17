@@ -1,0 +1,12 @@
+<div id="<%= file_type %>_list">
+  <% files = contract.send(file_type) %>
+  <% if files.attached? %>
+    <div class="flex flex-col gap-2">
+      <% files.each do |file| %>
+        <%= smart_file_link(file, show_size: true, action_buttons: true, deletable: true) %>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-muted text-sm">暂无文件</p>
+  <% end %>
+</div>

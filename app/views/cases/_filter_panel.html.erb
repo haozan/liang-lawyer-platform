@@ -1,0 +1,201 @@
+<div class="card card-elevated mb-6" data-controller="filter-panel">
+  <div class="card-body">
+    <div class="flex items-center justify-between mb-4 cursor-pointer" data-action="click->filter-panel#toggle">
+      <div class="flex items-center gap-2">
+        <%= lucide_icon "filter", class: "w-5 h-5 text-primary" %>
+        <h3 class="font-heading text-lg font-semibold text-primary">智能筛选</h3>
+        <span class="text-xs text-muted" data-filter-panel-target="activeCount"></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <% if @saved_filters&.any? %>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-secondary">快捷筛选：</span>
+            <% @saved_filters.each do |filter| %>
+              <%= link_to filter.name, 
+                  cases_path(filter.filter_params), 
+                  class: "badge badge-#{filter.is_default? ? 'primary' : 'secondary'} text-xs" %>
+            <% end %>
+          </div>
+        <% end %>
+        <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { filter_panel_target: "chevron" } %>
+      </div>
+    </div>
+    
+    <div data-filter-panel-target="content" class="hidden">
+      <%= form_with url: cases_path, method: :get, class: "space-y-4" do |f| %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <!-- 关键词搜索 -->
+          <div>
+            <%= label_tag :keyword, "关键词搜索", class: "form-label" %>
+            <%= text_field_tag :keyword, params[:keyword], 
+                placeholder: "案件名称/案号/法院/摘要", 
+                class: "form-input" %>
+          </div>
+          
+          <!-- 状态筛选 -->
+          <div>
+            <%= label_tag :statuses, "案件状态", class: "form-label" %>
+            <%= select_tag :statuses, 
+                options_for_select([
+                  ['准备立案', 'preparing'],
+                  ['已立案待审', 'filed'],
+                  ['审理中', 'trial'],
+                  ['已判决', 'judged'],
+                  ['执行中', 'execution'],
+                  ['调解结案', 'settled'],
+                  ['已归档', 'closed']
+                ], params[:statuses]), 
+                { multiple: true, include_blank: '全部状态', class: "form-select",
+                  data: { controller: "tom-select", tom_select_placeholder_value: "选择状态" } } %>
+          </div>
+          
+          <!-- 阶段筛选 -->
+          <div>
+            <%= label_tag :stages, "案件阶段", class: "form-label" %>
+            <%= select_tag :stages, 
+                options_for_select([
+                  ['仲裁', 'arbitration'],
+                  ['一审', 'first_trial'],
+                  ['二审', 'second_trial'],
+                  ['执行', 'execution'],
+                  ['再审', 'retrial'],
+                  ['恢复执行', 'resume_execution']
+                ], params[:stages]), 
+                { multiple: true, include_blank: '全部阶段', class: "form-select",
+                  data: { controller: "tom-select", tom_select_placeholder_value: "选择阶段" } } %>
+          </div>
+          
+          <!-- 优先级筛选 -->
+          <div>
+            <%= label_tag :priorities, "优先级", class: "form-label" %>
+            <%= select_tag :priorities, 
+                options_for_select([
+                  ['紧急', 'urgent'],
+                  ['高', 'high'],
+                  ['普通', 'normal'],
+                  ['低', 'low']
+                ], params[:priorities]), 
+                { multiple: true, include_blank: '全部优先级', class: "form-select",
+                  data: { controller: "tom-select", tom_select_placeholder_value: "选择优先级" } } %>
+          </div>
+          
+          <!-- 案件类型 -->
+          <div>
+            <%= label_tag :case_types, "案件类型", class: "form-label" %>
+            <%= select_tag :case_types, 
+                options_for_select(@filter_options[:case_types], params[:case_types]), 
+                { multiple: true, include_blank: '全部类型', class: "form-select",
+                  data: { controller: "tom-select", tom_select_placeholder_value: "选择案件类型" } } %>
+          </div>
+          
+          <!-- 企业筛选 (仅律师可见) -->
+          <% if current_lawyer %>
+            <div>
+              <%= label_tag :company_id, "所属企业", class: "form-label" %>
+              <%= select_tag :company_id, 
+                  options_for_select(@filter_options[:companies], params[:company_id]), 
+                  { include_blank: '全部企业', class: "form-select",
+                    data: { controller: "tom-select", tom_select_placeholder_value: "选择企业" } } %>
+            </div>
+          <% end %>
+          
+          <!-- 团队成员筛选 -->
+          <div>
+            <%= label_tag :team_member_id, "团队成员", class: "form-label" %>
+            <%= select_tag :team_member_id, 
+                options_for_select(@filter_options[:team_members], params[:team_member_id]), 
+                { include_blank: '全部成员', class: "form-select",
+                  data: { controller: "tom-select", tom_select_placeholder_value: "选择团队成员" } } %>
+          </div>
+          
+          <!-- 主办律师筛选 -->
+          <div>
+            <%= label_tag :lead_lawyer_id, "主办律师", class: "form-label" %>
+            <%= select_tag :lead_lawyer_id, 
+                options_for_select(@filter_options[:team_members], params[:lead_lawyer_id]), 
+                { include_blank: '全部主办律师', class: "form-select",
+                  data: { controller: "tom-select", tom_select_placeholder_value: "选择主办律师" } } %>
+          </div>
+          
+          <!-- 财产保全筛选 -->
+          <div>
+            <%= label_tag :has_property_preservation, "财产保全", class: "form-label" %>
+            <%= select_tag :has_property_preservation, 
+                options_for_select([
+                  ['全部涉及财产保全的案件', '1'],
+                  ['有效财产保全案件', 'active']
+                ], params[:has_property_preservation]), 
+                { include_blank: '全部', class: "form-select" } %>
+          </div>
+          
+          <!-- 开庭日期范围 -->
+          <div>
+            <%= label_tag :hearing_days, "开庭提醒", class: "form-label" %>
+            <%= select_tag :hearing_days, 
+                options_for_select([
+                  ['未来3天', 3],
+                  ['未来7天', 7],
+                  ['未来14天', 14],
+                  ['未来30天', 30]
+                ], params[:hearing_days]), 
+                { include_blank: '全部', class: "form-select" } %>
+          </div>
+          
+          <!-- 立案日期范围 -->
+          <div>
+            <%= label_tag :filed_from, "立案日期起", class: "form-label" %>
+            <%= text_field_tag :filed_from, params[:filed_from], 
+                class: "form-input",
+                data: { controller: "flatpickr" } %>
+          </div>
+          
+          <div>
+            <%= label_tag :filed_to, "立案日期止", class: "form-label" %>
+            <%= text_field_tag :filed_to, params[:filed_to], 
+                class: "form-input",
+                data: { controller: "flatpickr" } %>
+          </div>
+          
+          <!-- 排序方式 -->
+          <div>
+            <%= label_tag :sort_by, "排序方式", class: "form-label" %>
+            <%= select_tag :sort_by, 
+                options_for_select([
+                  ['优先级', 'priority'],
+                  ['最后活动时间', 'last_activity_at'],
+                  ['立案日期', 'filing_at'],
+                  ['开庭日期', 'hearing_at'],
+                  ['财产保全到期时间（由近到远）', 'property_preservation_deadline'],
+                  ['创建时间', 'created_at']
+                ], params[:sort_by]), 
+                { include_blank: '默认排序', class: "form-select" } %>
+          </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex items-center justify-between pt-4 border-t">
+          <div class="flex items-center gap-3">
+            <%= button_tag type: :submit, class: "btn-primary" do %>
+              <%= lucide_icon "search", class: "w-4 h-4" %>
+              <span>应用筛选</span>
+            <% end %>
+            <%= link_to cases_path, class: "btn-outline" do %>
+              <%= lucide_icon "x", class: "w-4 h-4" %>
+              <span>清除筛选</span>
+            <% end %>
+          </div>
+          
+          <% if current_user %>
+            <%= button_tag type: :button, 
+                class: "btn-secondary", 
+                data: { action: "click->filter-panel#saveFilter" } do %>
+              <%= lucide_icon "bookmark", class: "w-4 h-4" %>
+              <span>保存为快捷筛选</span>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

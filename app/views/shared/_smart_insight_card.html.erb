@@ -1,0 +1,64 @@
+<%# 智能洞察提示卡 %>
+<%# 参数:
+  - type: 类型 (success, warning, danger, info)
+  - icon: 图标名称
+  - title: 标题
+  - message: 提示消息
+  - action_text: 操作按钮文字 (可选)
+  - action_url: 操作按钮链接 (可选)
+%>
+
+<% 
+  type ||= 'info'
+  
+  bg_colors = {
+    'success' => 'bg-success/10 border-success',
+    'warning' => 'bg-warning/10 border-warning',
+    'danger' => 'bg-danger/10 border-danger',
+    'info' => 'bg-info/10 border-info'
+  }
+  
+  text_colors = {
+    'success' => 'text-success',
+    'warning' => 'text-warning',
+    'danger' => 'text-danger',
+    'info' => 'text-info'
+  }
+  
+  icon_defaults = {
+    'success' => 'lightbulb',
+    'warning' => 'alert-triangle',
+    'danger' => 'alert-circle',
+    'info' => 'info'
+  }
+  
+  icon ||= icon_defaults[type]
+%>
+
+<div class="card <%= bg_colors[type] %> border-l-4">
+  <div class="card-body">
+    <div class="flex items-start gap-4">
+      <!-- 图标 -->
+      <div class="flex-shrink-0">
+        <%= lucide_icon icon, class: "w-6 h-6 #{text_colors[type]}" %>
+      </div>
+      
+      <!-- 内容 -->
+      <div class="flex-1">
+        <% if defined?(title) && title.present? %>
+          <h4 class="font-semibold <%= text_colors[type] %> mb-1"><%= title %></h4>
+        <% end %>
+        <p class="text-sm text-primary"><%= message %></p>
+        
+        <% if defined?(action_text) && action_text.present? && defined?(action_url) && action_url.present? %>
+          <div class="mt-3">
+            <%= link_to action_url, class: "btn btn-sm btn-#{type}" do %>
+              <%= action_text %>
+              <%= lucide_icon "arrow-right", class: "w-4 h-4 ml-1" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

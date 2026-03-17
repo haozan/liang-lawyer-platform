@@ -33,6 +33,38 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
+  
+  # Allow more content types for inline preview
+  config.active_storage.content_types_allowed_inline = %w[
+    image/webp
+    image/avif
+    image/png
+    image/gif
+    image/jpeg
+    image/jpg
+    image/bmp
+    image/svg+xml
+    text/plain
+    text/html
+    text/css
+    text/javascript
+    application/javascript
+    application/json
+    application/xml
+    application/pdf
+    application/msword
+    application/vnd.ms-excel
+    application/vnd.ms-powerpoint
+    application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    application/vnd.openxmlformats-officedocument.presentationml.presentation
+    video/mp4
+    video/webm
+    video/ogg
+    audio/mpeg
+    audio/ogg
+    audio/wav
+  ]
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = true

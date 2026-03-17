@@ -1,0 +1,80 @@
+<% content_for :title, @contract_tag.respond_to?(:name) ? @contract_tag.name : "合同标签" %>
+
+<div class="container-lg">
+  <div class="mb-6">
+    <div class="flex items-center space-x-4">
+      <%= link_to admin_contract_tags_path, class: "btn-ghost text-sm py-1 px-3" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+        Back to Contract tags
+      <% end %>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50"><%= @contract_tag.respond_to?(:name) ? @contract_tag.name : "Contract tag ##{@contract_tag.id}" %></h1>
+
+      <div class="flex items-center space-x-3">
+        <%= link_to edit_admin_contract_tag_path(@contract_tag.id), class: "btn-primary" do %>
+          <%= lucide_icon "pencil", class: "w-5 h-5 mr-2" %>
+          Edit
+        <% end %>
+
+        <%= link_to admin_contract_tag_path(@contract_tag.id),
+            method: :delete,
+            data: { confirm: "Are you sure you want to delete this contract_tag?" },
+            class: "btn-danger" do %>
+          <%= lucide_icon "trash-2", class: "w-5 h-5 mr-2" %>
+          Delete
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contract tag Content -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <div class="space-y-6">
+        <!-- Name -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @contract_tag.name %></div>
+        </div>
+
+        <!-- Color -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @contract_tag.color %></div>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company</label>
+          <div class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= @contract_tag.company&.name %></div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="pt-6 border-t border-gray-200 dark:border-gray-600">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">ID</label>
+              <div class="text-sm text-gray-900 dark:text-gray-100 font-mono"><%= @contract_tag.id %></div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">创建时间</label>
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                <%= @contract_tag.created_at.strftime("%Y年%-m月%-d日 %H:%M") %>
+                <span class="text-gray-400">(<%= time_ago_in_words(@contract_tag.created_at) %> ago)</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">最后更新</label>
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                <%= @contract_tag.updated_at.strftime("%Y年%-m月%-d日 %H:%M") %>
+                <span class="text-gray-400">(<%= time_ago_in_words(@contract_tag.updated_at) %> ago)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

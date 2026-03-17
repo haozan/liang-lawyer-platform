@@ -1,0 +1,50 @@
+<% if case_record.our_party_name.present? || case_record.counterparty_name.present? || case_record.counterparty_lawyer.present? %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "scale", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">当事人详细信息</h4>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0 space-y-3" data-collapsible-target="content">
+      <% if case_record.our_party_name.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">我方当事人：</span>
+          <span class="text-primary font-semibold"><%= case_record.our_party_name %></span>
+        </div>
+      <% end %>
+      <% if case_record.counterparty_name.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">对方当事人：</span>
+          <span class="text-primary"><%= case_record.counterparty_name %></span>
+        </div>
+      <% end %>
+      <% if case_record.counterparty_role.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">对方诉讼地位：</span>
+          <span class="text-primary"><%= case_record.counterparty_role %></span>
+        </div>
+      <% end %>
+      <% if case_record.counterparty_lawyer.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">对方代理律师：</span>
+          <span class="text-primary"><%= case_record.counterparty_lawyer %></span>
+        </div>
+      <% end %>
+      <% if case_record.counterparty_lawfirm.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">对方律所：</span>
+          <span class="text-primary"><%= case_record.counterparty_lawfirm %></span>
+        </div>
+      <% end %>
+      <% if case_record.counterparty_contact.present? %>
+        <div class="flex items-start">
+          <span class="text-secondary w-32 flex-shrink-0">对方联系方式：</span>
+          <span class="text-primary"><%= case_record.counterparty_contact %></span>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

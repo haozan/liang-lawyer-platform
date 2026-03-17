@@ -62,7 +62,7 @@ class Admin::AdministratorsController < Admin::BaseController
   end
 
   def administrator_params
-    permitted_params = [:name, :password, :password_confirmation]
+    permitted_params = [:name, :phone, :password, :password_confirmation]
     # Only super admins can set roles
     permitted_params << :role if current_admin.can_manage_administrators?
     params.require(:administrator).permit(permitted_params)

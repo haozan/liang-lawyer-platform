@@ -1,0 +1,43 @@
+<div class="card card-elevated">
+  <div class="card-header border-b border-border">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "file", class: "w-5 h-5" %>
+      合同文件
+    </h3>
+  </div>
+  <div class="card-body space-y-3">
+    <div>
+      <label class="form-label flex items-center gap-1">
+        <%= lucide_icon "file-text", class: "w-4 h-4" %>
+        主合同
+      </label>
+      <%= smart_file_link(contract.file, show_size: true, action_buttons: true, deletable: true) %>
+    </div>
+    <% if contract.supplement_files.attached? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "file-plus", class: "w-4 h-4" %>
+          补充协议
+        </label>
+        <div class="flex flex-col gap-2">
+          <% contract.supplement_files.each do |file| %>
+            <%= smart_file_link(file, show_size: true, action_buttons: true, deletable: true) %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+    <% if contract.annex_files.attached? %>
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "paperclip", class: "w-4 h-4" %>
+          合同附件
+        </label>
+        <div class="flex flex-col gap-2">
+          <% contract.annex_files.each do |file| %>
+            <%= smart_file_link(file, show_size: true, action_buttons: true, deletable: true) %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

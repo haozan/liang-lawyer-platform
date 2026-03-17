@@ -1,0 +1,30 @@
+<%# 仪表盘固定顶部栏 - 展示关键指标快速浏览 %>
+<%# 参数:
+  - metrics: 指标数组 [{name:, value:, icon:, color:, trend:, link:}]
+%>
+
+<div data-controller="analytics-sticky-bar">
+  <!-- 触发元素 - 用于检测滚动位置 -->
+  <div data-sticky-trigger class="h-0"></div>
+  
+  <!-- 顶部栏 -->
+  <div data-analytics-sticky-bar-target="bar" class="relative bg-surface-elevated border-b border-border transition-all duration-300">
+    <div class="container-main">
+      <div class="py-3">
+        <div class="grid grid-cols-2 md:grid-cols-<%= [metrics.length, 6].min %> gap-4">
+          <% metrics.each do |metric| %>
+            <% if metric[:link] %>
+              <%= link_to metric[:link], class: "group" do %>
+                <%= render 'shared/dashboard_metric_item', metric: metric %>
+              <% end %>
+            <% else %>
+              <div class="group">
+                <%= render 'shared/dashboard_metric_item', metric: metric %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<!-- Materials Tab Panel -->
+<div data-case-tabs-target="panel" data-tab-panel="materials" class="hidden">
+  <div class="card card-elevated">
+    <div class="card-body">
+      <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">案件材料</h3>
+      
+      <% if @case.attachments.attached? %>
+        <%= collapsible_section(
+          title: '案件材料附件',
+          count: @case.attachments.count,
+          threshold: 5,
+          icon: 'folder'
+        ) do %>
+          <div class="space-y-2">
+            <% @case.attachments.each do |attachment| %>
+              <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: true) %>
+            <% end %>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="text-muted text-center py-8">暂无案件材料</p>
+      <% end %>
+      
+      <!-- Append Attachments Form (Lawyer Only) -->
+      <% if current_lawyer %>
+        <div class="<%= @case.attachments.attached? ? 'pt-4 border-t border-gray-200 dark:border-gray-700' : '' %>">
+          <h4 class="font-semibold text-primary mb-4">追加案件材料</h4>
+          <%= form_with url: append_attachments_case_path(@case), method: :post, class: "space-y-4", multipart: true do |f| %>
+            <div class="form-control">
+              <%= label_tag "case[attachments][]", "附件", class: "form-label required" %>
+              <%= file_field_tag "case[attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx", required: true %>
+              <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word、Excel文件，单文件不超过40MB，可同时选择多个文件</p>
+            </div>
+            <%= f.submit "上传附件", class: "btn-primary" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

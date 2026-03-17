@@ -1,0 +1,326 @@
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-lg mx-auto px-6">
+    <!-- 返回按钮 -->
+    <div class="mb-6">
+      <%= link_to contracts_path, class: "inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors" do %>
+        <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+        <span>返回列表</span>
+      <% end %>
+    </div>
+
+    <!-- 🎯 顶部关键指标卡片组 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <!-- 合同金额 -->
+      <div class="card card-elevated hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-primary/5 to-primary/10 border-l-4 border-primary">
+        <div class="card-body text-center">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <%= lucide_icon "dollar-sign", class: "w-6 h-6 text-primary" %>
+            <p class="text-sm text-secondary font-medium">合同金额</p>
+          </div>
+          <p class="font-heading text-4xl font-bold text-primary mb-1">
+            <% if @key_metrics[:amount] > 0 %>
+              ¥<%= number_with_delimiter(@key_metrics[:amount] / 10000, precision: 1) %>万
+            <% else %>
+              <span class="text-xl text-muted">未设置</span>
+            <% end %>
+          </p>
+        </div>
+      </div>
+
+      <!-- 剩余天数 -->
+      <div class="card card-elevated hover:shadow-xl transition-all duration-300 
+                  <%= @key_metrics[:is_expired] ? 'bg-gradient-to-br from-danger/5 to-danger/10 border-l-4 border-danger' : 
+                      @key_metrics[:is_expiring] ? 'bg-gradient-to-br from-warning/5 to-warning/10 border-l-4 border-warning' : 
+                      'bg-gradient-to-br from-info/5 to-info/10 border-l-4 border-info' %>">
+        <div class="card-body text-center">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <%= lucide_icon "calendar", class: "w-6 h-6 #{@key_metrics[:is_expired] ? 'text-danger' : @key_metrics[:is_expiring] ? 'text-warning' : 'text-info'}" %>
+            <p class="text-sm text-secondary font-medium">剩余天数</p>
+          </div>
+          <p class="font-heading text-4xl font-bold mb-1 
+                    <%= @key_metrics[:is_expired] ? 'text-danger' : @key_metrics[:is_expiring] ? 'text-warning' : 'text-info' %>">
+            <% if @key_metrics[:days_remaining] %>
+              <% if @key_metrics[:is_expired] %>
+                已过期
+              <% else %>
+                <%= @key_metrics[:days_remaining] %>天
+              <% end %>
+            <% else %>
+              <span class="text-xl text-muted">-</span>
+            <% end %>
+          </p>
+          <% if @key_metrics[:is_expiring] && !@key_metrics[:is_expired] %>
+            <span class="text-xs text-warning">即将到期</span>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- 履行进度 -->
+      <div class="card card-elevated hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-success/5 to-success/10 border-l-4 border-success">
+        <div class="card-body text-center">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <%= lucide_icon "activity", class: "w-6 h-6 text-success" %>
+            <p class="text-sm text-secondary font-medium">履行进度</p>
+          </div>
+          <p class="font-heading text-4xl font-bold text-success mb-2"><%= @key_metrics[:progress] %>%</p>
+          <div class="w-full bg-surface-secondary rounded-full h-2">
+            <div class="bg-success rounded-full h-2 transition-all duration-500" 
+                 style="width: <%= @key_metrics[:progress] %>%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 风险等级 -->
+      <div class="card card-elevated hover:shadow-xl transition-all duration-300 
+                  <%= @key_metrics[:has_high_risk] ? 'bg-gradient-to-br from-danger/5 to-danger/10 border-l-4 border-danger' : 
+                      'bg-gradient-to-br from-neutral/5 to-neutral/10 border-l-4 border-neutral' %>">
+        <div class="card-body text-center">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <%= lucide_icon "alert-triangle", class: "w-6 h-6 #{@key_metrics[:has_high_risk] ? 'text-danger' : 'text-neutral'}" %>
+            <p class="text-sm text-secondary font-medium">风险等级</p>
+          </div>
+          <p class="font-heading text-2xl font-bold mb-1 <%= @key_metrics[:has_high_risk] ? 'text-danger' : 'text-neutral' %>">
+            <%= @key_metrics[:risk_level] %>
+          </p>
+          <% if @key_metrics[:has_high_risk] %>
+            <span class="text-xs text-danger">需要关注</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⏱️ 合同生命周期时间线 -->
+    <% if @contract.signed_at && @contract.end_at %>
+      <div class="card card-elevated mb-6">
+        <div class="card-body">
+          <h3 class="font-heading text-lg font-bold text-primary mb-4 flex items-center gap-2">
+            <%= lucide_icon "clock", class: "w-5 h-5" %>
+            合同生命周期
+          </h3>
+          <% 
+            total_days = (@contract.end_at - @contract.signed_at).to_i
+            elapsed_days = (Date.today - @contract.signed_at).to_i
+            progress_percent = total_days > 0 ? [(elapsed_days.to_f / total_days * 100).round(1), 100].min : 0
+          %>
+          <div class="relative pt-4 pb-2">
+            <!-- 时间轴背景 -->
+            <div class="absolute top-8 left-0 right-0 h-2 bg-surface-secondary rounded-full"></div>
+            <!-- 时间轴进度 -->
+            <div class="absolute top-8 left-0 h-2 bg-gradient-to-r from-primary to-info rounded-full transition-all duration-500" 
+                 style="width: <%= progress_percent %>%"></div>
+            
+            <!-- 时间节点 -->
+            <div class="relative flex justify-between items-start">
+              <!-- 签订日期 -->
+              <div class="flex flex-col items-center" style="width: 20%;">
+                <div class="w-4 h-4 rounded-full bg-primary border-4 border-surface shadow-lg z-10 mb-2"></div>
+                <div class="text-center">
+                  <p class="text-xs font-semibold text-primary">签订</p>
+                  <p class="text-xs text-muted"><%= @contract.signed_at.strftime('%Y/%m/%d') %></p>
+                </div>
+              </div>
+
+              <!-- 履行中标记 -->
+              <% if @contract.status == 'active' %>
+                <div class="flex flex-col items-center" style="margin-left: <%= progress_percent - 10 %>%;">
+                  <div class="w-6 h-6 rounded-full bg-info border-4 border-surface shadow-lg z-10 mb-2 animate-pulse"></div>
+                  <div class="text-center">
+                    <p class="text-xs font-semibold text-info">履行中</p>
+                    <p class="text-xs text-muted">当前位置</p>
+                    <p class="text-xs font-bold text-info"><%= progress_percent %>%</p>
+                  </div>
+                </div>
+              <% end %>
+
+              <!-- 到期日期 -->
+              <div class="flex flex-col items-center" style="width: 20%;">
+                <div class="w-4 h-4 rounded-full <%= @key_metrics[:is_expired] ? 'bg-danger' : 'bg-neutral' %> border-4 border-surface shadow-lg z-10 mb-2"></div>
+                <div class="text-center">
+                  <p class="text-xs font-semibold <%= @key_metrics[:is_expired] ? 'text-danger' : 'text-neutral' %>">到期</p>
+                  <p class="text-xs text-muted"><%= @contract.end_at.strftime('%Y/%m/%d') %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- 主内容区域（两栏布局） -->
+    <div class="flex gap-6">
+      <!-- 左侧主内容区 -->
+      <div class="flex-1">
+        <!-- 标签页导航 -->
+        <div class="card card-elevated mb-6" data-controller="tabs" data-tabs-active-tab-value="basic">
+          <div class="border-b border-border">
+            <nav class="flex gap-6 overflow-x-auto" role="tablist" data-controller="horizontal-scroll">
+              <button type="button"
+                      role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="basic"
+                      aria-controls="basic-panel"
+                      class="tab-button active px-6 py-3 border-b-2 border-primary text-primary font-semibold whitespace-nowrap">
+                <%= lucide_icon "info", class: "w-4 h-4 inline mr-2" %>
+                基本信息
+              </button>
+              <button type="button"
+                      role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="performance"
+                      aria-controls="performance-panel"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "trending-up", class: "w-4 h-4 inline mr-2" %>
+                履行跟踪
+              </button>
+              <button type="button"
+                      role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="files"
+                      aria-controls="files-panel"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "paperclip", class: "w-4 h-4 inline mr-2" %>
+                合同文件
+              </button>
+              <button type="button"
+                      role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="lawyer"
+                      aria-controls="lawyer-panel"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "message-circle", class: "w-4 h-4 inline mr-2" %>
+                律师意见
+                <% if @comments.any? %>
+                  <span class="badge badge-neutral ml-1"><%= @comments.count %></span>
+                <% end %>
+              </button>
+              <button type="button"
+                      role="tab"
+                      data-tabs-target="button"
+                      data-action="click->tabs#select"
+                      data-tab="reconciliation"
+                      aria-controls="reconciliation-panel"
+                      class="tab-button px-6 py-3 border-b-2 border-transparent text-secondary hover:text-primary hover:border-secondary whitespace-nowrap">
+                <%= lucide_icon "calculator", class: "w-4 h-4 inline mr-2" %>
+                对账管理
+                <% if @contract.reconciliations.any? %>
+                  <span class="badge badge-neutral ml-1"><%= @contract.reconciliations.count %></span>
+                <% end %>
+              </button>
+            </nav>
+          </div>
+
+          <!-- 标签页内容 -->
+          <div class="card-body">
+            <!-- 📄 基本信息标签页 -->
+            <div data-tabs-target="panel" data-tab="basic" class="space-y-6">
+              <%= render 'contracts/sections/basic_info', contract: @contract, collapsed: false %>
+              <% if @contract.contract_amount.present? || @contract.payment_terms.present? %>
+                <%= render 'contracts/sections/payment_info', contract: @contract, collapsed: false %>
+              <% end %>
+            </div>
+
+            <!-- 📦 履行跟踪标签页 -->
+            <div data-tabs-target="panel" data-tab="performance" class="space-y-6 hidden">
+              <% if @contract.performance_start_date.present? || @contract.delivery_date.present? || @contract.warranty_period.present? || @contract.performance_progress.present? %>
+                <%= render 'contracts/sections/performance_tracking', contract: @contract, collapsed: false %>
+              <% else %>
+                <div class="card card-elevated">
+                  <div class="card-body text-center py-12">
+                    <%= lucide_icon "inbox", class: "w-12 h-12 text-muted mx-auto mb-3" %>
+                    <p class="text-muted">暂无履行跟踪信息</p>
+                  </div>
+                </div>
+              <% end %>
+              
+              <% if @contract.legal_risk_level.present? || @contract.penalty_clause.present? || @contract.dispute_resolution.present? %>
+                <%= render 'contracts/sections/risk_management', contract: @contract, collapsed: false %>
+              <% end %>
+              
+              <% if @contract.auto_renewal.present? || @contract.renewal_intention.present? %>
+                <%= render 'contracts/sections/renewal_management', contract: @contract, collapsed: false %>
+              <% end %>
+            </div>
+
+            <!-- 📎 合同文件标签页 -->
+            <div data-tabs-target="panel" data-tab="files" class="hidden">
+              <%= render 'contracts/sections/contract_files_with_comments', contract: @contract, comments: @comments %>
+            </div>
+
+            <!-- ⚖️ 律师意见标签页 -->
+            <div data-tabs-target="panel" data-tab="lawyer" class="hidden">
+              <%= render 'contracts/sections/lawyer_comments', contract: @contract, comments: @comments %>
+            </div>
+
+            <!-- 💰 对账管理标签页 -->
+            <div data-tabs-target="panel" data-tab="reconciliation" class="hidden">
+              <%= render 'contracts/sections/reconciliation_module', contract: @contract, comments: @comments, mentionable_users: @mentionable_users %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🧭 右侧固定侧边栏 -->
+      <div class="w-64 flex-shrink-0 hidden lg:block">
+        <div class="sticky top-8 space-y-6">
+          <!-- 关键指标摘要 -->
+          <div class="card card-elevated">
+            <div class="card-body space-y-4">
+              <h4 class="font-semibold text-primary flex items-center gap-2">
+                <%= lucide_icon "bar-chart-2", class: "w-4 h-4" %>
+                关键指标
+              </h4>
+              <div class="space-y-3">
+                <div>
+                  <p class="text-xs text-muted mb-1">合同金额</p>
+                  <p class="text-lg font-bold text-primary">
+                    <% if @key_metrics[:amount] > 0 %>
+                      ¥<%= number_with_delimiter(@key_metrics[:amount] / 10000, precision: 1) %>万
+                    <% else %>
+                      <span class="text-sm text-muted">未设置</span>
+                    <% end %>
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs text-muted mb-1">剩余天数</p>
+                  <p class="text-lg font-bold <%= @key_metrics[:is_expired] ? 'text-danger' : @key_metrics[:is_expiring] ? 'text-warning' : 'text-info' %>">
+                    <% if @key_metrics[:days_remaining] %>
+                      <% if @key_metrics[:is_expired] %>
+                        已过期
+                      <% else %>
+                        <%= @key_metrics[:days_remaining] %>天
+                      <% end %>
+                    <% else %>
+                      -
+                    <% end %>
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs text-muted mb-1">履行进度</p>
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-surface-secondary rounded-full h-2">
+                      <div class="bg-success rounded-full h-2" style="width: <%= @key_metrics[:progress] %>%"></div>
+                    </div>
+                    <span class="text-sm font-bold text-success"><%= @key_metrics[:progress] %>%</span>
+                  </div>
+                </div>
+                <div>
+                  <p class="text-xs text-muted mb-1">风险等级</p>
+                  <span class="badge <%= @key_metrics[:has_high_risk] ? 'badge-danger' : 'badge-neutral' %>">
+                    <%= @key_metrics[:risk_level] %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 快捷操作 -->
+          <%= render 'contracts/sections/sidebar', contract: @contract, key_metrics: @key_metrics %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

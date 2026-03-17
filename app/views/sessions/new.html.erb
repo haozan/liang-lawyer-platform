@@ -1,41 +1,167 @@
-<div class="min-h-screen flex items-center justify-center bg-surface py-12 px-4 sm:px-6 lg:px-8">
-  <div class="container-sm">
-    <div class="card card-elevated">
-      <div class="card-body">
-        <div class="text-center mb-8">
-          <h1 class="text-4xl font-heading font-bold text-primary mb-2">
-            梁家航律师合同风险管理平台
-          </h1>
-          <p class="text-secondary text-lg">企业法务管理系统登录</p>
+<% content_for :title, '登录 - 极光法律服务管理系统' %>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex flex-col">
+  <!-- Header with Logo and Brand -->
+  <div class="w-full py-6 px-6">
+    <div class="container-xl mx-auto">
+      <%= link_to root_path, class: "flex items-center gap-3 text-primary hover:text-primary-dark transition-colors w-fit" do %>
+        <%= lucide_icon "scale", class: "w-10 h-10" %>
+        <div class="flex flex-col">
+          <span class="font-heading text-2xl font-bold">极光法律服务管理系统</span>
+          <span class="text-sm text-secondary font-medium">智能风控 · 专业守护 · 高效管理</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Main Login Section -->
+  <div class="flex-1 flex items-center justify-center px-4 pb-12">
+    <div class="w-full max-w-md">
+      <!-- Login Card -->
+      <div class="card card-elevated bg-surface p-8 relative">
+        <!-- Decorative Legal Symbol -->
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
+          <%= lucide_icon "shield-check", class: "w-7 h-7 text-surface" %>
         </div>
 
-        <%= form_with url: login_path, method: :post, class: "space-y-6" do |f| %>
-          <div>
-            <%= f.label :email, "邮箱（律师）", class: "form-label" %>
-            <%= f.email_field :email, autofocus: true, class: "form-input", placeholder: "律师请输入邮箱" %>
-            <p class="form-hint">律师使用邮箱登录</p>
-          </div>
-          
-          <div>
-            <%= f.label :phone, "电话（企业用户）", class: "form-label" %>
-            <%= f.telephone_field :phone, class: "form-input", placeholder: "企业用户请输入手机号" %>
-            <p class="form-hint">企业用户使用手机号登录</p>
-          </div>
+        <div class="mt-4">
+          <h1 class="text-2xl font-bold text-center text-primary mb-2">登录系统</h1>
+          <p class="text-center text-secondary mb-6">欢迎回来，请输入您的登录信息</p>
 
-          <div>
-            <%= f.label :password, "密码", class: "form-label" %>
-            <%= f.password_field :password, required: true, class: "form-input", placeholder: "请输入密码" %>
-          </div>
+          <%= render 'shared/flash_messages' %>
 
-          <div>
-            <%= f.submit "登录", class: "btn-primary w-full" %>
+          <div data-controller="login-tab">
+            <!-- Login Method Tabs -->
+            <div class="flex gap-2 mb-6 bg-surface-elevated rounded-lg p-1">
+              <button type="button" 
+                      data-login-tab-target="passwordTab"
+                      data-action="click->login-tab#showPassword"
+                      class="flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 bg-primary text-surface shadow-sm">
+                <%= lucide_icon "key", class: "w-4 h-4 inline-block mr-2" %>
+                密码登录
+              </button>
+              <button type="button"
+                      data-login-tab-target="smsTab"
+                      data-action="click->login-tab#showSms"
+                      class="flex-1 py-2.5 px-4 rounded-md text-sm font-medium text-secondary hover:text-primary transition-all duration-200">
+                <%= lucide_icon "smartphone", class: "w-4 h-4 inline-block mr-2" %>
+                验证码登录
+              </button>
+            </div>
+
+            <!-- Password Login Form -->
+            <div data-login-tab-target="passwordForm">
+              <%= form_with url: login_path, method: :post, class: "space-y-5" do |f| %>
+                <%= hidden_field_tag :login_type, 'password' %>
+                
+                <div>
+                  <%= f.label :phone, "手机号", class: "form-label" %>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <%= lucide_icon "smartphone", class: "w-4 h-4 text-muted" %>
+                    </div>
+                    <%= f.telephone_field :phone, 
+                        autofocus: true, 
+                        required: true, 
+                        class: "form-input pl-10", 
+                        placeholder: "请输入11位手机号" %>
+                  </div>
+                </div>
+
+                <div>
+                  <%= f.label :password, "密码", class: "form-label" %>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <%= lucide_icon "lock", class: "w-4 h-4 text-muted" %>
+                    </div>
+                    <%= f.password_field :password, 
+                        required: true, 
+                        class: "form-input pl-10", 
+                        placeholder: "请输入密码" %>
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <%= f.submit "登录", class: "btn-primary w-full py-3 text-base" %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- SMS Login Form -->
+            <div data-login-tab-target="smsForm" style="display: none;">
+              <%= form_with url: login_path, method: :post, class: "space-y-5" do |f| %>
+                <%= hidden_field_tag :login_type, 'sms' %>
+                
+                <div>
+                  <%= f.label :phone, "手机号", class: "form-label" %>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <%= lucide_icon "smartphone", class: "w-4 h-4 text-muted" %>
+                    </div>
+                    <%= f.telephone_field :phone, 
+                        required: true, 
+                        class: "form-input pl-10", 
+                        placeholder: "请输入11位手机号" %>
+                  </div>
+                </div>
+
+                <div>
+                  <%= f.label :sms_code, "验证码", class: "form-label" %>
+                  <div class="flex gap-2">
+                    <div class="relative flex-1">
+                      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <%= lucide_icon "shield", class: "w-4 h-4 text-muted" %>
+                      </div>
+                      <%= f.text_field :sms_code, 
+                          required: true, 
+                          class: "form-input pl-10", 
+                          placeholder: "请输入6位验证码", 
+                          maxlength: 6 %>
+                    </div>
+                    <button type="button" class="btn-outline px-6 whitespace-nowrap">
+                      发送验证码
+                    </button>
+                  </div>
+                  <p class="form-help mt-2">
+                    <%= lucide_icon "info", class: "w-3.5 h-3.5 inline-block mr-1" %>
+                    开发环境：验证码将在服务器日志中显示
+                  </p>
+                </div>
+
+                <div class="pt-2">
+                  <%= f.submit "登录", class: "btn-primary w-full py-3 text-base" %>
+                </div>
+              <% end %>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Footer Links -->
+      <div class="mt-6 text-center space-y-3">
+        <%= link_to root_path, class: "inline-flex items-center gap-2 text-secondary hover:text-primary transition-colors text-sm" do %>
+          <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+          <span>返回首页了解更多</span>
         <% end %>
-
-        <div class="mt-6 text-center">
-          <%= link_to "返回首页", root_path, class: "text-primary hover:text-primary-dark transition-colors" %>
+        
+        <div class="flex items-center justify-center gap-4 text-xs text-muted">
+          <div class="flex items-center gap-1">
+            <%= lucide_icon "shield", class: "w-3.5 h-3.5" %>
+            <span>数据加密传输</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <%= lucide_icon "lock", class: "w-3.5 h-3.5" %>
+            <span>隐私保护</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Decorative Elements -->
+  <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+  
+  <!-- Subtle Background Pattern -->
+  <div class="fixed inset-0 pointer-events-none opacity-[0.02] z-0" 
+       style="background-image: repeating-linear-gradient(45deg, transparent, transparent 35px, hsl(var(--color-primary)) 35px, hsl(var(--color-primary)) 36px);"></div>
 </div>

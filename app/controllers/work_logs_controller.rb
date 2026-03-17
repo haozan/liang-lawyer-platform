@@ -2,7 +2,7 @@ class WorkLogsController < ApplicationController
   before_action :require_authentication
   before_action :set_case
   before_action :require_work_log_permission
-  before_action :set_work_log, only: [:destroy]
+  before_action :set_work_log, only: [:destroy, :append_attachments]
 
   def create
     @work_log = @case.work_logs.new(work_log_params)
@@ -24,6 +24,46 @@ class WorkLogsController < ApplicationController
   def destroy
     @work_log.destroy
     redirect_to case_path(@case), notice: '工作大事记已删除'
+  end
+  
+  def append_attachments
+    if params[:work_log] && params[:work_log][:attachments].present?
+      success_count = 0
+      error_messages = []
+      
+      params[:work_log][:attachments].each do |attachment|
+        next if attachment.blank?
+        
+        begin
+          @work_log.attachments.attach(attachment)
+          
+          # 检查验证错误
+          if @work_log.errors[:attachments].any?
+            error_messages << @work_log.errors[:attachments].last
+            @work_log.errors.delete(:attachments)
+            # 移除刚才附加的无效附件
+            @work_log.attachments.last.purge if @work_log.attachments.attached?
+          else
+            success_count += 1
+          end
+        rescue => e
+          error_messages << "文件 #{attachment.original_filename} 上传失败：#{e.message}"
+        end
+      end
+      
+      # 根据结果返回不同消息
+      if success_count > 0 && error_messages.empty?
+        redirect_to case_path(@case), notice: "工作记录附件已添加（共 #{success_count} 个文件）"
+      elsif success_count > 0 && error_messages.any?
+        redirect_to case_path(@case), alert: "部分文件上传成功（#{success_count} 个），但有错误：#{error_messages.join('; ')}"
+      elsif error_messages.any?
+        redirect_to case_path(@case), alert: "上传失败：#{error_messages.join('; ')}"
+      else
+        redirect_to case_path(@case), alert: '请选择要上传的文件'
+      end
+    else
+      redirect_to case_path(@case), alert: '请选择要上传的文件'
+    end
   end
 
   private

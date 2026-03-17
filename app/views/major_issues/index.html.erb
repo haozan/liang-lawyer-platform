@@ -3,7 +3,13 @@
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="font-heading text-3xl font-bold text-primary mb-2">重大事项研讨</h1>
-      <p class="text-secondary">讨论和管理公司重大事项</p>
+      <p class="text-secondary">
+        <% if @company %>
+          <%= @company.name %> · 讨论和管理公司重大事项
+        <% else %>
+          全部企业 · 统一讨论和管理重大事项
+        <% end %>
+      </p>
     </div>
     <%= link_to new_major_issue_path, class: "btn btn-primary" do %>
       <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
@@ -49,6 +55,172 @@
     </div>
   </div>
 
+  <!-- 高级搜索筛选 -->
+  <div class="card card-elevated mb-6">
+    <div class="card-header">
+      <h3 class="card-title flex items-center gap-2">
+        <%= lucide_icon "filter", class: "w-5 h-5" %>
+        高级筛选
+      </h3>
+    </div>
+    <div class="card-body">
+      <%= form_with url: major_issues_path, method: :get, local: true, class: "space-y-4" do |f| %>
+        <!-- 第一行：状态、优先级、答复状态 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-group">
+            <%= label_tag "filter[status]", "状态", class: "form-label" %>
+            <%= select_tag "filter[status]", 
+                options_for_select(
+                  [["全部状态", nil], ["待讨论", "pending"], ["讨论中", "discussing"], ["已解决", "resolved"], ["已归档", "archived"]],
+                  params.dig(:filter, :status)
+                ),
+                class: "form-select" %>
+          </div>
+          
+          <div class="form-group">
+            <%= label_tag "filter[priority]", "优先级", class: "form-label" %>
+            <%= select_tag "filter[priority]", 
+                options_for_select(
+                  [["全部优先级", nil], ["低", "low"], ["中", "medium"], ["高", "high"], ["紧急", "urgent"]],
+                  params.dig(:filter, :priority)
+                ),
+                class: "form-select" %>
+          </div>
+          
+          <div class="form-group">
+            <%= label_tag "filter[reviewed_status]", "答复状态", class: "form-label" %>
+            <%= select_tag "filter[reviewed_status]", 
+                options_for_select(
+                  [["全部", nil], ["已答复", "reviewed"], ["待答复", "pending"]],
+                  params.dig(:filter, :reviewed_status)
+                ),
+                class: "form-select" %>
+          </div>
+        </div>
+        
+        <!-- 第二行：事项类型、律师、关键词搜索 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="form-group">
+            <%= label_tag "filter[issue_type]", "事项类型", class: "form-label" %>
+            <%= text_field_tag "filter[issue_type]", params.dig(:filter, :issue_type),
+                class: "form-input",
+                placeholder: "请输入事项类型..." %>
+          </div>
+          
+          <div class="form-group">
+            <%= label_tag "filter[mentioned_lawyer_id]", "@律师", class: "form-label" %>
+            <%= select_tag "filter[mentioned_lawyer_id]", 
+                options_for_select(
+                  [["全部律师", nil]] + LawyerAccount.all.map { |l| [l.name, l.id] },
+                  params.dig(:filter, :mentioned_lawyer_id)
+                ),
+                class: "form-select" %>
+          </div>
+          
+          <div class="form-group">
+            <%= label_tag "q", "关键词搜索", class: "form-label" %>
+            <%= text_field_tag "q", params[:q],
+                class: "form-input",
+                placeholder: "搜索标题、描述..." %>
+          </div>
+        </div>
+        
+        <!-- 第三行：日期范围 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="form-group">
+            <%= label_tag "filter[created_from]", "创建日期起", class: "form-label" %>
+            <%= date_field_tag "filter[created_from]", params.dig(:filter, :created_from),
+                class: "form-input" %>
+          </div>
+          
+          <div class="form-group">
+            <%= label_tag "filter[created_to]", "创建日期止", class: "form-label" %>
+            <%= date_field_tag "filter[created_to]", params.dig(:filter, :created_to),
+                class: "form-input" %>
+          </div>
+        </div>
+        
+        <!-- 第四行：快捷筛选 -->
+        <div class="flex flex-wrap gap-2">
+          <%= check_box_tag "filter[overdue]", "true", params.dig(:filter, :overdue) == "true", 
+              class: "form-checkbox", id: "filter_overdue" %>
+          <%= label_tag "filter_overdue", "仅显示迟延事项（>7天）", class: "text-sm text-primary" %>
+          
+          <%= check_box_tag "filter[followed]", "true", params.dig(:filter, :followed) == "true", 
+              class: "form-checkbox ml-4", id: "filter_followed" %>
+          <%= label_tag "filter_followed", "仅显示我关注的", class: "text-sm text-primary" %>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex items-center gap-3">
+          <%= f.submit "应用筛选", class: "btn btn-primary" %>
+          <%= link_to "重置", major_issues_path, class: "btn btn-secondary" %>
+          
+          <!-- 保存筛选条件按钮 -->
+          <% if params[:filter].present? && (current_lawyer || current_company_user) %>
+            <div class="relative" data-controller="dropdown">
+              <button type="button" 
+                      data-action="click->dropdown#toggle"
+                      class="btn btn-success">
+                <%= lucide_icon "save", class: "w-4 h-4 mr-2" %>
+                保存筛选条件
+              </button>
+              
+              <!-- 保存筛选表单 -->
+              <div data-dropdown-target="menu" class="hidden absolute z-50 mt-2 bg-white rounded-lg shadow-lg border border-border p-4 w-80">
+                <%= form_with url: saved_filters_path, method: :post, local: true, class: "space-y-3" do |sf| %>
+                  <%= hidden_field_tag "saved_filter[filterable_type]", "MajorIssue" %>
+                  <%= hidden_field_tag "saved_filter[conditions]", params[:filter].to_json %>
+                  
+                  <div class="form-group">
+                    <%= label_tag "saved_filter[name]", "筛选条件名称", class: "form-label" %>
+                    <%= text_field_tag "saved_filter[name]", nil,
+                        class: "form-input",
+                        placeholder: "例如：高优先级待处理",
+                        required: true %>
+                  </div>
+                  
+                  <div class="flex items-center gap-2">
+                    <%= check_box_tag "saved_filter[is_default]", "1", false, class: "form-checkbox", id: "saved_filter_is_default" %>
+                    <%= label_tag "saved_filter_is_default", "设为默认筛选", class: "text-sm text-primary" %>
+                  </div>
+                  
+                  <div class="flex gap-2">
+                    <%= sf.submit "保存", class: "btn btn-primary btn-sm" %>
+                    <button type="button" data-action="click->dropdown#toggle" class="btn btn-secondary btn-sm">取消</button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      
+      <!-- 已保存的筛选条件 -->
+      <% if @saved_filters&.any? %>
+        <div class="border-t border-border pt-4 mt-4">
+          <h4 class="text-sm font-semibold text-secondary mb-3">已保存的筛选条件</h4>
+          <div class="flex flex-wrap gap-2">
+            <% @saved_filters.each do |saved_filter| %>
+              <div class="flex items-center gap-2 bg-surface-secondary rounded-lg px-3 py-2">
+                <%= link_to saved_filter.name, major_issues_path(filter: saved_filter.conditions), 
+                    class: "text-sm text-primary hover:underline" %>
+                <% if saved_filter.is_default %>
+                  <span class="badge badge-success badge-sm">默认</span>
+                <% end %>
+                <%= link_to saved_filter_path(saved_filter), 
+                    data: { turbo_method: :delete, turbo_confirm: "确认删除此筛选条件？" },
+                    class: "text-danger hover:text-danger-hover" do %>
+                  <%= lucide_icon "x", class: "w-4 h-4" %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
   <!-- Major Issues List -->
   <% if @major_issues.any? %>
     <div class="space-y-4">
@@ -60,6 +232,12 @@
               <div class="flex items-start justify-between mb-3">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
+                    <% if @company.nil? %>
+                      <span class="inline-flex items-center px-3 py-1 rounded-lg bg-surface text-sm font-medium text-secondary">
+                        <%= lucide_icon "building-2", class: "w-4 h-4 mr-1" %>
+                        <%= issue.company.name %>
+                      </span>
+                    <% end %>
                     <h3 class="font-heading text-xl font-semibold text-primary"><%= issue.title %></h3>
                     
                     <!-- Status Badge -->

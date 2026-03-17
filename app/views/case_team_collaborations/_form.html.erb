@@ -1,0 +1,36 @@
+<div id="collaboration-form">
+  <%= form_with scope: :collaboration, url: case_case_team_collaborations_path(case_record), method: :post, class: "space-y-4" do |f| %>
+    <div id="collaboration-form-error"></div>
+    
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="form-control">
+        <%= f.label :lawyer_team_id, "选择协作团队", class: "form-label required" %>
+        <%= f.select :lawyer_team_id,
+          options_for_select(
+            LawyerTeam.active.where.not(id: case_record.business_team_ownerships.pluck(:lawyer_team_id)).map { |team| [team.name, team.id] }
+          ),
+          { prompt: '请选择团队' },
+          class: "form-select",
+          required: true %>
+        <p class="text-xs text-muted mt-1">选择需要参与此案件协作的律师团队</p>
+      </div>
+      
+      <div class="form-control">
+        <%= f.label :access_level, "访问权限", class: "form-label required" %>
+        <%= f.select :access_level,
+          options_for_select([
+            ['协作者（可查看和编辑）', 'collaborator'],
+            ['查看者（仅查看）', 'viewer']
+          ], 'collaborator'),
+          {},
+          class: "form-select",
+          required: true %>
+        <p class="text-xs text-muted mt-1">协作者可以编辑案件，查看者只能查看</p>
+      </div>
+    </div>
+    
+    <div class="flex gap-2">
+      <%= f.submit "添加协作团队", class: "btn-primary" %>
+    </div>
+  <% end %>
+</div>

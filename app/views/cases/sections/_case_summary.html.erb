@@ -1,0 +1,15 @@
+<% if case_record.summary.present? %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "file-text", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">案情概要</h4>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0" data-collapsible-target="content">
+      <div class="text-secondary whitespace-pre-wrap"><%= case_record.summary %></div>
+    </div>
+  </details>
+<% end %>

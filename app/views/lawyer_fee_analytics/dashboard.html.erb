@@ -1,0 +1,664 @@
+<div class="container-main">
+  <!-- Analytics Tabs Navigation -->
+  <%= render 'shared/analytics_tabs', current_tab: 'lawyer_fee' %>
+  
+  <!-- 🎯 固定顶部栏 - 关键指标快速浏览 -->
+  <% sticky_metrics = [
+    { 
+      name: '律师费总收入', 
+      value: "¥#{number_with_delimiter(@core_kpis[:total_fee])}", 
+      icon: 'dollar-sign', 
+      color: 'bg-primary/10',
+      icon_color: 'text-primary',
+      status: {
+        value: @core_kpis[:total_fee],
+        thresholds: { green: 1_000_000, yellow: 500_000 },
+        reverse: false
+      }
+    },
+    { 
+      name: '已回款金额', 
+      value: "¥#{number_with_delimiter(@core_kpis[:total_received])}", 
+      icon: 'check-circle', 
+      color: 'bg-success/10',
+      icon_color: 'text-success',
+      status: {
+        value: @core_kpis[:total_received],
+        thresholds: { green: 800_000, yellow: 400_000 },
+        reverse: false
+      }
+    },
+    { 
+      name: '回款率', 
+      value: "#{@core_kpis[:collection_rate]}%", 
+      icon: 'trending-up', 
+      color: 'bg-info/10',
+      icon_color: 'text-info',
+      trend: { value: @comparison.present? ? (@core_kpis[:collection_rate] - 80) : 0, unit: '%' },
+      status: {
+        value: @core_kpis[:collection_rate],
+        thresholds: { green: 80, yellow: 60 },
+        reverse: false
+      }
+    },
+    { 
+      name: '平均回款周期', 
+      value: "#{@core_kpis[:avg_collection_days]}天", 
+      icon: 'clock', 
+      color: 'bg-warning/10',
+      icon_color: 'text-warning',
+      status: {
+        value: @core_kpis[:avg_collection_days],
+        thresholds: { green: 30, yellow: 60 },
+        reverse: true
+      }
+    }
+  ] %>
+  
+  <%= render 'shared/dashboard_sticky_bar', metrics: sticky_metrics %>
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="font-heading text-3xl font-bold text-primary mb-2">律师费数据分析仪表盘</h1>
+      <p class="text-secondary">
+        <% if @company %>
+          <%= @company.name %> · 律师费收入与回款管理
+        <% else %>
+          全部企业 · 综合律师费数据分析
+        <% end %>
+      </p>
+    </div>
+    
+    <!-- 导出按钮区，集成 export-confirm 控制器 -->
+    <div class="flex gap-3" data-controller="export-confirm">
+      <% 
+        # 构建筛选条件字典
+        filter_data = {}
+        filter_data["企业"] = @company&.name if @company.present?
+        filter_data["律师"] = @lawyer&.name if @lawyer.present?
+        
+        if params[:payment_status].present? && params[:payment_status] != 'all'
+          payment_status_names = {'pending' => '待付款', 'partial' => '部分付款', 'completed' => '已付清'}
+          filter_data["付款状态"] = payment_status_names[params[:payment_status]]
+        end
+        
+        filter_data["案件类型"] = params[:case_type] if params[:case_type].present? && params[:case_type] != 'all'
+        
+        if params[:case_status].present? && params[:case_status] != 'all'
+          case_status_names = {'preparing' => '准备立案', 'filed' => '已立案待审', 'trial' => '审理中', 'judged' => '已判决', 'execution' => '执行中', 'settled' => '调解结案', 'closed' => '已归档'}
+          filter_data["案件状态"] = case_status_names[params[:case_status]]
+        end
+        
+        if params[:fee_range].present? && params[:fee_range] != 'all'
+          fee_range_names = {'0-50000' => '0-5万', '50000-100000' => '5-10万', '100000-200000' => '10-20万', '200000-500000' => '20-50万', '500000-0' => '50万以上'}
+          filter_data["金额范围"] = fee_range_names[params[:fee_range]]
+        end
+        
+        if params[:invoice_status].present? && params[:invoice_status] != 'all'
+          invoice_status_names = {'issued' => '已开票', 'not_issued' => '未开票'}
+          filter_data["开票状态"] = invoice_status_names[params[:invoice_status]]
+        end
+        
+        if params[:time_dimension].present? && params[:time_dimension] != 'filing_at'
+          time_dim_names = {'received_at' => '回款日期', 'invoice_at' => '开票日期', 'closing_at' => '结案日期'}
+          filter_data["时间维度"] = time_dim_names[params[:time_dimension]]
+        end
+      %>
+      
+      <%= link_to export_detailed_lawyer_fee_analytics_path(
+        company_id: params[:company_id],
+        lawyer_id: params[:lawyer_id],
+        payment_status: params[:payment_status],
+        case_type: params[:case_type],
+        case_status: params[:case_status],
+        fee_range: params[:fee_range],
+        invoice_status: params[:invoice_status],
+        time_dimension: params[:time_dimension],
+        date_from: @date_from,
+        date_to: @date_to
+      ), 
+        class: "btn btn-success",
+        data: {
+          action: "click->export-confirm#confirm",
+          export_confirm_type_value: "明细表",
+          export_confirm_count_value: @core_kpis[:total_cases],
+          export_confirm_filters_value: filter_data.to_json
+        } do %>
+        <%= lucide_icon "download", class: "w-5 h-5 mr-2" %>
+        导出明细表
+      <% end %>
+      
+      <%= link_to export_lawyer_summary_lawyer_fee_analytics_path(
+        company_id: params[:company_id],
+        lawyer_id: params[:lawyer_id],
+        payment_status: params[:payment_status],
+        case_type: params[:case_type],
+        case_status: params[:case_status],
+        fee_range: params[:fee_range],
+        invoice_status: params[:invoice_status],
+        time_dimension: params[:time_dimension],
+        date_from: @date_from,
+        date_to: @date_to
+      ), 
+        class: "btn btn-info",
+        data: {
+          action: "click->export-confirm#confirm",
+          export_confirm_type_value: "律师汇总表",
+          export_confirm_count_value: @lawyer_workload.size,
+          export_confirm_filters_value: filter_data.to_json
+        } do %>
+        <%= lucide_icon "users", class: "w-5 h-5 mr-2" %>
+        律师汇总表
+      <% end %>
+      
+      <% if @company.nil? %>
+        <%= link_to export_company_summary_lawyer_fee_analytics_path(
+          payment_status: params[:payment_status],
+          case_type: params[:case_type],
+          case_status: params[:case_status],
+          fee_range: params[:fee_range],
+          invoice_status: params[:invoice_status],
+          time_dimension: params[:time_dimension],
+          date_from: @date_from,
+          date_to: @date_to
+        ), 
+          class: "btn btn-secondary",
+          data: {
+            action: "click->export-confirm#confirm",
+            export_confirm_type_value: "企业汇总表",
+            export_confirm_count_value: @company_rankings.size,
+            export_confirm_filters_value: filter_data.to_json
+          } do %>
+          <%= lucide_icon "building", class: "w-5 h-5 mr-2" %>
+          企业汇总表
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Advanced Filter Section -->
+  <div class="card card-elevated mb-6">
+    <div class="card-body">
+      <%= form_with url: dashboard_lawyer_fee_analytics_path, method: :get, local: true do |f| %>
+        <div class="space-y-6">
+          <!-- 基础筛选区 -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium flex items-center gap-2">
+              <%= lucide_icon "filter", class: "w-4 h-4" %>
+              基础筛选
+            </h3>
+            
+            <!-- Quick Date Options -->
+            <div class="flex gap-2 flex-wrap">
+              <% today = Date.today %>
+              <%= link_to "今天", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension], date_from: today, date_to: today), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "本周", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension], date_from: today.beginning_of_week, date_to: today.end_of_week), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "本月", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension], date_from: today.beginning_of_month, date_to: today.end_of_month), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "本季度", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension], date_from: today.beginning_of_quarter, date_to: today.end_of_quarter), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "本年", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension], date_from: today.beginning_of_year, date_to: today.end_of_year), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "最近30天", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension], date_from: 30.days.ago, date_to: today), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "全部", dashboard_lawyer_fee_analytics_path(company_id: params[:company_id], lawyer_id: params[:lawyer_id], payment_status: params[:payment_status], case_type: params[:case_type], case_status: params[:case_status], fee_range: params[:fee_range], invoice_status: params[:invoice_status], time_dimension: params[:time_dimension]), class: "btn btn-sm btn-secondary" %>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="form-group">
+                <%= label_tag "date_from", "开始日期", class: "form-label" %>
+                <%= date_field_tag "date_from", @date_from, class: "form-input" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "date_to", "结束日期", class: "form-label" %>
+                <%= date_field_tag "date_to", @date_to, class: "form-input" %>
+              </div>
+              
+              <% if @company.nil? %>
+                <div class="form-group">
+                  <%= label_tag "company_id", "选择企业", class: "form-label" %>
+                  <%= select_tag "company_id", 
+                      options_for_select([["全部企业", "all"]] + @companies.map { |c| [c.name, c.id] }, params[:company_id]),
+                      class: "form-select" %>
+                </div>
+              <% end %>
+              
+              <div class="form-group">
+                <%= label_tag "lawyer_id", "主办律师", class: "form-label" %>
+                <%= select_tag "lawyer_id",
+                    options_for_select([["全部律师", "all"]] + @lawyers.map { |l| [l.name, l.id] }, params[:lawyer_id]),
+                    class: "form-select" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "time_dimension", "时间维度", class: "form-label" %>
+                <%= select_tag "time_dimension",
+                    options_for_select([
+                      ["立案日期", "filing_at"],
+                      ["回款日期", "received_at"],
+                      ["开票日期", "invoice_at"],
+                      ["结案日期", "closing_at"]
+                    ], params[:time_dimension] || 'filing_at'),
+                    class: "form-select" %>
+              </div>
+            </div>
+          </div>
+
+          <!-- 高级筛选区 -->
+          <details class="border-t pt-4" <%= 'open' if params[:payment_status].present? || params[:case_type].present? || params[:case_status].present? || params[:fee_range].present? || params[:invoice_status].present? %>>
+            <summary class="cursor-pointer text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-2">
+              <%= lucide_icon "sliders-horizontal", class: "w-4 h-4" %>
+              高级筛选(可选)
+            </summary>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div class="form-group">
+                <%= label_tag "payment_status", "付款状态", class: "form-label" %>
+                <%= select_tag "payment_status",
+                    options_for_select([
+                      ["全部", "all"],
+                      ["待付款", "pending"],
+                      ["部分付款", "partial"],
+                      ["已付清", "completed"]
+                    ], params[:payment_status] || 'all'),
+                    class: "form-select" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "case_type", "案件类型", class: "form-label" %>
+                <%= select_tag "case_type",
+                    options_for_select([["全部", "all"]] + @available_case_types.map { |t| [t, t] }, params[:case_type] || 'all'),
+                    class: "form-select" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "case_status", "案件状态", class: "form-label" %>
+                <%= select_tag "case_status",
+                    options_for_select([
+                      ["全部", "all"],
+                      ["准备立案", "preparing"],
+                      ["已立案待审", "filed"],
+                      ["审理中", "trial"],
+                      ["已判决", "judged"],
+                      ["执行中", "execution"],
+                      ["调解结案", "settled"],
+                      ["已归档", "closed"]
+                    ], params[:case_status] || 'all'),
+                    class: "form-select" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "fee_range", "律师费金额范围", class: "form-label" %>
+                <%= select_tag "fee_range",
+                    options_for_select([
+                      ["全部", "all"],
+                      ["0-5万", "0-50000"],
+                      ["5-10万", "50000-100000"],
+                      ["10-20万", "100000-200000"],
+                      ["20-50万", "200000-500000"],
+                      ["50万以上", "500000-0"]
+                    ], params[:fee_range] || 'all'),
+                    class: "form-select" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "invoice_status", "开票状态", class: "form-label" %>
+                <%= select_tag "invoice_status",
+                    options_for_select([
+                      ["全部", "all"],
+                      ["已开票", "issued"],
+                      ["未开票", "not_issued"]
+                    ], params[:invoice_status] || 'all'),
+                    class: "form-select" %>
+              </div>
+            </div>
+          </details>
+
+          <!-- 数据对比 -->
+          <details class="border-t pt-4" <%= 'open' if @comparison.present? %>>
+            <summary class="cursor-pointer text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-2">
+              <%= lucide_icon "git-compare", class: "w-4 h-4" %>
+              数据对比(可选)
+            </summary>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="form-group">
+                <%= label_tag "compare_date_from", "对比开始日期", class: "form-label" %>
+                <%= date_field_tag "compare_date_from", params[:compare_date_from], class: "form-input" %>
+              </div>
+              
+              <div class="form-group">
+                <%= label_tag "compare_date_to", "对比结束日期", class: "form-label" %>
+                <%= date_field_tag "compare_date_to", params[:compare_date_to], class: "form-input" %>
+              </div>
+            </div>
+          </details>
+          
+          <!-- 当前筛选条件展示 -->
+          <% active_filters = [] %>
+          <% active_filters << {名称: "企业", 值: @company.name, param: 'company_id'} if @company.present? %>
+          <% active_filters << {名称: "律师", 值: @lawyer.name, param: 'lawyer_id'} if @lawyer.present? %>
+          <% if params[:payment_status].present? && params[:payment_status] != 'all' %>
+            <% payment_status_names = {'pending' => '待付款', 'partial' => '部分付款', 'completed' => '已付清'} %>
+            <% active_filters << {名称: "付款状态", 值: payment_status_names[params[:payment_status]], param: 'payment_status'} %>
+          <% end %>
+          <% active_filters << {名称: "案件类型", 值: params[:case_type], param: 'case_type'} if params[:case_type].present? && params[:case_type] != 'all' %>
+          <% if params[:case_status].present? && params[:case_status] != 'all' %>
+            <% case_status_names = {'preparing' => '准备立案', 'filed' => '已立案待审', 'trial' => '审理中', 'judged' => '已判决', 'execution' => '执行中', 'settled' => '调解结案', 'closed' => '已归档'} %>
+            <% active_filters << {名称: "案件状态", 值: case_status_names[params[:case_status]], param: 'case_status'} %>
+          <% end %>
+          <% if params[:fee_range].present? && params[:fee_range] != 'all' %>
+            <% fee_range_names = {'0-50000' => '0-5万', '50000-100000' => '5-10万', '100000-200000' => '10-20万', '200000-500000' => '20-50万', '500000-0' => '50万以上'} %>
+            <% active_filters << {名称: "金额范围", 值: fee_range_names[params[:fee_range]], param: 'fee_range'} %>
+          <% end %>
+          <% if params[:invoice_status].present? && params[:invoice_status] != 'all' %>
+            <% invoice_status_names = {'issued' => '已开票', 'not_issued' => '未开票'} %>
+            <% active_filters << {名称: "开票状态", 值: invoice_status_names[params[:invoice_status]], param: 'invoice_status'} %>
+          <% end %>
+          <% if params[:time_dimension].present? && params[:time_dimension] != 'filing_at' %>
+            <% time_dim_names = {'received_at' => '回款日期', 'invoice_at' => '开票日期', 'closing_at' => '结案日期'} %>
+            <% active_filters << {名称: "时间维度", 值: time_dim_names[params[:time_dimension]], param: 'time_dimension'} %>
+          <% end %>
+          
+          <% if active_filters.any? %>
+            <div class="flex flex-wrap items-center gap-2 border-t pt-4">
+              <span class="text-sm text-secondary">当前筛选:</span>
+              <% active_filters.each do |filter| %>
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                  <%= filter[:名称] %>: <%= filter[:值] %>
+                  <%= link_to dashboard_lawyer_fee_analytics_path(request.query_parameters.except(filter[:param]).merge(filter[:param] => 'all')), class: "hover:text-danger ml-1" do %>
+                    <%= lucide_icon "x", class: "w-3 h-3" %>
+                  <% end %>
+                </span>
+              <% end %>
+              <%= link_to "清空筛选", dashboard_lawyer_fee_analytics_path, class: "text-sm text-danger hover:underline" %>
+            </div>
+          <% end %>
+          
+          <!-- 提交按钮 -->
+          <div class="flex gap-3 pt-2">
+            <%= f.submit "应用筛选", class: "btn btn-primary" %>
+            <%= link_to "重置", dashboard_lawyer_fee_analytics_path, class: "btn btn-secondary" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Comparison Results -->
+  <% if @comparison.present? %>
+    <div class="card card-elevated mb-6 border-info">
+      <div class="card-header bg-info/10">
+        <h3 class="card-title flex items-center gap-2 text-info">
+          <%= lucide_icon "git-compare", class: "w-5 h-5" %>
+          律师费数据对比结果
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="text-center p-4 bg-surface-secondary rounded-lg">
+            <p class="text-sm text-secondary mb-2">当期律师费总额</p>
+            <p class="text-3xl font-bold text-primary mb-1">¥<%= number_with_delimiter(@comparison[:period_total_fee]) %></p>
+            <p class="text-sm <%= @comparison[:fee_change] >= 0 ? 'text-success' : 'text-danger' %>">
+              <%= @comparison[:fee_change] >= 0 ? '↑' : '↓' %> ¥<%= number_with_delimiter(@comparison[:fee_change].abs) %> (<%= @comparison[:fee_change_rate] %>%)
+            </p>
+          </div>
+          
+          <div class="text-center p-4 bg-surface-secondary rounded-lg">
+            <p class="text-sm text-secondary mb-2">对比期律师费总额</p>
+            <p class="text-3xl font-bold text-secondary">¥<%= number_with_delimiter(@comparison[:compare_total_fee]) %></p>
+          </div>
+          
+          <div class="text-center p-4 bg-surface-secondary rounded-lg">
+            <p class="text-sm text-secondary mb-2">当期案件数</p>
+            <p class="text-3xl font-bold text-primary mb-1"><%= @comparison[:period_cases] %></p>
+            <p class="text-sm <%= @comparison[:cases_change] >= 0 ? 'text-success' : 'text-danger' %>">
+              <%= @comparison[:cases_change] >= 0 ? '↑' : '↓' %> <%= @comparison[:cases_change].abs %>
+            </p>
+          </div>
+          
+          <div class="text-center p-4 bg-surface-secondary rounded-lg">
+            <p class="text-sm text-secondary mb-2">对比期案件数</p>
+            <p class="text-3xl font-bold text-secondary"><%= @comparison[:compare_cases] %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Smart Insight Card -->
+  <% if @urgent_alerts[:has_alerts] %>
+    <%= render 'shared/smart_insight_card',
+      type: 'warning',
+      icon: 'alert-triangle',
+      title: '需要关注的律师费事项',
+      message: "检测到#{@urgent_alerts[:overdue_pending]}个逾期未回款案件、#{@urgent_alerts[:high_value_pending]}个高价值待回款案件、#{@urgent_alerts[:overdue_invoice]}个已回款但未开票案件，请及时处理。",
+      action_text: '查看案件列表',
+      action_url: cases_path
+    %>
+  <% elsif @core_kpis[:collection_rate] >= 85 %>
+    <%= render 'shared/smart_insight_card',
+      type: 'success',
+      icon: 'trending-up',
+      title: '律师费回款表现优秀',
+      message: "当前回款率达到#{@core_kpis[:collection_rate]}%，高于行业平均水平。平均回款周期#{@core_kpis[:avg_collection_days]}天，资金周转良好。"
+    %>
+  <% elsif @core_kpis[:current_month_fee] > 200_000 %>
+    <%= render 'shared/smart_insight_card',
+      type: 'info',
+      icon: 'lightbulb',
+      title: '本月律师费收入增长',
+      message: "本月新增律师费收入¥#{number_with_delimiter(@core_kpis[:current_month_fee])}，业务发展态势良好。"
+    %>
+  <% end %>
+
+  <!-- KPI Cards -->
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div class="card card-elevated">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-secondary">律师费总收入</h3>
+          <%= lucide_icon "dollar-sign", class: "w-5 h-5 text-primary" %>
+        </div>
+        <p class="text-3xl font-bold text-primary mb-1">¥<%= number_with_delimiter(@core_kpis[:total_fee]) %></p>
+        <p class="text-xs text-secondary">共<%= @core_kpis[:total_cases] %>个案件</p>
+      </div>
+    </div>
+
+    <div class="card card-elevated">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-secondary">待回款金额</h3>
+          <%= lucide_icon "alert-circle", class: "w-5 h-5 text-warning" %>
+        </div>
+        <p class="text-3xl font-bold text-warning mb-1">¥<%= number_with_delimiter(@core_kpis[:pending_amount]) %></p>
+        <p class="text-xs text-secondary">需要跟进回款</p>
+      </div>
+    </div>
+
+    <div class="card card-elevated">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-secondary">平均案件律师费</h3>
+          <%= lucide_icon "bar-chart", class: "w-5 h-5 text-info" %>
+        </div>
+        <p class="text-3xl font-bold text-info mb-1">¥<%= number_with_delimiter(@core_kpis[:avg_fee_per_case]) %></p>
+        <p class="text-xs text-secondary">单案平均收费</p>
+      </div>
+    </div>
+
+    <div class="card card-elevated">
+      <div class="card-body">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-secondary">本月新增</h3>
+          <%= lucide_icon "trending-up", class: "w-5 h-5 text-success" %>
+        </div>
+        <p class="text-3xl font-bold text-success mb-1">¥<%= number_with_delimiter(@core_kpis[:current_month_fee]) %></p>
+        <p class="text-xs text-secondary">本月律师费收入</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+    <!-- 律师费月度趋势 -->
+    <% fee_trend_data = {
+      name: '律师费收入趋势',
+      data: @trends[:fee_monthly].map { |month, amount| { name: month.strftime('%Y-%m'), value: amount } }
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'area',
+      data: fee_trend_data,
+      title: '律师费月度收入趋势',
+      height: '320px'
+    %>
+
+    <!-- 回款月度趋势 -->
+    <% received_trend_data = {
+      name: '律师费回款趋势',
+      data: @trends[:received_monthly].map { |month, amount| { name: month.strftime('%Y-%m'), value: amount } }
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'area',
+      data: received_trend_data,
+      title: '律师费月度回款趋势',
+      height: '320px'
+    %>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="grid lg:grid-cols-3 gap-6 mb-6">
+    <!-- 付款状态分布 -->
+    <% payment_status_data = {
+      name: '付款状态',
+      data: @distributions[:payment_status_distribution].map do |status, count|
+        status_names = {
+          'pending' => '待付款',
+          'partial' => '部分付款',
+          'completed' => '已付清'
+        }
+        { name: status_names[status] || status, value: count }
+      end
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'donut',
+      data: payment_status_data,
+      title: '付款状态分布',
+      height: '280px'
+    %>
+
+    <!-- 律师费金额区间 -->
+    <% fee_range_data = {
+      name: '金额区间',
+      data: @distributions[:fee_range_distribution].map { |range, count| { name: range, value: count } }
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'bar',
+      data: fee_range_data,
+      title: '律师费金额区间分布',
+      height: '280px'
+    %>
+
+    <!-- 案件类型律师费分布 -->
+    <% case_type_fee_data = {
+      name: '案件类型律师费',
+      data: @distributions[:case_type_distribution].map { |type, amount| { name: type, value: amount } }
+    } %>
+    <%= render 'shared/dashboard_chart_wrapper',
+      type: 'bar',
+      data: case_type_fee_data,
+      title: '案件类型律师费分布(TOP 10)',
+      height: '280px'
+    %>
+  </div>
+
+  <!-- Lawyer Workload Table -->
+  <% if @lawyer_workload.any? %>
+    <div class="card card-elevated mb-6">
+      <div class="card-header">
+        <h3 class="card-title flex items-center gap-2">
+          <%= lucide_icon "users", class: "w-5 h-5" %>
+          律师个人律师费统计
+        </h3>
+      </div>
+      <div class="card-body p-0">
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>律师姓名</th>
+                <th>律师角色</th>
+                <th>参与案件数</th>
+                <th>主办案件数</th>
+                <th>参与案件总律师费</th>
+                <th>主办案件总律师费</th>
+                <th>已回款律师费</th>
+                <th>人均案件律师费</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @lawyer_workload.each do |workload| %>
+                <tr>
+                  <td class="font-medium"><%= workload[:lawyer_name] %></td>
+                  <td>
+                    <% role_display = case workload[:lawyer_role]
+                    when 'director' then '主任律师'
+                    when 'lawyer' then '律师'
+                    when 'assistant' then '律师助理'
+                    else workload[:lawyer_role]
+                    end %>
+                    <span class="badge badge-neutral"><%= role_display %></span>
+                  </td>
+                  <td><%= workload[:total_cases] %></td>
+                  <td><%= workload[:lead_cases] %></td>
+                  <td class="font-semibold text-primary">¥<%= number_with_delimiter(workload[:total_fee]) %></td>
+                  <td class="font-semibold text-info">¥<%= number_with_delimiter(workload[:lead_fee]) %></td>
+                  <td class="font-semibold text-success">¥<%= number_with_delimiter(workload[:received_fee]) %></td>
+                  <td>¥<%= number_with_delimiter(workload[:avg_fee_per_case]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Company Rankings -->
+  <% if @company_rankings.any? %>
+    <div class="card card-elevated">
+      <div class="card-header">
+        <h3 class="card-title flex items-center gap-2">
+          <%= lucide_icon "building", class: "w-5 h-5" %>
+          企业客户律师费排行(TOP 10)
+        </h3>
+      </div>
+      <div class="card-body p-0">
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>企业名称</th>
+                <th>案件数量</th>
+                <th>律师费总额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @company_rankings.each_with_index do |ranking, index| %>
+                <tr>
+                  <td>
+                    <% if index < 3 %>
+                      <span class="badge badge-warning">#<%= index + 1 %></span>
+                    <% else %>
+                      <span class="text-secondary">#<%= index + 1 %></span>
+                    <% end %>
+                  </td>
+                  <td class="font-medium"><%= ranking[:company_name] %></td>
+                  <td><%= ranking[:cases_count] %></td>
+                  <td class="font-semibold text-primary">¥<%= number_with_delimiter(ranking[:total_fee]) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

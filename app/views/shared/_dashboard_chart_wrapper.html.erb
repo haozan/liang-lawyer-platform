@@ -1,0 +1,32 @@
+<%# ECharts 图表包装器 %>
+<%# 参数:
+  - type: 图表类型 (gauge, radar, waterfall, donut, bar, line)
+  - data: 图表数据
+  - title: 标题
+  - height: 高度 (默认 300px)
+  - options: 额外配置
+%>
+
+<% height ||= '300px' %>
+<% options ||= {} %>
+
+<div class="card card-elevated">
+  <% if defined?(title) && title.present? %>
+    <div class="card-header">
+      <h3 class="card-title"><%= title %></h3>
+    </div>
+  <% end %>
+  
+  <div class="card-body">
+    <div 
+      data-controller="dashboard-chart"
+      data-dashboard-chart-type-value="<%= type %>"
+      data-dashboard-chart-data-value="<%= data.to_json %>"
+      <% if options.present? %>
+        data-dashboard-chart-options-value="<%= options.to_json %>"
+      <% end %>
+    >
+      <div data-dashboard-chart-target="chart" style="height: <%= height %>; width: 100%;"></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+<% if case_record.claim_amount.present? || case_record.awarded_amount.present? %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "coins", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">标的额信息</h4>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0" data-collapsible-target="content">
+      <div class="grid md:grid-cols-2 gap-4">
+        <% if case_record.claim_amount.present? %>
+          <div class="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+            <p class="text-sm text-secondary mb-1">诉讼标的额</p>
+            <p class="text-2xl font-bold text-primary"><%= case_record.formatted_claim_amount %></p>
+          </div>
+        <% end %>
+        <% if case_record.awarded_amount.present? %>
+          <div class="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+            <p class="text-sm text-secondary mb-1">判决/调解金额</p>
+            <p class="text-2xl font-bold text-success"><%= mask_amount(case_record.awarded_amount) %></p>
+          </div>
+        <% end %>
+        <% if case_record.litigation_fee.present? %>
+          <div class="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+            <p class="text-sm text-secondary mb-1">诉讼费</p>
+            <p class="text-xl font-semibold text-warning"><%= mask_amount(case_record.litigation_fee) %></p>
+          </div>
+        <% end %>
+        <% if case_record.lawyer_fee.present? %>
+          <div class="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+            <p class="text-sm text-secondary mb-1">律师费</p>
+            <p class="text-xl font-semibold text-primary"><%= mask_amount(case_record.lawyer_fee) %></p>
+          </div>
+        <% end %>
+      </div>
+      <% if case_record.claim_amount.present? && case_record.awarded_amount.present? && case_record.win_rate.present? %>
+        <div class="mt-4 p-4 bg-surface-hover rounded-lg">
+          <div class="flex items-center justify-between">
+            <span class="text-secondary">胜诉率：</span>
+            <span class="text-xl font-bold <%= case_record.win_rate >= 80 ? 'text-success' : 'text-warning' %>">
+              <%= case_record.win_rate %>%
+            </span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

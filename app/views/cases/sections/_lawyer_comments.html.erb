@@ -1,0 +1,213 @@
+<div class="space-y-6">
+  <!-- 💰 律师费信息卡片 -->
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "receipt", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">律师费信息</h4>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0" data-collapsible-target="content">
+      <% if case_record.lawyer_fee.present? || case_record.lawyer_fee_payment_terms.present? || case_record.agency_contract.attached? || case_record.lawyer_fee_invoice.attached? %>
+        <!-- 律师费信息展示 -->
+        <div class="bg-surface-hover rounded-lg p-4 space-y-3">
+          <% if case_record.lawyer_fee.present? %>
+            <div class="flex items-center justify-between">
+              <span class="text-secondary">律师费金额</span>
+              <span class="text-lg font-bold text-primary"><%= number_to_currency(case_record.lawyer_fee, unit: "¥", precision: 2) %></span>
+            </div>
+          <% end %>
+          
+          <% if case_record.lawyer_fee_payment_terms.present? %>
+            <div>
+              <p class="text-secondary text-sm mb-1">付款方式与说明</p>
+              <p class="text-primary whitespace-pre-wrap"><%= case_record.lawyer_fee_payment_terms %></p>
+            </div>
+          <% end %>
+          
+          <% if case_record.agency_contract.attached? %>
+            <div class="pt-3 border-t border-border">
+              <p class="text-secondary text-sm mb-2">民事委托代理合同</p>
+              <%= smart_file_link(case_record.agency_contract.attachment, action_buttons: true, show_size: true, deletable: true) %>
+            </div>
+          <% end %>
+          
+          <% if case_record.lawyer_fee_invoice.attached? %>
+            <div class="pt-3 border-t border-border">
+              <p class="text-secondary text-sm mb-2">律师费发票</p>
+              <%= smart_file_link(case_record.lawyer_fee_invoice.attachment, action_buttons: true, show_size: true, deletable: true) %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-muted text-center py-4">暂无律师费信息</p>
+      <% end %>
+      
+      <% if current_lawyer && (case_record.is_lead_lawyer?(current_lawyer) || current_lawyer.super_admin?) %>
+        <!-- 编辑律师费表单 -->
+        <div class="mt-4 pt-4 border-t border-border">
+          <h5 class="font-semibold text-primary mb-3">编辑律师费信息</h5>
+          <%= form_with model: case_record, url: update_lawyer_fee_case_path(case_record), method: :patch, class: "space-y-4", multipart: true do |f| %>
+            <div class="form-control">
+              <%= f.label :lawyer_fee, "律师费金额", class: "form-label" %>
+              <%= f.number_field :lawyer_fee, step: 0.01, class: "form-input", placeholder: "请输入律师费金额" %>
+            </div>
+            <div class="form-control">
+              <%= f.label :lawyer_fee_payment_terms, "付款方式与说明", class: "form-label" %>
+              <%= f.text_area :lawyer_fee_payment_terms, rows: 3, class: "form-textarea", placeholder: "例如：分期付款，首期50%，判决后付清余款..." %>
+            </div>
+            <div class="form-control">
+              <%= f.label :agency_contract, "民事委托代理合同", class: "form-label" %>
+              <%= f.file_field :agency_contract, class: "form-input", accept: "image/*,.pdf,.doc,.docx" %>
+              <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word文件，单文件不超过40MB</p>
+              <% if case_record.agency_contract.attached? %>
+                <p class="text-xs text-success mt-1">✓ 已上传：<%= case_record.agency_contract.filename %></p>
+              <% end %>
+            </div>
+            <div class="form-control">
+              <%= f.label :lawyer_fee_invoice, "律师费发票", class: "form-label" %>
+              <%= f.file_field :lawyer_fee_invoice, class: "form-input", accept: "image/*,.pdf,.doc,.docx" %>
+              <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word文件，单文件不超过40MB</p>
+              <% if case_record.lawyer_fee_invoice.attached? %>
+                <p class="text-xs text-success mt-1">✓ 已上传：<%= case_record.lawyer_fee_invoice.filename %></p>
+              <% end %>
+            </div>
+            <%= f.submit "保存律师费信息", class: "btn-primary" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </details>
+
+  <!-- 💬 律师意见区域 -->
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "message-square", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">律师意见</h4>
+        <% if comments.any? %>
+          <span class="badge badge-primary"><%= comments.count %></span>
+        <% end %>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0" data-collapsible-target="content">
+    <% if comments.any? %>
+      <div class="space-y-4 mb-6">
+        <% comments.each do |comment| %>
+          <div class="p-4 bg-surface-hover rounded-lg">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-primary"><%= comment.author_name %></span>
+                <span class="badge badge-sm <%= comment.author_role == 'lawyer' ? 'badge-primary' : 'badge-info' %>">
+                  <%= comment.author_role == 'lawyer' ? '律师' : '助理' %>
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-muted"><%= time_ago_in_words(comment.created_at) %>前</span>
+                <% current_user = current_lawyer || current_company_user %>
+                <% if comment.deletable_by?(current_user) %>
+                  <%= link_to comment_path(comment), 
+                    data: { turbo_method: :delete, turbo_confirm: "确定删除该评论吗？" },
+                    class: "text-danger hover:text-danger-hover text-xs",
+                    title: "删除评论（30分钟内可删）" do %>
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+            <div class="text-secondary whitespace-pre-wrap"><%= comment.content %></div>
+            
+            <% if comment.attachments.attached? && comment.attachments.any? %>
+              <div class="mt-3 pt-3 border-t border-border">
+                <%= render 'shared/collapsible_attachments', 
+                    attachments: comment.attachments, 
+                    title: '评论附件', 
+                    threshold: 3,
+                    icon: 'paperclip' %>
+                
+                <% current_user = current_lawyer || current_company_user %>
+                <% if current_user && comment.author_name == current_user.display_name %>
+                  <div class="mt-3 pt-3 border-t border-border">
+                    <%= form_with url: append_attachments_comment_path(comment), method: :post, class: "flex items-end gap-2", multipart: true do |f| %>
+                      <div class="form-control flex-1">
+                        <%= label_tag "comment[attachments][]", "追加附件", class: "form-label text-xs" %>
+                        <%= file_field_tag "comment[attachments][]", multiple: true, class: "form-input form-input-sm", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+                        <p class="text-xs text-muted mt-1">支持图片、PDF、Word、Excel文件，单文件不超过40MB</p>
+                      </div>
+                      <%= f.submit "上传", class: "btn-sm btn-outline" %>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <% current_user = current_lawyer || current_company_user %>
+              <% if current_user && comment.author_name == current_user.display_name %>
+                <div class="mt-3 pt-3 border-t border-border">
+                  <p class="text-xs text-muted mb-2">附件：暂无</p>
+                  <%= form_with url: append_attachments_comment_path(comment), method: :post, class: "flex items-end gap-2", multipart: true do |f| %>
+                    <div class="form-control flex-1">
+                      <%= label_tag "comment[attachments][]", "追加附件", class: "form-label text-xs" %>
+                      <%= file_field_tag "comment[attachments][]", multiple: true, class: "form-input form-input-sm", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+                      <p class="text-xs text-muted mt-1">支持图片、PDF、Word、Excel文件，单文件不超过40MB</p>
+                    </div>
+                    <%= f.submit "上传", class: "btn-sm btn-outline" %>
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-muted text-center py-8">暂无律师意见</p>
+    <% end %>
+
+    <% if current_lawyer %>
+      <div class="<%= comments.any? ? 'pt-4 border-t border-border' : '' %>">
+        <h5 class="font-semibold text-primary mb-4">提交专业意见</h5>
+        <%= form_with url: case_comments_path(case_record), class: "space-y-4", multipart: true do |f| %>
+          <div class="form-control">
+            <%= f.label "comment[content]", "专业意见", class: "form-label" %>
+            <%= text_area_tag "comment[content]", nil, rows: 4, class: "form-textarea", placeholder: "添加您的专业意见...", required: true %>
+          </div>
+          <div class="form-control">
+            <%= label_tag "comment[attachments][]", "附件", class: "form-label" %>
+            <%= file_field_tag "comment[attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+            <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word、Excel文件，单文件不超过40MB</p>
+          </div>
+          
+          <% if case_record.case_team_members.any? %>
+            <div class="form-control">
+              <%= label_tag "comment[mentioned_user_ids]", "提醒团队成员", class: "form-label" %>
+              <div class="space-y-2 bg-surface-hover rounded-lg p-3">
+                <% case_record.case_team_members.includes(:lawyer_account).each do |member| %>
+                  <label class="flex items-center gap-2 cursor-pointer hover:bg-surface-elevated rounded p-2 transition-colors">
+                    <%= check_box_tag "comment[mentioned_user_ids][]", 
+                        { type: 'LawyerAccount', id: member.lawyer_account.id }.to_json, 
+                        false, 
+                        class: "form-checkbox", 
+                        id: "team_member_#{member.id}" %>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-primary"><%= member.lawyer_account.display_name %></span>
+                      <span class="badge badge-sm <%= member.role == 'lead_lawyer' ? 'badge-primary' : 'badge-info' %>">
+                        <%= member.role_display %>
+                      </span>
+                    </div>
+                  </label>
+                <% end %>
+              </div>
+              <p class="text-xs text-muted mt-1">选中的成员将收到通知</p>
+            </div>
+          <% end %>
+          
+          <%= f.submit "提交意见", class: "btn-primary" %>
+        <% end %>
+      </div>
+    <% end %>
+    </div>
+  </details>
+</div>

@@ -1,0 +1,68 @@
+<div data-controller="case-tabs" class="mb-6">
+  <!-- Tab Navigation -->
+  <div class="border-b border-gray-200 dark:border-gray-700">
+    <nav class="flex space-x-8 overflow-x-auto" aria-label="案件详情标签">
+      <button type="button"
+              data-case-tabs-target="tab"
+              data-tab-id="overview"
+              data-action="click->case-tabs#switchTab"
+              class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+        <%= lucide_icon "info", class: "w-4 h-4 inline mr-1" %>
+        基本信息
+      </button>
+      
+      <button type="button"
+              data-case-tabs-target="tab"
+              data-tab-id="work-logs"
+              data-action="click->case-tabs#switchTab"
+              class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+        <%= lucide_icon "clipboard-list", class: "w-4 h-4 inline mr-1" %>
+        工作大事记
+        <% if @work_logs.any? %>
+          <span class="ml-1 badge badge-primary badge-sm"><%= @work_logs.count %></span>
+        <% end %>
+      </button>
+      
+      <button type="button"
+              data-case-tabs-target="tab"
+              data-tab-id="materials"
+              data-action="click->case-tabs#switchTab"
+              class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+        <%= lucide_icon "paperclip", class: "w-4 h-4 inline mr-1" %>
+        案件材料
+        <% if @case.attachments.attached? %>
+          <span class="ml-1 badge badge-primary badge-sm"><%= @case.attachments.count %></span>
+        <% end %>
+      </button>
+      
+      <button type="button"
+              data-case-tabs-target="tab"
+              data-tab-id="comments"
+              data-action="click->case-tabs#switchTab"
+              class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+        <%= lucide_icon "message-square", class: "w-4 h-4 inline mr-1" %>
+        评论交流
+        <% if @comments.any? %>
+          <span class="ml-1 badge badge-primary badge-sm"><%= @comments.count %></span>
+        <% end %>
+      </button>
+      
+      <% if @case.case_team_members.any? %>
+        <button type="button"
+                data-case-tabs-target="tab"
+                data-tab-id="team"
+                data-action="click->case-tabs#switchTab"
+                class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors">
+          <%= lucide_icon "users", class: "w-4 h-4 inline mr-1" %>
+          案件团队
+          <span class="ml-1 badge badge-primary badge-sm"><%= @case.team_size %></span>
+        </button>
+      <% end %>
+    </nav>
+  </div>
+  
+  <!-- Tab Panels Container -->
+  <div class="mt-6">
+    <%= yield %>
+  </div>
+</div>

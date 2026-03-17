@@ -37,6 +37,32 @@ RSpec.describe "Reconciliations", type: :request do
       expect(response).to redirect_to(contract_path(contract))
       expect(flash[:notice]).to eq('对账单上传成功')
     end
+    
+    it "creates a new reconciliation with period_year and period_month (as form sends)" do
+      reconciliation_params = {
+        period_year: 2026,
+        period_month: 3,
+        notes: '2026年3月账单已完成对账，请律师审核。',
+        attachments: [
+          Rack::Test::UploadedFile.new(
+            StringIO.new("Test PDF content"),
+            'application/pdf',
+            original_filename: 'test_reconciliation.pdf'
+          )
+        ]
+      }
+      
+      expect {
+        post contract_reconciliations_path(contract), params: { reconciliation: reconciliation_params }
+      }.to change(Reconciliation, :count).by(1)
+      
+      expect(response).to redirect_to(contract_path(contract))
+      expect(flash[:notice]).to eq('对账单上传成功')
+      
+      # Verify the period was correctly combined
+      reconciliation = Reconciliation.last
+      expect(reconciliation.period).to eq('2026-03')
+    end
   end
   
   describe "DELETE /contracts/:contract_id/reconciliations/:id" do

@@ -29,12 +29,25 @@
     <!-- Generate new favicon at `images/app-favicon.svg` at the first time, remove this line after generated  -->
     <%= favicon_link_tag asset_path("app-favicon.svg") unless Rails.env.test? %>
   </head>
-  <body class="flex flex-col min-h-screen text-foreground <%= body_class %>">
+  <body class="flex flex-col min-h-screen text-foreground <%= body_class %>" data-controller="search-shortcut">
     <main class="flex-1 flex flex-col bg-surface">
       <%= render 'shared/navbar' unless @full_render %>
       <%= render 'shared/flash_messages' %>
       <%= yield %>
     </main>
+    
+    <!-- Floating Search Button (Mobile + Global) -->
+    <% if current_user && request.path != '/search' %>
+      <div data-controller="floating-search" class="fixed bottom-6 right-6 z-40 md:hidden">
+        <button type="button" 
+          data-action="click->floating-search#openSearch"
+          data-floating-search-target="button"
+          class="w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95"
+          aria-label="搜索">
+          <%= lucide_icon "search", class: "w-6 h-6" %>
+        </button>
+      </div>
+    <% end %>
     <% if Rails.env.development? %>
       <div id="system-monitor-stream"
            data-controller="system-monitor"

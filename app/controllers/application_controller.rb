@@ -13,7 +13,8 @@ class ApplicationController < ActionController::Base
   include TurboCompatibleRenderConcern
 
   before_action :require_authentication
-  helper_method :current_lawyer, :current_company_user, :current_user, :lawyer?, :company_user?, :viewing_company
+  before_action :set_current_lawyer_account
+  helper_method :current_lawyer, :current_company_user, :current_user, :current_lawyer_account, :lawyer?, :company_user?, :viewing_company, :lawyer_announcement_count
 
   private
 
@@ -27,6 +28,17 @@ class ApplicationController < ActionController::Base
 
   def current_user
     current_lawyer || current_company_user
+  end
+  
+  # 别名方法：current_lawyer_account = current_lawyer
+  # 用于团队权限系统
+  def current_lawyer_account
+    current_lawyer
+  end
+  
+  # 设置 Current.lawyer_account，供模型层使用
+  def set_current_lawyer_account
+    Current.lawyer_account = current_lawyer
   end
 
   def lawyer?
@@ -57,19 +69,26 @@ class ApplicationController < ActionController::Base
     redirect_to root_path, alert: '无权访问'
   end
 
-  def require_hr_role
-    return if company_user? && current_company_user.role == 'hr'
-    redirect_to root_path, alert: '无权访问'
-  end
-
-  def require_contract_role
-    return if company_user? && current_company_user.role == 'contract'
-    redirect_to root_path, alert: '无权访问'
-  end
-
   def require_boss_role
     return if company_user? && current_company_user.role == 'boss'
     redirect_to root_path, alert: '无权访问'
+  end
+  
+  # 获取律师的公告数量（用于导航栏徽章）
+  def lawyer_announcement_count
+    return 0 unless lawyer?
+    
+    # 使用 Rails.cache 缓存公告数量，避免频繁查询
+    Rails.cache.fetch("lawyer_#{current_lawyer.id}_announcement_count", expires_in: 5.minutes) do
+      company_ids = Company.pluck(:id)
+      announcement_service = AnnouncementService.new(
+        user: current_lawyer,
+        company_ids: company_ids
+      )
+      announcement_service.call[:combined_announcements].count
+    end
+  rescue
+    0
   end
 
 end

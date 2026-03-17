@@ -1,0 +1,13 @@
+<% if object.errors.any? %>
+  <div class="alert alert-danger">
+    <%= lucide_icon "alert-circle", class: "w-5 h-5" %>
+    <div>
+      <h4 class="font-semibold mb-1">表单存在 <%= object.errors.count %> 个错误：</h4>
+      <ul class="list-disc list-inside text-sm">
+        <% object.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+<% end %>

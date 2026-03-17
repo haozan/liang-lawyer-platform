@@ -1,0 +1,140 @@
+<details open data-controller="collapsible">
+  <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+    <div class="flex items-center gap-3">
+      <%= lucide_icon "calendar-days", class: "w-5 h-5 text-primary" %>
+      <h4 class="font-semibold text-primary text-lg">重要日期</h4>
+    </div>
+    <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+  </summary>
+  
+  <div class="p-4 pt-0 space-y-3" data-collapsible-target="content">
+    <!-- 诉讼地位显示 -->
+    <% if case_record.our_party_role.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">我方地位：</span>
+        <span class="text-primary font-semibold"><%= case_record.our_party_role_display %></span>
+      </div>
+    <% end %>
+    
+    <div class="flex items-start">
+      <span class="text-secondary w-32 flex-shrink-0"><%= case_record.filing_label %>：</span>
+      <div class="flex-1">
+        <% if case_record.filing_at.present? %>
+          <span class="text-primary"><%= case_record.filing_at.strftime('%Y年%m月%d日') %></span>
+        <% else %>
+          <span class="text-muted">准备立案</span>
+        <% end %>
+        <% if case_record.filing_attachments.attached? %>
+          <div class="mt-2">
+            <%= render 'shared/collapsible_attachments', 
+                attachments: case_record.filing_attachments, 
+                title: case_record.filing_attachment_label, 
+                threshold: 2,
+                icon: 'file-text' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <% if case_record.hearing_at.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">开庭时间：</span>
+        <div class="flex-1">
+          <span class="text-primary font-semibold <%= case_record.hearing_at < Time.current ? 'text-green-600' : 'text-orange-600' %>">
+            <%= case_record.hearing_at.strftime('%Y年%m月%d日 %H:%M') %>
+            <% if case_record.hearing_at > Time.current %>
+              <span class="text-xs">(还有 <%= ((case_record.hearing_at - Time.current) / 1.day).to_i %> 天)</span>
+            <% end %>
+          </span>
+          <% if case_record.hearing_attachments.attached? %>
+            <div class="mt-2">
+              <%= render 'shared/collapsible_attachments', 
+                  attachments: case_record.hearing_attachments, 
+                  title: '传票', 
+                  threshold: 2,
+                  icon: 'file-text' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+    <% if case_record.judgement_received_at.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">领取判决：</span>
+        <div class="flex-1">
+          <span class="text-primary"><%= case_record.judgement_received_at.strftime('%Y年%m月%d日') %></span>
+          <% if case_record.judgement_attachments.attached? %>
+            <div class="mt-2">
+              <%= render 'shared/collapsible_attachments', 
+                  attachments: case_record.judgement_attachments, 
+                  title: '判决书', 
+                  threshold: 2,
+                  icon: 'file-text' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Appeal/Retrial Deadline Reminder -->
+    <% if case_record.show_appeal_deadline_reminder? %>
+      <% urgency_class = case case_record.appeal_deadline_urgency
+        when :danger then 'text-red-600 dark:text-red-400'
+        when :warning then 'text-orange-600 dark:text-orange-400'
+        else 'text-blue-600 dark:text-blue-400'
+      end %>
+      <% bg_class = case case_record.appeal_deadline_urgency
+        when :danger then 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+        when :warning then 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800'
+        else 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+      end %>
+      <% icon_name = case case_record.appeal_deadline_urgency
+        when :danger then 'alert-triangle'
+        when :warning then 'alert-circle'
+        else 'info'
+      end %>
+      <div class="flex items-start p-3 <%= bg_class %> rounded-lg border mt-3">
+        <span class="text-secondary w-32 flex-shrink-0"><%= case_record.appeal_deadline_type %>：</span>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <%= lucide_icon icon_name, class: "w-4 h-4 #{urgency_class}" %>
+            <span class="font-semibold <%= urgency_class %>">
+              <%= case_record.effective_appeal_deadline.strftime('%Y年%m月%d日') %>
+              <span class="text-sm font-normal">（还有 <%= case_record.days_until_effective_appeal_deadline %> 天）</span>
+            </span>
+          </div>
+          <p class="text-xs text-muted">
+            <% if case_record.appeal_deadline_manually_set? %>
+              手动设置的期限日期
+            <% else %>
+              根据案件阶段（<%= case_record.stage_display %>）自动计算
+            <% end %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if case_record.archived_at.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">归档日期：</span>
+        <div class="flex-1">
+          <span class="text-primary"><%= case_record.archived_at.strftime('%Y年%m月%d日') %></span>
+          <% if case_record.archived_attachments.attached? %>
+            <div class="mt-2">
+              <%= render 'shared/collapsible_attachments', 
+                  attachments: case_record.archived_attachments, 
+                  title: '归档文件', 
+                  threshold: 2,
+                  icon: 'archive' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+    <% if case_record.closing_at.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">结案日期：</span>
+        <span class="text-primary"><%= case_record.closing_at.strftime('%Y年%m月%d日') %></span>
+      </div>
+    <% end %>
+  </div>
+</details>

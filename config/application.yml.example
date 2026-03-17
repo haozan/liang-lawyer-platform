@@ -10,10 +10,17 @@
 #
 # DATABASE_URL will be setted in production, Rails will check it automatically!
 
+# Database password for development and test environments
+DATABASE_PASSWORD: ''
 
 # Use `rake secret` to generate one key
 # production need!!!
 SECRET_KEY_BASE: ''
+
+# CORS allowed origins (comma-separated)
+# Production example: 'https://yourdomain.com,https://www.yourdomain.com'
+# Development example: 'http://localhost:3000,http://127.0.0.1:3000'
+ALLOWED_ORIGINS: ''
 
 # Set this value to generate email sending URLs and callback URLs
 # production need!!!

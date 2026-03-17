@@ -1,0 +1,233 @@
+<% content_for :title, "顶部导航栏配色方案选择" %>
+
+<div class="min-h-screen bg-surface">
+  <div class="container-xl mx-auto px-6 py-12">
+    <div class="text-center mb-12">
+      <h1 class="font-heading text-4xl font-bold text-primary mb-4">导航栏配色方案选择</h1>
+      <p class="text-lg text-secondary max-w-3xl mx-auto">
+        为提高导航栏按钮的辨识度和视觉吸引力，我们设计了3套不同风格的配色方案。<br>
+        每套方案都针对"模块导航"、"账户设置"、"公告"、"退出登录"按钮进行了醒目的配色设计。
+      </p>
+    </div>
+
+    <!-- 方案一：专业商务风格 -->
+    <div class="mb-16">
+      <div class="card card-elevated mb-6">
+        <div class="card-body">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h2 class="font-heading text-2xl font-bold text-primary mb-2">方案一：专业商务风格</h2>
+              <p class="text-secondary mb-4">深蓝主色调配合橙色强调，传统稳重但不失现代感</p>
+              <div class="flex flex-wrap gap-3">
+                <span class="badge-primary">深蓝主题</span>
+                <span class="badge-warning">橙色强调</span>
+                <span class="badge-info">青色通知</span>
+                <span class="badge-danger">红色边框退出</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="bg-surface-elevated p-4 rounded-lg border border-border">
+              <h3 class="font-semibold text-primary mb-2">🎨 配色特点：</h3>
+              <ul class="list-disc list-inside text-secondary space-y-1">
+                <li><strong>模块导航</strong>：深蓝色实心按钮（bg-primary），白色文字，带阴影和圆角，符合主操作按钮规范</li>
+                <li><strong>账户设置</strong>：橙色实心按钮（bg-warning），白色文字，醒目且温暖</li>
+                <li><strong>公告</strong>：青蓝渐变（from-info to-info/80），右上角红色脉冲徽章，强烈吸引注意力</li>
+                <li><strong>退出登录</strong>：红色边框按钮（border-danger），hover变红底白字，警示性明确</li>
+              </ul>
+            </div>
+            <div class="bg-surface-elevated p-4 rounded-lg border border-border">
+              <h3 class="font-semibold text-primary mb-2">✅ 适用场景：</h3>
+              <p class="text-secondary">适合追求专业、稳重形象的法律平台，色彩对比强烈但不花哨，符合B2B服务调性</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-2 border-primary/30 rounded-xl overflow-hidden shadow-lg">
+        <%= render 'shared/navbar_scheme_1' %>
+        <div class="bg-gradient-to-br from-primary/5 to-info/5 p-8">
+          <div class="text-center text-secondary">
+            <p class="text-sm">← 请查看上方导航栏效果（方案一）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方案二：现代渐变风格 -->
+    <div class="mb-16">
+      <div class="card card-elevated mb-6">
+        <div class="card-body">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h2 class="font-heading text-2xl font-bold text-primary mb-2">方案二：现代渐变风格</h2>
+              <p class="text-secondary mb-4">渐变背景配合彩虹按钮，科技感十足的现代设计</p>
+              <div class="flex flex-wrap gap-3">
+                <span class="badge-primary">渐变背景</span>
+                <span class="badge-secondary">圆角胶囊</span>
+                <span class="badge-warning">发光效果</span>
+                <span class="badge-success">缩放动画</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="bg-surface-elevated p-4 rounded-lg border border-border">
+              <h3 class="font-semibold text-primary mb-2">🎨 配色特点：</h3>
+              <ul class="list-disc list-inside text-secondary space-y-1">
+                <li><strong>导航栏背景</strong>：淡色渐变（from-primary/10 via-surface to-info/10），柔和过渡</li>
+                <li><strong>模块导航</strong>：蓝色渐变胶囊（from-primary to-primary-dark），hover反转渐变+缩放+阴影</li>
+                <li><strong>账户设置</strong>：紫色渐变胶囊（from-secondary to-secondary-dark），呼应品牌色</li>
+                <li><strong>公告</strong>：橙色渐变发光（shadow-warning/50），跳动徽章（animate-bounce），极具冲击力</li>
+                <li><strong>退出登录</strong>：红色渐变胶囊（from-danger），hover发光效果（shadow-danger/50）</li>
+              </ul>
+            </div>
+            <div class="bg-surface-elevated p-4 rounded-lg border border-border">
+              <h3 class="font-semibold text-primary mb-2">✅ 适用场景：</h3>
+              <p class="text-secondary">适合追求科技感、年轻化的现代品牌，视觉冲击力强，交互反馈丰富</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-2 border-primary/30 rounded-xl overflow-hidden shadow-lg">
+        <%= render 'shared/navbar_scheme_2' %>
+        <div class="bg-gradient-to-br from-primary/5 via-secondary/5 to-info/5 p-8">
+          <div class="text-center text-secondary">
+            <p class="text-sm">← 请查看上方导航栏效果（方案二）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 方案三：简约扁平风格 -->
+    <div class="mb-16">
+      <div class="card card-elevated mb-6">
+        <div class="card-body">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h2 class="font-heading text-2xl font-bold text-primary mb-2">方案三：简约扁平风格</h2>
+              <p class="text-secondary mb-4">彩色图标配合轻量边框，清晰简洁的扁平化设计</p>
+              <div class="flex flex-wrap gap-3">
+                <span class="badge-primary">扁平设计</span>
+                <span class="badge-success">彩色边框</span>
+                <span class="badge-info">大图标</span>
+                <span class="badge-warning">微动画</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="bg-surface-elevated p-4 rounded-lg border border-border">
+              <h3 class="font-semibold text-primary mb-2">🎨 配色特点：</h3>
+              <ul class="list-disc list-inside text-secondary space-y-1">
+                <li><strong>模块导航</strong>：蓝色边框+淡蓝背景（border-primary bg-primary/10），2px粗边框，hover上浮</li>
+                <li><strong>账户设置</strong>：绿色边框+淡绿背景（border-success bg-success/10），清新友好</li>
+                <li><strong>公告</strong>：橙色边框+淡橙背景（border-warning bg-warning/10），高对比度徽章</li>
+                <li><strong>退出登录</strong>：红色边框+淡红背景（border-danger bg-danger/10），警示清晰</li>
+                <li><strong>交互反馈</strong>：hover上移0.5px（-translate-y-0.5），轻盈的微动画</li>
+              </ul>
+            </div>
+            <div class="bg-surface-elevated p-4 rounded-lg border border-border">
+              <h3 class="font-semibold text-primary mb-2">✅ 适用场景：</h3>
+              <p class="text-secondary">适合追求简洁、高效的工具型产品，色彩功能性强，不分散注意力</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="border-2 border-primary/30 rounded-xl overflow-hidden shadow-lg">
+        <%= render 'shared/navbar_scheme_3' %>
+        <div class="bg-surface p-8">
+          <div class="text-center text-secondary">
+            <p class="text-sm">← 请查看上方导航栏效果（方案三）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 对比总结 -->
+    <div class="card card-elevated">
+      <div class="card-body">
+        <h2 class="font-heading text-2xl font-bold text-primary mb-6">方案对比总结</h2>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr class="table-header">
+                <th class="table-header-cell">对比维度</th>
+                <th class="table-header-cell">方案一：专业商务</th>
+                <th class="table-header-cell">方案二：现代渐变</th>
+                <th class="table-header-cell">方案三：简约扁平</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="table-row">
+                <td class="table-cell font-semibold">视觉风格</td>
+                <td class="table-cell">传统稳重，色彩对比强</td>
+                <td class="table-cell">年轻时尚，渐变科技感</td>
+                <td class="table-cell">简洁清爽，功能导向</td>
+              </tr>
+              <tr class="table-row">
+                <td class="table-cell font-semibold">辨识度</td>
+                <td class="table-cell">⭐⭐⭐⭐ 高</td>
+                <td class="table-cell">⭐⭐⭐⭐⭐ 极高</td>
+                <td class="table-cell">⭐⭐⭐⭐ 高</td>
+              </tr>
+              <tr class="table-row">
+                <td class="table-cell font-semibold">专业度</td>
+                <td class="table-cell">⭐⭐⭐⭐⭐ 最专业</td>
+                <td class="table-cell">⭐⭐⭐ 中等</td>
+                <td class="table-cell">⭐⭐⭐⭐ 高</td>
+              </tr>
+              <tr class="table-row">
+                <td class="table-cell font-semibold">交互反馈</td>
+                <td class="table-cell">⭐⭐⭐ 标准</td>
+                <td class="table-cell">⭐⭐⭐⭐⭐ 丰富</td>
+                <td class="table-cell">⭐⭐⭐⭐ 轻盈</td>
+              </tr>
+              <tr class="table-row">
+                <td class="table-cell font-semibold">适合用户</td>
+                <td class="table-cell">企业客户、律师事务所</td>
+                <td class="table-cell">年轻团队、科技公司</td>
+                <td class="table-cell">所有用户，通用性强</td>
+              </tr>
+              <tr class="table-row">
+                <td class="table-cell font-semibold">推荐指数</td>
+                <td class="table-cell">⭐⭐⭐⭐⭐（推荐）</td>
+                <td class="table-cell">⭐⭐⭐⭐</td>
+                <td class="table-cell">⭐⭐⭐⭐</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-8 p-6 bg-primary/5 border-l-4 border-primary rounded-lg">
+          <h3 class="font-heading text-lg font-bold text-primary mb-3">💡 设计师建议</h3>
+          <div class="space-y-2 text-secondary">
+            <p><strong>首选推荐：方案一（专业商务风格）</strong></p>
+            <ul class="list-disc list-inside ml-4 space-y-1">
+              <li>最符合"法律合同风险管理平台"的专业定位</li>
+              <li>色彩对比度高，按钮功能一目了然</li>
+              <li>红色边框退出按钮警示性强，避免误操作</li>
+              <li>整体风格成熟稳重，增强用户信任感</li>
+            </ul>
+            <p class="mt-4"><strong>备选：方案三（简约扁平风格）</strong></p>
+            <p class="ml-4 text-sm">如果追求更现代简洁的视觉，方案三也是不错的选择，通用性强且不会过时</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作说明 -->
+    <div class="mt-12 text-center">
+      <div class="inline-block p-6 bg-warning/10 border-2 border-warning rounded-lg">
+        <h3 class="font-heading text-lg font-bold text-warning mb-2">📋 如何应用您选择的方案</h3>
+        <p class="text-secondary text-sm">
+          请告诉我您选择的方案编号（方案一/方案二/方案三），<br>
+          我将立即替换 <code class="px-2 py-1 bg-surface border border-border rounded text-primary font-mono text-xs">app/views/shared/_navbar.html.erb</code> 文件
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

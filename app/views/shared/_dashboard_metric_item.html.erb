@@ -1,0 +1,38 @@
+<%# 仪表盘指标项 %>
+<%# 参数: metric = {name:, value:, icon:, color:, trend:, status:} %>
+
+<div class="flex items-center gap-3 p-3 rounded-lg bg-surface transition-all group-hover:bg-surface-secondary group-hover:shadow-md">
+  <!-- 图标 -->
+  <div class="flex-shrink-0">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center <%= metric[:color] || 'bg-primary/10' %>">
+      <%= lucide_icon metric[:icon] || "activity", class: "w-5 h-5 #{metric[:icon_color] || 'text-primary'}" %>
+    </div>
+  </div>
+  
+  <!-- 内容 -->
+  <div class="flex-1 min-w-0">
+    <p class="text-xs text-secondary truncate"><%= metric[:name] %></p>
+    <div class="flex items-baseline gap-2">
+      <p class="text-lg font-bold text-primary"><%= metric[:value] %></p>
+      
+      <% if metric[:trend] %>
+        <span class="text-xs <%= metric[:trend][:value] >= 0 ? 'text-success' : 'text-danger' %>">
+          <%= metric[:trend][:value] >= 0 ? '↑' : '↓' %>
+          <%= metric[:trend][:value].abs %><%= metric[:trend][:unit] || '%' %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- 状态指示灯 (如果有) -->
+  <% if metric[:status] %>
+    <div 
+      data-controller="status-indicator"
+      data-status-indicator-value-value="<%= metric[:status][:value] %>"
+      data-status-indicator-thresholds-value="<%= metric[:status][:thresholds].to_json %>"
+      data-status-indicator-reverse-value="<%= metric[:status][:reverse] || false %>"
+      class="flex-shrink-0">
+      <div data-indicator class="w-2 h-2 rounded-full"></div>
+    </div>
+  <% end %>
+</div>

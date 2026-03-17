@@ -1,13 +1,18 @@
 class HomeController < ApplicationController
   skip_before_action :require_authentication, only: [:index]
-  
+
   def index
-    # 已登录用户自动跳转到对应页面
-    if current_lawyer
-      redirect_to lawyer_companies_path
-    elsif current_company_user
-      redirect_to workbench_index_path
+    # 如果已登录，根据用户类型重定向到对应的主页
+    if current_user
+      if lawyer?
+        redirect_to lawyer_companies_path
+      elsif company_user?
+        redirect_to workbench_index_path
+      else
+        redirect_to login_path, alert: '未知用户类型'
+      end
     end
-    # 未登录用户显示落地页 - will be rendered from shared/demo.html.erb if home/index.html.erb doesn't exist
+    
+    # 未登录用户继续渲染首页 (index.html.erb)
   end
 end

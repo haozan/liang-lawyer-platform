@@ -1,0 +1,192 @@
+<div class="card card-elevated" id="reconciliation-module">
+  <div class="card-header border-b border-border">
+    <h3 class="font-heading text-xl font-bold text-primary flex items-center gap-2">
+      <%= lucide_icon "calculator", class: "w-5 h-5" %>
+      对账模块
+    </h3>
+  </div>
+  <div class="card-body space-y-6">
+    <!-- Monthly Reminder -->
+    <% unless Reconciliation.current_month_uploaded?(contract) %>
+      <div class="alert alert-info">
+        <%= lucide_icon "calendar", class: "w-5 h-5" %>
+        <div class="flex-1">
+          <h4 class="font-semibold">温馨提示</h4>
+          <p class="text-sm">请及时上传本月对账单，以便律师审查可能存在的风险</p>
+        </div>
+        <%= link_to quick_create_current_month_contract_reconciliations_path(contract), 
+          data: { turbo_method: :post, turbo_confirm: "确认创建#{Time.current.strftime('%Y年%m月')}对账单记录？您可以稍后补充附件。" },
+          class: "btn btn-sm btn-primary flex-shrink-0" do %>
+          <%= lucide_icon "zap", class: "w-4 h-4" %>
+          <span>一键生成</span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Existing Reconciliations List -->
+    <% if contract.reconciliations.ordered.any? %>
+      <div>
+        <h4 class="font-semibold text-primary mb-3 flex items-center gap-2">
+          <%= lucide_icon "list", class: "w-4 h-4" %>
+          历史对账单
+        </h4>
+        <div class="space-y-4">
+          <% contract.reconciliations.ordered.limit(5).each do |reconciliation| %>
+            <div class="border border-border rounded-lg p-4 bg-surface-elevated hover:shadow-md transition-shadow" id="reconciliation-<%= reconciliation.id %>">
+              <!-- Reconciliation Header -->
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <%= lucide_icon "calendar-check", class: "w-5 h-5 text-primary" %>
+                  <span class="font-semibold text-primary"><%= reconciliation.period_display %></span>
+                  <% if reconciliation.reviewed_by_lawyer %>
+                    <span class="badge badge-success">已审查</span>
+                  <% elsif lawyer? %>
+                    <% lawyer_commented = comments.any? { |c| c.commentable_type == 'Reconciliation' && c.commentable_id == reconciliation.id && c.author_type == 'LawyerAccount' && c.visibility == 'public' } %>
+                    <% if reconciliation.attachments.attached? && !lawyer_commented %>
+                      <span class="badge badge-warning">待您审查</span>
+                    <% else %>
+                      <span class="badge badge-info">待审查</span>
+                    <% end %>
+                  <% end %>
+                </div>
+                <div class="flex items-center gap-2">
+                  <% if lawyer? && !reconciliation.reviewed_by_lawyer %>
+                    <%= link_to mark_as_reviewed_contract_reconciliation_path(contract, reconciliation), 
+                      data: { turbo_method: :post, turbo_confirm: "确认标记此对账单为已审查？" },
+                      class: "btn btn-sm btn-success" do %>
+                      <%= lucide_icon "check-circle", class: "w-4 h-4" %>
+                      <span>标记为已审查</span>
+                    <% end %>
+                  <% end %>
+                  <%= link_to contract_reconciliation_path(contract, reconciliation), 
+                    data: { turbo_method: :delete, turbo_confirm: "确定要删除该对账单吗？删除后无法恢复。" },
+                    class: "btn btn-sm btn-danger inline-flex items-center gap-1" do %>
+                    <%= lucide_icon "trash-2", class: "w-3 h-3" %>
+                    <span>删除</span>
+                  <% end %>
+                </div>
+              </div>
+              
+              <!-- Notes Display -->
+              <% if reconciliation.notes.present? %>
+                <div class="mb-3 p-3 bg-surface rounded border border-border">
+                  <div class="flex items-center gap-2 mb-1">
+                    <%= lucide_icon "message-square", class: "w-4 h-4 text-secondary" %>
+                    <span class="text-xs font-semibold text-secondary">备注说明</span>
+                  </div>
+                  <p class="text-sm text-primary whitespace-pre-wrap"><%= reconciliation.notes %></p>
+                </div>
+              <% end %>
+              
+              <!-- Upload Info -->
+              <div class="text-xs text-muted mb-3">
+                上传人：<%= reconciliation.uploaded_by %> | 上传时间：<%= reconciliation.uploaded_at&.strftime('%Y-%m-%d %H:%M') %>
+              </div>
+              
+              <!-- Attachments -->
+              <% if reconciliation.attachments.attached? %>
+                <div class="flex flex-col gap-2 mb-3">
+                  <% reconciliation.attachments.first(3).each do |attachment| %>
+                    <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: true) %>
+                  <% end %>
+                  <% if reconciliation.attachments.count > 3 %>
+                    <p class="text-xs text-muted">...还有 <%= reconciliation.attachments.count - 3 %> 个附件</p>
+                  <% end %>
+                </div>
+              <% end %>
+              
+              <!-- 对账单评价区域（全部用户可见） -->
+              <% recon_comments = comments.select { |c| c.commentable_type == 'Reconciliation' && c.commentable_id == reconciliation.id && c.visibility == 'public' } %>
+              <% if recon_comments.any? || true %>
+                <details class="border-t border-border pt-3 mt-3">
+                  <summary class="cursor-pointer font-semibold text-primary text-sm flex items-center gap-2 hover:text-primary-hover">
+                    <%= lucide_icon "message-circle", class: "w-4 h-4" %>
+                    评价 (<%= recon_comments.count %>)
+                  </summary>
+                  <div class="mt-3 space-y-3">
+                    <% if recon_comments.any? %>
+                      <% recon_comments.each do |comment| %>
+                        <div class="bg-surface-secondary rounded p-3">
+                          <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                              <span class="font-semibold text-sm"><%= comment.author_name %></span>
+                              <% if comment.author_type == 'LawyerAccount' %>
+                                <span class="badge badge-success badge-sm">律师审查</span>
+                              <% end %>
+                              <span class="text-xs text-muted"><%= comment.created_at.strftime('%m-%d %H:%M') %></span>
+                            </div>
+                            <% current_user = current_lawyer || current_company_user %>
+                            <% if comment.deletable_by?(current_user) %>
+                              <%= link_to comment_path(comment), 
+                                data: { turbo_method: :delete, turbo_confirm: "确定删除该评价吗？" },
+                                class: "text-danger hover:text-danger-hover text-xs" do %>
+                                <%= lucide_icon "trash-2", class: "w-3 h-3" %>
+                              <% end %>
+                            <% end %>
+                          </div>
+                          <p class="text-sm text-secondary whitespace-pre-wrap"><%= comment.content %></p>
+                          <% if comment.attachments.attached? %>
+                            <div class="flex flex-col gap-1 mt-2">
+                              <% comment.attachments.each do |attachment| %>
+                                <% current_user = current_lawyer || current_company_user %>
+                                <% can_delete = comment.deletable_by?(current_user) %>
+                                <%= smart_file_link(attachment, action_buttons: true, show_size: false, deletable: can_delete) %>
+                              <% end %>
+                            </div>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    <% end %>
+                    
+                    <!-- 添加评价表单 -->
+                    <%= form_with model: Comment.new, url: reconciliation_comments_path(reconciliation), class: "space-y-2 border-t border-border pt-3", multipart: true do |f| %>
+                      <%= hidden_field_tag 'comment[visibility]', 'public' %>
+                      <% placeholder_text = lawyer? ? "请对该对账单进行审查评价，可上传审查证据附件..." : "发表您的评价..." %>
+                      <%= f.text_area :content, rows: 2, placeholder: placeholder_text, class: "form-textarea form-textarea-sm", required: true %>
+                      <div class="flex items-center gap-2">
+                        <%= f.file_field :attachments, multiple: true, class: "form-input form-input-sm flex-1", accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" %>
+                        <%= f.submit "发布", class: "btn btn-primary btn-sm" %>
+                      </div>
+                    <% end %>
+                  </div>
+                </details>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <p class="text-muted text-center py-4">暂无对账单</p>
+    <% end %>
+
+    <!-- New Reconciliation Form -->
+    <div class="border-t border-border pt-6 mt-6">
+      <h4 class="font-semibold text-primary mb-4 flex items-center gap-2">
+        <%= lucide_icon "upload", class: "w-4 h-4" %>
+        上传新对账单
+      </h4>
+      <%= form_with model: Reconciliation.new, url: contract_reconciliations_path(contract), class: "space-y-4", multipart: true do |f| %>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <%= f.label :period_year, "年份", class: "form-label" %>
+            <%= f.number_field :period_year, value: Time.current.year, class: "form-input", required: true %>
+          </div>
+          <div>
+            <%= f.label :period_month, "月份", class: "form-label" %>
+            <%= f.number_field :period_month, value: Time.current.month, min: 1, max: 12, class: "form-input", required: true %>
+          </div>
+        </div>
+        <div>
+          <%= f.label :notes, "备注说明", class: "form-label" %>
+          <%= f.text_area :notes, rows: 3, placeholder: "请描述本期对账情况、异常事项等...", class: "form-textarea" %>
+        </div>
+        <div>
+          <%= f.label :attachments, "对账单附件", class: "form-label" %>
+          <%= f.file_field :attachments, multiple: true, accept: "image/png,image/jpeg,image/jpg,application/pdf", class: "form-input", required: true %>
+          <p class="form-help">支持 PNG、JPEG、JPG、PDF 格式</p>
+        </div>
+        <%= f.submit "提交对账单", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  </div>
+</div>

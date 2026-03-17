@@ -9,6 +9,20 @@ cleanup_good_jobs:
   args:
     - "GoodJob::Job.finished.where('finished_at < ?', 1.day.ago).limit(1000).delete_all"
 
+# 对账单智能提醒：每天早上9点检查需要上传对账单的合同
+reconciliation_reminder:
+  cron: "0 9 * * *"  # Every day at 9 AM
+  class: "ReconciliationReminderJob"
+  queue: "default"
+  description: "Check contracts needing reconciliation and create reminder announcements"
+
+# 合同续签提醒：每天早上10点检查需要续签提醒的合同
+contract_renewal_reminder:
+  cron: "0 10 * * *"  # Every day at 10 AM
+  class: "ContractRenewalReminderJob"
+  queue: "default"
+  description: "Check contracts needing renewal notice and create reminder announcements"
+
 # Example configurations:
 #
 # daily_report:

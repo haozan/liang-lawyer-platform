@@ -5,11 +5,13 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins '*' # In production, replace with specific origins
+    # Read allowed origins from environment variable
+    origins ENV.fetch('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 
     resource '/api/*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
-      credentials: false
+      credentials: true,  # Allow cookies and authentication headers
+      max_age: 600        # Cache preflight requests for 10 minutes
   end
 end

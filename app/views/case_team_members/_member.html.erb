@@ -1,0 +1,34 @@
+<div id="case-team-member-<%= member.id %>" class="flex items-center justify-between p-3 bg-surface-hover rounded-lg border border-muted">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+      <%= lucide_icon "user", class: "w-5 h-5 text-primary" %>
+    </div>
+    <div>
+      <p class="font-semibold text-primary"><%= member.lawyer_account.name %></p>
+      <p class="text-xs text-secondary"><%= member.lawyer_account.display_name %></p>
+    </div>
+  </div>
+  <div class="flex items-center gap-2">
+    <% case member.role %>
+    <% when 'lead_lawyer' %>
+      <span class="badge badge-primary">主办律师</span>
+    <% when 'assistant_lawyer' %>
+      <span class="badge badge-info">辅助律师</span>
+    <% when 'legal_assistant' %>
+      <span class="badge badge-secondary">律师助理</span>
+    <% end %>
+    <span class="text-xs text-muted">
+      <%= member.joined_at.strftime('%Y-%m-%d') %> 加入
+    </span>
+    
+    <% if defined?(show_remove_button) && show_remove_button %>
+      <%= button_to case_case_team_member_path(member.case, member), 
+            method: :delete,
+            class: "btn-sm btn-outline text-danger hover:bg-danger/10 ml-2",
+            title: "移除成员",
+            data: { turbo_confirm: "确定要移除 #{member.lawyer_account.name} 吗？" } do %>
+        <%= lucide_icon "user-minus", class: "w-4 h-4" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

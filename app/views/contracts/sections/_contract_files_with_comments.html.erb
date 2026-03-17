@@ -1,0 +1,109 @@
+<div class="card card-elevated">
+  <div class="card-header border-b border-border">
+    <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+      <%= lucide_icon "file", class: "w-5 h-5" %>
+      合同文件
+    </h3>
+  </div>
+  <div class="card-body space-y-6">
+    <!-- 文件列表 -->
+    <div class="space-y-3">
+      <div>
+        <label class="form-label flex items-center gap-1">
+          <%= lucide_icon "file-text", class: "w-4 h-4" %>
+          主合同
+        </label>
+        <%= smart_file_link(contract.file, show_size: true, action_buttons: true, deletable: true) %>
+      </div>
+      <% if contract.supplement_files.attached? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "file-plus", class: "w-4 h-4" %>
+            补充协议
+          </label>
+          <div class="flex flex-col gap-2">
+            <% contract.supplement_files.each do |file| %>
+              <%= smart_file_link(file, show_size: true, action_buttons: true, deletable: true) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <% if contract.annex_files.attached? %>
+        <div>
+          <label class="form-label flex items-center gap-1">
+            <%= lucide_icon "paperclip", class: "w-4 h-4" %>
+            合同附件
+          </label>
+          <div class="flex flex-col gap-2">
+            <% contract.annex_files.each do |file| %>
+              <%= smart_file_link(file, show_size: true, action_buttons: true, deletable: true) %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- 文件评价区域（公开，所有用户可见） -->
+    <div class="border-t border-border pt-6">
+      <h4 class="font-semibold text-primary mb-4 flex items-center gap-2">
+        <%= lucide_icon "message-square", class: "w-4 h-4" %>
+        文件评价
+      </h4>
+      
+      <% file_comments = comments.select { |c| c.commentable_type == 'Contract' && c.visibility == 'public' } %>
+      
+      <!-- 现有评价列表 -->
+      <% if file_comments.any? %>
+        <div class="space-y-3 mb-4">
+          <% file_comments.each do |comment| %>
+            <div class="border border-border rounded-lg p-4 bg-surface-elevated">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-primary"><%= comment.author_name %></span>
+                  <span class="text-xs text-muted"><%= comment.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+                </div>
+                <% current_user = current_lawyer || current_company_user %>
+                <% if comment.deletable_by?(current_user) %>
+                  <%= link_to comment_path(comment), 
+                    data: { turbo_method: :delete, turbo_confirm: "确定删除该评价吗？" },
+                    class: "text-danger hover:text-danger-hover text-xs",
+                    title: "删除评价（30分钟内可删）" do %>
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  <% end %>
+                <% end %>
+              </div>
+              <p class="text-secondary text-sm whitespace-pre-wrap mb-3"><%= comment.content %></p>
+              <% if comment.attachments.attached? %>
+                <div class="flex flex-col gap-2">
+                  <% comment.attachments.each do |attachment| %>
+                    <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: true) %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-muted text-center py-4 mb-4">暂无评价</p>
+      <% end %>
+      
+      <!-- 添加评价表单（所有用户可用） -->
+      <div class="border-t border-border pt-4">
+        <h5 class="font-semibold text-primary mb-3 flex items-center gap-2">
+          <%= lucide_icon "pen-tool", class: "w-4 h-4" %>
+          发表评价
+        </h5>
+        <%= form_with model: Comment.new, url: contract_comments_path(contract), class: "space-y-3", multipart: true do |f| %>
+          <%= hidden_field_tag 'comment[visibility]', 'public' %>
+          <%= f.text_area :content, rows: 3, placeholder: "请输入您对合同文件的评价、意见或建议...", class: "form-textarea", required: true %>
+          <div>
+            <%= f.label :attachments, "附件上传 (可选)", class: "form-label text-sm" %>
+            <%= f.file_field :attachments, multiple: true, class: "form-input", accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" %>
+            <p class="form-help text-xs">可上传补充说明文档，支持PDF、Word、Excel、图片等格式</p>
+          </div>
+          <%= f.submit "发布评价", class: "btn btn-primary btn-sm" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

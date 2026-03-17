@@ -1,0 +1,88 @@
+<details open data-controller="collapsible">
+  <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+    <div class="flex items-center gap-3">
+      <%= lucide_icon "users", class: "w-5 h-5 text-primary" %>
+      <h4 class="font-semibold text-primary text-lg">案件团队</h4>
+      <span id="case-team-size">
+        <%= render "case_team_members/team_size", case_record: case_record %>
+      </span>
+    </div>
+    <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+  </summary>
+  
+  <div class="p-4 pt-0" data-collapsible-target="content">
+    <% if lawyer? && (case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.team_leader? || current_lawyer_account.super_admin?) %>
+      <div data-controller="dropdown" class="mb-4">
+        <button type="button" 
+                class="btn-sm btn-primary"
+                data-action="click->dropdown#toggle">
+          <%= lucide_icon "user-plus", class: "w-4 h-4 mr-1" %>
+          添加成员
+        </button>
+        <div data-dropdown-target="menu" class="hidden mt-2 p-4 bg-surface border border-muted rounded-lg">
+          <%= render "case_team_members/form", case_record: case_record, case_team_member: case_record.case_team_members.new %>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if case_record.case_team_members.any? %>
+      <div id="case-team-members-list" class="space-y-3">
+        <% case_record.case_team_members.ordered.each do |member| %>
+          <%= render "case_team_members/member", 
+              member: member, 
+              show_remove_button: (lawyer? && (case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.team_leader? || current_lawyer_account.super_admin?)) %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-8 text-muted">
+        <%= lucide_icon "users", class: "w-12 h-12 mx-auto mb-2 opacity-50" %>
+        <p>暂无团队成员</p>
+        <p class="text-sm mt-1">点击"添加成员"按钮添加律师或助理</p>
+      </div>
+    <% end %>
+    
+    <!-- 协作团队 (仅律师可见) -->
+    <% if lawyer? %>
+      <div class="mt-6 pt-6 border-t border-border">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <h5 class="font-semibold text-primary">协作团队</h5>
+            <span id="collaborating-teams-count">
+              <%= render "case_team_collaborations/count", case_record: case_record %>
+            </span>
+          </div>
+          <% if case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.team_leader? || current_lawyer_account.super_admin? %>
+            <button type="button" 
+                    class="btn-sm btn-info"
+                    data-controller="dropdown"
+                    data-action="click->dropdown#toggle">
+              <%= lucide_icon "users-plus", class: "w-4 h-4 mr-1" %>
+              添加协作团队
+            </button>
+          <% end %>
+        </div>
+        
+        <div class="bg-info/10 border border-info/30 rounded-lg p-4 mb-4">
+          <%= lucide_icon "info", class: "w-5 h-5 text-info inline mr-2" %>
+          <span class="text-info text-sm">
+            <strong>多团队协同说明：</strong>
+            添加协作团队后，该团队的所有成员均可访问此案件。主责团队拥有完整权限，协作团队可根据授权级别查看或编辑案件。
+          </span>
+        </div>
+        
+        <% if case_record.business_team_ownerships.any? %>
+          <div id="collaborating-teams-list" class="space-y-3">
+            <% case_record.business_team_ownerships.order(is_primary: :desc, created_at: :asc).each do |ownership| %>
+              <%= render "case_team_collaborations/team", ownership: ownership, case_record: case_record %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-6 text-muted">
+            <%= lucide_icon "users", class: "w-10 h-10 mx-auto mb-2 opacity-50" %>
+            <p class="text-sm">暂无协作团队</p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</details>

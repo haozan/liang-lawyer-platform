@@ -201,25 +201,16 @@ class LawyerTodoService < ApplicationService
     end
   end
 
-  # Helper methods for generating paths with company enter action
+  # Helper methods for generating paths - 直接访问资源
   def contract_path_with_company(contract)
-    Rails.application.routes.url_helpers.enter_lawyer_company_path(
-      contract.company,
-      redirect_to: Rails.application.routes.url_helpers.contract_path(contract)
-    )
+    Rails.application.routes.url_helpers.contract_path(contract)
   end
 
   def case_path_with_company(kase)
-    Rails.application.routes.url_helpers.enter_lawyer_company_path(
-      kase.company,
-      redirect_to: Rails.application.routes.url_helpers.case_path(kase)
-    )
+    Rails.application.routes.url_helpers.case_path(kase)
   end
 
   def major_issue_path_with_company(issue)
-    Rails.application.routes.url_helpers.enter_lawyer_company_path(
-      issue.company,
-      redirect_to: Rails.application.routes.url_helpers.major_issue_path(issue)
-    )
+    Rails.application.routes.url_helpers.major_issue_path(issue)
   end
 end

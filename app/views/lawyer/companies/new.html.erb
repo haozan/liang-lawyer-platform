@@ -33,19 +33,24 @@
               <% end %>
               <p class="form-hint">企业的全称或简称</p>
             </div>
-
-            <!-- Info Box -->
-            <div class="alert alert-info">
-              <div class="flex items-start gap-3">
-                <%= lucide_icon "info", class: "w-5 h-5 flex-shrink-0 mt-0.5" %>
-                <div class="text-sm">
-                  <p class="font-semibold mb-1">系统将自动创建：</p>
-                  <ul class="list-disc list-inside space-y-1 text-secondary">
-                    <li>人事账号：hr@企业名称.com（用于员工管理）</li>
-                    <li>合同账号：contract@企业名称.com（用于合同管理）</li>
-                  </ul>
-                </div>
-              </div>
+            
+            <!-- Lawyer Team Selection Field -->
+            <div class="form-group">
+              <%= f.label :lawyer_team_id, "归属律师团队", class: "form-label required" %>
+              <%= f.select :lawyer_team_id,
+                  options_for_select(
+                    @lawyer_teams.map { |team| [team.name, team.id] },
+                    selected: f.object.lawyer_team_id || current_lawyer.lawyer_team_id
+                  ),
+                  {},
+                  { class: "form-input", required: true } %>
+              <% if @company.errors[:lawyer_team_id].any? %>
+                <p class="form-error"><%= @company.errors[:lawyer_team_id].first %></p>
+              <% end %>
+              <p class="form-hint">
+                <%= lucide_icon "alert-circle", class: "w-4 h-4 inline" %>
+                该企业的所有合同、案件、重大事项将只对选定的团队可见
+              </p>
             </div>
 
             <!-- Form Actions -->

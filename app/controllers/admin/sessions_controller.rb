@@ -14,13 +14,13 @@ class Admin::SessionsController < Admin::BaseController
 
   def create
     create_first_admin_or_reset_password!
-    admin = Administrator.find_by(name: params[:name])
+    admin = Administrator.find_by(phone: params[:phone])
     if admin && admin.authenticate(params[:password])
       admin_sign_in(admin)
       AdminOplogService.log_login(admin, request)
       redirect_to admin_root_path
     else
-      flash.now[:alert] = 'Username or password is wrong'
+      flash.now[:alert] = '手机号或密码错误'
       @first_login = first_admin?
       render 'new', status: :unprocessable_entity
     end
@@ -51,10 +51,15 @@ class Admin::SessionsController < Admin::BaseController
     admin = Administrator.find_by(name: 'admin')
     if admin.nil?
       logger.info("System have no admins, create the first one")
-      admin = Administrator.new(name: 'admin', password: 'admin', role: 'super_admin')
+      admin = Administrator.new(name: 'admin', phone: '10000000000', password: 'admin', role: 'super_admin')
       admin.save!(validate: false)
     else
-      admin.update!(password: 'admin', password_confirmation: 'admin')
+      # 为现有 admin 设置默认手机号（如果还没有）
+      if admin.phone.blank? || admin.phone == '10000000000'
+        admin.update_columns(phone: '10000000000', password_digest: BCrypt::Password.create('admin'))
+      else
+        admin.update!(password: 'admin', password_confirmation: 'admin')
+      end
     end
   end
 

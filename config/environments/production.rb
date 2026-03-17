@@ -32,6 +32,38 @@ Rails.application.configure do
 
   # Store uploaded files on the cloud storage bucket (S3/GCS)
   config.active_storage.service = :storage_bucket
+  
+  # Allow more content types for inline preview
+  config.active_storage.content_types_allowed_inline = %w[
+    image/webp
+    image/avif
+    image/png
+    image/gif
+    image/jpeg
+    image/jpg
+    image/bmp
+    image/svg+xml
+    text/plain
+    text/html
+    text/css
+    text/javascript
+    application/javascript
+    application/json
+    application/xml
+    application/pdf
+    application/msword
+    application/vnd.ms-excel
+    application/vnd.ms-powerpoint
+    application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    application/vnd.openxmlformats-officedocument.presentationml.presentation
+    video/mp4
+    video/webm
+    video/ogg
+    audio/mpeg
+    audio/ogg
+    audio/wav
+  ]
 
   # Mount Action Cable outside main process or domain.
   config.action_cable.disable_request_forgery_protection = true
@@ -77,8 +109,18 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Clacky: Enable caching
-  config.cache_store = :memory_store
+  # Clacky: Enable Redis caching for production
+  config.cache_store = :redis_cache_store, {
+    url: ENV.fetch('REDIS_URL', "redis://#{ENV.fetch('REDIS_INNER_HOST', '127.0.0.1')}:#{ENV.fetch('REDIS_INNER_PORT', '6379')}/0"),
+    password: ENV.fetch('REDISCLI_AUTH', nil),
+    connect_timeout: 30,
+    read_timeout: 0.2,
+    write_timeout: 0.2,
+    reconnect_attempts: 1,
+    error_handler: ->(method:, returning:, exception:) {
+      Rails.logger.error("Redis cache error: #{exception.class} - #{exception.message}")
+    }
+  }
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter = :resque

@@ -1,0 +1,30 @@
+<% if case_record.case_clients.any? %>
+  <details open data-controller="collapsible">
+    <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+      <div class="flex items-center gap-3">
+        <%= lucide_icon "building-2", class: "w-5 h-5 text-primary" %>
+        <h4 class="font-semibold text-primary text-lg">委托人信息</h4>
+        <span class="badge badge-neutral"><%= case_record.case_clients.count %></span>
+      </div>
+      <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+    </summary>
+    
+    <div class="p-4 pt-0 space-y-3" data-collapsible-target="content">
+      <% case_record.case_clients.ordered.each do |case_client| %>
+        <div class="flex items-center justify-between p-3 bg-surface-hover rounded-lg border border-muted">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <%= lucide_icon "building-2", class: "w-5 h-5 text-primary" %>
+            </div>
+            <div>
+              <p class="font-semibold text-primary"><%= case_client.company.name %></p>
+            </div>
+          </div>
+          <span class="badge <%= case_client.primary? ? 'badge-primary' : 'badge-secondary' %>">
+            <%= case_client.role_display %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

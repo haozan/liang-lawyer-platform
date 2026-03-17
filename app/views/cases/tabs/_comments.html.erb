@@ -1,0 +1,66 @@
+<!-- Comments Tab Panel -->
+<div data-case-tabs-target="panel" data-tab-panel="comments" class="hidden">
+  <div class="card card-elevated">
+    <div class="card-body">
+      <h3 class="font-heading text-xl font-semibold text-primary mb-4 border-b pb-2">评论交流</h3>
+      
+      <% if @comments.any? %>
+        <div class="space-y-4 mb-6">
+          <% @comments.each do |comment| %>
+            <div class="p-4 bg-surface-hover rounded-lg border border-gray-200 dark:border-gray-700">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <%= lucide_icon "user", class: "w-5 h-5 text-primary" %>
+                  </div>
+                  <div>
+                    <p class="font-semibold text-primary"><%= comment.author_name %></p>
+                    <p class="text-xs text-muted"><%= comment.created_at.strftime('%Y-%m-%d %H:%M') %></p>
+                  </div>
+                </div>
+                <% if current_lawyer %>
+                  <%= button_to comment_path(comment), 
+                    method: :delete, 
+                    data: { turbo_confirm: '确定删除该评论吗？' },
+                    class: "text-red-600 hover:text-red-800" do %>
+                    <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                  <% end %>
+                <% end %>
+              </div>
+              
+              <div class="text-secondary whitespace-pre-wrap"><%= comment.content %></div>
+              
+              <% if comment.attachments.attached? %>
+                <div class="mt-3 space-y-2">
+                  <p class="text-xs text-muted">附件：</p>
+                  <% comment.attachments.each do |attachment| %>
+                    <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: false) %>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-muted text-center py-8">暂无评论</p>
+      <% end %>
+      
+      <!-- Add Comment Form -->
+      <div class="<%= @comments.any? ? 'pt-4 border-t border-gray-200 dark:border-gray-700' : '' %>">
+        <h4 class="font-semibold text-primary mb-4">发表评论</h4>
+        <%= form_with url: case_comments_path(@case), method: :post, class: "space-y-4", multipart: true do |f| %>
+          <div class="form-control">
+            <%= label_tag "comment[content]", "评论内容", class: "form-label required" %>
+            <%= text_area_tag "comment[content]", nil, class: "form-textarea", rows: 4, placeholder: "请输入评论内容", required: true %>
+          </div>
+          <div class="form-control">
+            <%= label_tag "comment[attachments][]", "附件（可选）", class: "form-label" %>
+            <%= file_field_tag "comment[attachments][]", multiple: true, class: "form-input", accept: "image/*,.pdf,.doc,.docx" %>
+            <p class="text-xs text-muted mt-1">支持上传图片、PDF、Word文件</p>
+          </div>
+          <%= f.submit "发表评论", class: "btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

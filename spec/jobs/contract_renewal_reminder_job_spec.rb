@@ -1,0 +1,11 @@
+require 'rails_helper'
+
+RSpec.describe ContractRenewalReminderJob, type: :job do
+  describe '#perform' do
+    it 'executes successfully' do
+      expect {
+        ContractRenewalReminderJob.perform_now
+      }.not_to raise_error
+    end
+  end
+end

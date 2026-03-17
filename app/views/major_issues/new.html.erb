@@ -111,22 +111,24 @@
               <p class="form-help">选择后该律师将收到通知</p>
             </div>
           </div>
+
+          <div class="form-group">
+            <%= f.label :team_member_ids, "协作团队成员（可选）", class: "form-label" %>
+            <%= f.select :team_member_ids,
+                options_from_collection_for_select(@lawyers, :id, :name, @major_issue.team_member_ids),
+                {},
+                { multiple: true, class: "form-select", size: 5 } %>
+            <p class="form-help">按住 Ctrl/Cmd 键可多选，协作团队成员可以查看和讨论此事项</p>
+          </div>
         </div>
 
         <!-- Important Dates -->
         <div class="mb-6">
           <h3 class="font-heading text-lg font-semibold text-primary mb-4">重要日期</h3>
           
-          <div class="grid md:grid-cols-2 gap-4">
-            <div class="form-group">
-              <%= f.label :resolved_at, "解决日期", class: "form-label" %>
-              <%= f.date_field :resolved_at, class: "form-input" %>
-            </div>
-
-            <div class="form-group">
-              <%= f.label :archived_at, "归档日期", class: "form-label" %>
-              <%= f.date_field :archived_at, class: "form-input" %>
-            </div>
+          <div class="form-group">
+            <%= f.label :resolved_at, "解决日期", class: "form-label" %>
+            <%= f.date_field :resolved_at, class: "form-input" %>
           </div>
         </div>
 
@@ -154,7 +156,7 @@
                 multiple: true, 
                 class: "form-input",
                 accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" %>
-            <p class="form-help">支持PDF、Word、Excel、图片等格式，单个文件不超过20MB</p>
+            <p class="form-help">支持PDF、Word、Excel、图片等格式，单个文件不超过40MB</p>
           </div>
         </div>
 

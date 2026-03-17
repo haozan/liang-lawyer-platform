@@ -1,0 +1,54 @@
+<details open data-controller="collapsible">
+  <summary class="cursor-pointer hover:bg-surface-hover rounded-lg p-4 flex items-center justify-between transition-colors">
+    <div class="flex items-center gap-3">
+      <%= lucide_icon "file-text", class: "w-5 h-5 text-primary" %>
+      <h4 class="font-semibold text-primary text-lg">基本信息</h4>
+    </div>
+    <%= lucide_icon "chevron-down", class: "w-5 h-5 text-secondary transition-transform", data: { collapsible_target: "icon" } %>
+  </summary>
+  
+  <div class="p-4 pt-0 space-y-3" data-collapsible-target="content">
+    <div class="flex items-start">
+      <span class="text-secondary w-32 flex-shrink-0">案件类型：</span>
+      <span class="text-primary font-semibold"><%= case_record.case_type %></span>
+    </div>
+    <% if case_record.stage.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">案件阶段：</span>
+        <span class="text-primary font-semibold"><%= case_record.stage_display %></span>
+      </div>
+    <% end %>
+    <% if case_record.court_name.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">法院名称：</span>
+        <span class="text-primary"><%= case_record.court_name %></span>
+      </div>
+    <% end %>
+    <% if case_record.judge_name.present? || case_record.judge_phone.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">审判员：</span>
+        <div class="text-primary">
+          <% if case_record.judge_name.present? %>
+            <span><%= case_record.judge_name %></span>
+          <% end %>
+          <% if case_record.judge_phone.present? %>
+            <span class="ml-2 text-secondary text-sm"><%= mask_phone(case_record.judge_phone) %></span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+    <% if case_record.clerk_name.present? || case_record.clerk_phone.present? %>
+      <div class="flex items-start">
+        <span class="text-secondary w-32 flex-shrink-0">书记员：</span>
+        <div class="text-primary">
+          <% if case_record.clerk_name.present? %>
+            <span><%= case_record.clerk_name %></span>
+          <% end %>
+          <% if case_record.clerk_phone.present? %>
+            <span class="ml-2 text-secondary text-sm"><%= mask_phone(case_record.clerk_phone) %></span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</details>

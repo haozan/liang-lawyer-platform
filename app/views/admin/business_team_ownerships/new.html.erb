@@ -1,0 +1,88 @@
+<% content_for :title, "New Business team ownership" %>
+
+<div class="container-md">
+  <div class="flex items-center space-x-4">
+    <%= link_to admin_business_team_ownerships_path, class: "btn-ghost text-sm py-1 px-3" do %>
+      <%= lucide_icon "arrow-left", class: "w-4 h-4 mr-2" %>
+      Back to Business team ownerships
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mt-4 mb-8">Create New Business team ownership</h1>
+
+  <!-- Form -->
+  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @business_team_ownership], local: true, class: "space-y-6" do |form| %>
+        <!-- Business type -->
+        <div class="form-group">
+          <%= form.label :business_type %>
+          <%= form.text_field :business_type, placeholder: "Enter business type..." %>
+        </div>
+
+        <!-- Is primary -->
+        <div class="mb-4">
+          <label class="flex items-center cursor-pointer">
+            <%= form.check_box :is_primary, 
+                  class: "mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700" %>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Is primary</span>
+          </label>
+        </div>
+
+        <!-- Access level -->
+        <div class="form-group">
+          <%= form.label :access_level %>
+          <%= form.text_field :access_level, placeholder: "Enter access level..." %>
+        </div>
+
+        <!-- Authorized at -->
+        <div class="form-group">
+          <%= form.label :authorized_at %>
+          <%= form.datetime_field :authorized_at, placeholder: "Select authorized at..." %>
+        </div>
+
+        <!-- Expires at -->
+        <div class="form-group">
+          <%= form.label :expires_at %>
+          <%= form.datetime_field :expires_at, placeholder: "Select expires at..." %>
+        </div>
+
+        <!-- Business -->
+        <div class="form-group">
+          <%= form.label :business_id, "Business" %>
+          <%= form.select :business_id,
+              options_for_select([['Select Business', '']] + Business.all.map { |item| [item.id, item.id] }, @business_team_ownership.business_id) %>
+        </div>
+
+        <!-- Lawyer team -->
+        <div class="form-group">
+          <%= form.label :lawyer_team_id, "Lawyer team" %>
+          <%= form.select :lawyer_team_id,
+              options_for_select([['Select Lawyer team', '']] + LawyerTeam.all.map { |item| [item.name, item.id] }, @business_team_ownership.lawyer_team_id) %>
+        </div>
+
+        <!-- Company -->
+        <div class="form-group">
+          <%= form.label :company_id, "Company" %>
+          <%= form.select :company_id,
+              options_for_select([['Select Company', '']] + Company.all.map { |item| [item.name, item.id] }, @business_team_ownership.company_id) %>
+        </div>
+
+        <!-- Authorized by -->
+        <div class="form-group">
+          <%= form.label :authorized_by_id, "Authorized by" %>
+          <%= form.select :authorized_by_id,
+              options_for_select([['Select Authorized by', '']] + LawyerAccount.all.map { |item| [item.name, item.id] }, @business_team_ownership.authorized_by_id) %>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-3">
+          <%= link_to admin_business_team_ownerships_path, class: "btn-ghost" do %>
+            Cancel
+          <% end %>
+          <%= form.submit "Create Business team ownership", class: "btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
