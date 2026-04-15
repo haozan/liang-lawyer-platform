@@ -11,7 +11,7 @@
     <div class="p-4 pt-0" data-collapsible-target="content">
       <!-- 律师费总额和付款状态 -->
       <div class="grid md:grid-cols-2 gap-4 mb-4">
-        <div class="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+        <div class="p-4 bg-secondary/10 rounded-lg">
           <div class="flex items-center justify-between mb-1">
             <p class="text-sm text-secondary">律师费总额</p>
             <% case case_record.lawyer_fee_payment_status %>
@@ -67,7 +67,7 @@
 
       <!-- 回款详情 -->
       <% if case_record.lawyer_fee_received.present? && case_record.lawyer_fee_received > 0 %>
-        <div class="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 mb-4">
+        <div class="bg-info/10 rounded-lg p-4 mb-4">
           <h5 class="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
             <%= lucide_icon "credit-card", class: "w-4 h-4" %>
             回款记录

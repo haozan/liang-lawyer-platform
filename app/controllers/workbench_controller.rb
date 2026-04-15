@@ -1,4 +1,6 @@
 class WorkbenchController < ApplicationController
+  include CompanyResolvable
+
   before_action :require_company_user
   before_action :set_company
   
@@ -36,10 +38,8 @@ class WorkbenchController < ApplicationController
   
   private
   
-  def set_company
-    @company = current_company_user.company
-  end
-  
+  alias_method :set_company, :set_company_for_company_user
+
   def require_company_user
     unless current_company_user
       redirect_to root_path, alert: '请先登录'

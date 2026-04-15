@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>选择企业 - 极光法律服务管理系统</title>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+</head>
+<body class="min-h-screen bg-surface flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-white/90 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="container-xl mx-auto px-6">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <%= lucide_icon "scale", class: "w-7 h-7 text-primary" %>
+          <span class="font-heading font-bold text-primary text-lg hidden sm:inline">极光法律服务管理系统</span>
+          <span class="font-heading font-bold text-primary text-lg sm:hidden">极光法律</span>
+        </div>
+        <%= link_to login_path, class: "btn-outline btn-sm flex items-center gap-2" do %>
+          <%= lucide_icon "arrow-left", class: "w-4 h-4" %>
+          <span>返回登录</span>
+        <% end %>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="flex-1 flex items-center justify-center py-12 px-4">
+    <div class="w-full max-w-md">
+
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-4">
+          <%= lucide_icon "building-2", class: "w-8 h-8 text-primary" %>
+        </div>
+        <h1 class="page-title">选择企业</h1>
+        <p class="text-secondary">您的账号关联了多个企业，请选择要进入的企业</p>
+      </div>
+
+      <div class="space-y-3">
+        <% @companies.each do |company| %>
+          <%= form_with url: enter_company_path, method: :post, class: "block" do |f| %>
+            <%= hidden_field_tag :company_id, company.id %>
+            <button type="submit"
+                    class="w-full text-left card card-elevated hover:border-primary/30 hover:shadow-lg transition-all duration-200 cursor-pointer group">
+              <div class="card-body py-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
+                      <%= lucide_icon "building-2", class: "w-5 h-5 text-primary" %>
+                    </div>
+                    <div>
+                      <p class="font-semibold text-primary group-hover:text-primary/80"><%= company.name %></p>
+                      <% membership = @company_user.company_memberships.find_by(company: company) %>
+                      <p class="text-sm text-secondary">
+                        <% if membership %>
+                          <%= membership.role_display %>
+                        <% end %>
+                        <span class="ml-2 <%= company.active? ? 'text-success' : 'text-warning' %>">
+                          · <%= company.status_text %>
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <%= lucide_icon "chevron-right", class: "w-5 h-5 text-secondary group-hover:text-primary transition-colors" %>
+                </div>
+              </div>
+            </button>
+          <% end %>
+        <% end %>
+      </div>
+
+      <p class="text-center text-sm text-secondary mt-6">
+        不是你？
+        <%= link_to "重新登录", login_path, class: "text-primary hover:underline font-medium" %>
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>

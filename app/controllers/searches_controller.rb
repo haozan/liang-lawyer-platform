@@ -8,7 +8,7 @@ class SearchesController < ApplicationController
       company_ids = if lawyer?
         Company.pluck(:id)  # 律师可搜索所有企业
       else
-        [current_company_user.company_id]  # 企业用户只能搜索自己企业
+        [viewing_company&.id]  # 企业用户只能搜索自己企业
       end
       
       @results = SearchIndex.search(

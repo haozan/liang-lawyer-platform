@@ -30,7 +30,7 @@
   </div>
 
   <!-- Contract tag Content -->
-  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+  <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
     <div class="card-body">
       <div class="space-y-6">
         <!-- Name -->
@@ -60,16 +60,16 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">创建时间</label>
-              <div class="text-sm text-gray-600 dark:text-gray-400">
+              <div class="text-sm text-secondary dark:text-muted">
                 <%= @contract_tag.created_at.strftime("%Y年%-m月%-d日 %H:%M") %>
-                <span class="text-gray-400">(<%= time_ago_in_words(@contract_tag.created_at) %> ago)</span>
+                <span class="text-muted">(<%= time_ago_in_words(@contract_tag.created_at) %> ago)</span>
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">最后更新</label>
-              <div class="text-sm text-gray-600 dark:text-gray-400">
+              <div class="text-sm text-secondary dark:text-muted">
                 <%= @contract_tag.updated_at.strftime("%Y年%-m月%-d日 %H:%M") %>
-                <span class="text-gray-400">(<%= time_ago_in_words(@contract_tag.updated_at) %> ago)</span>
+                <span class="text-muted">(<%= time_ago_in_words(@contract_tag.updated_at) %> ago)</span>
               </div>
             </div>
           </div>

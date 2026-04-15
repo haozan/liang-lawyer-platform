@@ -3,6 +3,17 @@ class Admin::LawyerAccountsController < Admin::BaseController
 
   def index
     @lawyer_accounts = LawyerAccount.ordered.page(params[:page]).per(20)
+
+    # 预加载每个律师直接负责的企业（通过 companies.assigned_lawyer_ids array）
+    lawyer_ids = @lawyer_accounts.map(&:id)
+    # 一次查出所有包含这些律师的企业，再在内存中按律师分组
+    companies = Company
+      .where('assigned_lawyer_ids && ARRAY[?]::integer[]', lawyer_ids)
+      .select(:id, :name, :assigned_lawyer_ids)
+    @companies_by_lawyer = lawyer_ids.index_with do |lid|
+      companies.select { |c| c.assigned_lawyer_ids.include?(lid) }
+               .map { |c| { id: c.id, name: c.name } }
+    end
   end
 
   def show
@@ -52,5 +63,6 @@ class Admin::LawyerAccountsController < Admin::BaseController
 
   def lawyer_account_params
     params.require(:lawyer_account).permit(:name, :role, :phone, :password, :password_confirmation)
+    # role 合法值：lawyer / assistant / admin
   end
 end

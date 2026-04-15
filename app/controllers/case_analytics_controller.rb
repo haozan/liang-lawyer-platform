@@ -1,4 +1,6 @@
 class CaseAnalyticsController < ApplicationController
+  include CompanyResolvable
+
   before_action :require_authentication
   before_action :set_company
   before_action :set_date_range
@@ -27,7 +29,7 @@ class CaseAnalyticsController < ApplicationController
     @export_data = analytics[:export_data]
     
     # 用于筛选的企业列表（仅律师）
-    @companies = Company.ordered if lawyer?
+    @companies = Company.accessible_by_lawyer(current_lawyer).ordered if lawyer?
   end
   
   def export_report
@@ -143,24 +145,7 @@ class CaseAnalyticsController < ApplicationController
   end
   
   def set_company
-    @company = if lawyer?
-      # 律师可以选择企业或查看全部
-      if params[:company_id].present? && params[:company_id] != 'all'
-        Company.find(params[:company_id])
-      else
-        nil
-      end
-    else
-      # 企业用户只能查看自己的企业
-      # 如果尝试访问其他企业，重定向
-      if params[:company_id].present? && params[:company_id].to_i != current_company_user.company_id
-        redirect_to dashboard_case_analytics_path, alert: '没有权限查看该企业数据'
-        return
-      end
-      current_company_user.company
-    end
-    
-    @lawyer = params[:lawyer_id].present? ? LawyerAccount.find(params[:lawyer_id]) : nil
+    set_company_for_analytics(redirect_path: dashboard_case_analytics_path)
   end
   
   def set_date_range

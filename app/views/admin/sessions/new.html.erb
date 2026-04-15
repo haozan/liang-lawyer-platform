@@ -12,11 +12,11 @@
         <!-- First Login Hint -->
         <% if @first_login %>
           <div class="mb-4">
-            <div class="flex items-start p-4 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-yellow-500 text-yellow-800 dark:text-yellow-200">
+            <div class="flex items-start p-4 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 dark:border-warning text-yellow-800 dark:text-yellow-200">
               <div class="flex-1">
                 <p class="font-semibold mb-2">首次登录凭证：</p>
-                <p>手机号: <span class="font-mono bg-yellow-100 dark:bg-yellow-800/50 px-2 py-1 rounded">10000000000</span></p>
-                <p>密码: <span class="font-mono bg-yellow-100 dark:bg-yellow-800/50 px-2 py-1 rounded">admin</span></p>
+                <p>手机号: <span class="font-mono bg-warning/10 dark:bg-yellow-800/50 px-2 py-1 rounded">10000000000</span></p>
+                <p>密码: <span class="font-mono bg-warning/10 dark:bg-yellow-800/50 px-2 py-1 rounded">admin</span></p>
               </div>
             </div>
           </div>
@@ -31,11 +31,11 @@
               </label>
               <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <%= lucide_icon "smartphone", class: "w-4 h-4 text-gray-400 dark:text-gray-500" %>
+                  <%= lucide_icon "smartphone", class: "w-4 h-4 text-muted dark:text-muted" %>
                 </div>
                 <%= telephone_field_tag :phone, nil,
                     placeholder: '请输入11位手机号',
-                    class: 'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 px-3 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20',
+                    class: 'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 px-3 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition focus:outline-none focus:border-info dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20',
                     autofocus: true, autocomplete: "tel" %>
               </div>
             </div>
@@ -47,11 +47,11 @@
               </label>
               <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <%= lucide_icon "lock", class: "w-4 h-4 text-gray-400 dark:text-gray-500" %>
+                  <%= lucide_icon "lock", class: "w-4 h-4 text-muted dark:text-muted" %>
                 </div>
                 <%= password_field_tag :password, nil,
                     placeholder: '请输入密码',
-                    class: 'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 px-3 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20',
+                    class: 'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 px-3 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition focus:outline-none focus:border-info dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-400/20',
                     autocomplete: 'current-password' %>
               </div>
             </div>

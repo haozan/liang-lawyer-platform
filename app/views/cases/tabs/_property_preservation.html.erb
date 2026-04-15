@@ -20,22 +20,22 @@
               <% days_left = @case.property_preservation_days_left %>
               <% is_expired = days_left < 0 %>
               <% urgency_class = if is_expired
-                  'text-gray-600 dark:text-gray-400'
+                  'text-secondary dark:text-muted'
                 elsif days_left <= 3
-                  'text-red-600 dark:text-red-400'
+                  'text-danger dark:text-red-400'
                 elsif days_left <= 7
-                  'text-orange-600 dark:text-orange-400'
+                  'text-warning dark:text-orange-400'
                 else
-                  'text-blue-600 dark:text-blue-400'
+                  'text-info'
                 end %>
               <% bg_class = if is_expired
-                  'bg-gray-50 dark:bg-gray-950/20 border-gray-200 dark:border-gray-800'
+                  'bg-surface-elevated dark:bg-gray-950/20 border-gray-200 dark:border-gray-800'
                 elsif days_left <= 3
-                  'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                  'bg-danger/10 dark:bg-red-950/20 border-danger/30 dark:border-red-800'
                 elsif days_left <= 7
-                  'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800'
+                  'bg-warning/10 dark:bg-orange-950/20 border-warning/30 dark:border-orange-800'
                 else
-                  'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                  'bg-info/10 border-info/30'
                 end %>
               <% icon_name = if is_expired
                   'x-circle'
@@ -88,9 +88,9 @@
                     <span class="text-xs bg-surface px-2 py-0.5 rounded">#<%= @case.property_preservation_records.count - index %></span>
                     <span class="text-muted"><%= Date.parse(record['applied_at']).strftime('%Y年%m月%d日') %> ~ <%= Date.parse(record['deadline']).strftime('%Y年%m月%d日') %></span>
                     <% if Date.parse(record['deadline']) < Date.current %>
-                      <span class="text-xs text-gray-500">已到期</span>
+                      <span class="text-xs text-muted">已到期</span>
                     <% elsif Date.parse(record['deadline']) == @case.property_preservation_deadline %>
-                      <span class="text-xs text-blue-600 dark:text-blue-400">当前</span>
+                      <span class="text-xs text-info">当前</span>
                     <% end %>
                   </div>
                   <% if record['files'].present? && record['files'].any? %>

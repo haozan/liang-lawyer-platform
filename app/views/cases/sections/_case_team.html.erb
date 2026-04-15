@@ -11,7 +11,7 @@
   </summary>
   
   <div class="p-4 pt-0" data-collapsible-target="content">
-    <% if lawyer? && (case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.team_leader? || current_lawyer_account.super_admin?) %>
+    <% if lawyer? && (case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.admin? || current_lawyer_account.super_admin?) %>
       <div data-controller="dropdown" class="mb-4">
         <button type="button" 
                 class="btn-sm btn-primary"
@@ -30,7 +30,7 @@
         <% case_record.case_team_members.ordered.each do |member| %>
           <%= render "case_team_members/member", 
               member: member, 
-              show_remove_button: (lawyer? && (case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.team_leader? || current_lawyer_account.super_admin?)) %>
+              show_remove_button: (lawyer? && (case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.admin? || current_lawyer_account.super_admin?)) %>
         <% end %>
       </div>
     <% else %>
@@ -41,48 +41,6 @@
       </div>
     <% end %>
     
-    <!-- 协作团队 (仅律师可见) -->
-    <% if lawyer? %>
-      <div class="mt-6 pt-6 border-t border-border">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <h5 class="font-semibold text-primary">协作团队</h5>
-            <span id="collaborating-teams-count">
-              <%= render "case_team_collaborations/count", case_record: case_record %>
-            </span>
-          </div>
-          <% if case_record.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account.team_leader? || current_lawyer_account.super_admin? %>
-            <button type="button" 
-                    class="btn-sm btn-info"
-                    data-controller="dropdown"
-                    data-action="click->dropdown#toggle">
-              <%= lucide_icon "users-plus", class: "w-4 h-4 mr-1" %>
-              添加协作团队
-            </button>
-          <% end %>
-        </div>
-        
-        <div class="bg-info/10 border border-info/30 rounded-lg p-4 mb-4">
-          <%= lucide_icon "info", class: "w-5 h-5 text-info inline mr-2" %>
-          <span class="text-info text-sm">
-            <strong>多团队协同说明：</strong>
-            添加协作团队后，该团队的所有成员均可访问此案件。主责团队拥有完整权限，协作团队可根据授权级别查看或编辑案件。
-          </span>
-        </div>
-        
-        <% if case_record.business_team_ownerships.any? %>
-          <div id="collaborating-teams-list" class="space-y-3">
-            <% case_record.business_team_ownerships.order(is_primary: :desc, created_at: :asc).each do |ownership| %>
-              <%= render "case_team_collaborations/team", ownership: ownership, case_record: case_record %>
-            <% end %>
-          </div>
-        <% else %>
-          <div class="text-center py-6 text-muted">
-            <%= lucide_icon "users", class: "w-10 h-10 mx-auto mb-2 opacity-50" %>
-            <p class="text-sm">暂无协作团队</p>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
+
   </div>
 </details>

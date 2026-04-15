@@ -32,15 +32,7 @@
     }
   ]
   
-  # 律师用户可以看到律师费数据分析
-  if lawyer?
-    analytics_tabs << {
-      name: '律师费数据分析',
-      path_method: :dashboard_lawyer_fee_analytics_path,
-      icon: 'dollar-sign',
-      key: 'lawyer_fee'
-    }
-  end
+  # 律师费数据分析仅在律师独立管理后台使用，不在此处展示
 %>
 
 <!-- 数据分析Tab导航 -->

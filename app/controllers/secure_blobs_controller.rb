@@ -62,7 +62,7 @@ class SecureBlobsController < ApplicationController
       if lawyer?
         record.accessible_by?(current_lawyer_account)
       elsif company_user?
-        record.company_id == current_company_user.company_id
+        record.company_id == viewing_company&.id
       else
         false
       end
@@ -72,7 +72,7 @@ class SecureBlobsController < ApplicationController
       if lawyer?
         record.contract.accessible_by?(current_lawyer_account)
       elsif company_user?
-        record.contract.company_id == current_company_user.company_id
+        record.contract.company_id == viewing_company&.id
       else
         false
       end
@@ -83,7 +83,7 @@ class SecureBlobsController < ApplicationController
       if lawyer?
         commentable.accessible_by?(current_lawyer_account)
       elsif company_user?
-        commentable.company_id == current_company_user.company_id
+        commentable.company_id == viewing_company&.id
       else
         false
       end
@@ -94,7 +94,7 @@ class SecureBlobsController < ApplicationController
       if lawyer?
         case_record.accessible_by?(current_lawyer_account)
       elsif company_user?
-        case_record.company_id == current_company_user.company_id
+        case_record.company_id == viewing_company&.id
       else
         false
       end

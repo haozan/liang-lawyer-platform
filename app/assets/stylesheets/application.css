@@ -159,6 +159,131 @@
     font-family: var(--font-family-body);
   }
 
+  /* ==========================================================================
+     CUSTOM COMPONENTS — Project-specific design primitives
+     ========================================================================== */
+
+  /* Page wrapper — unified outer shell used by every content page */
+  .page-shell {
+    @apply min-h-screen py-8;
+    background-color: hsl(var(--color-surface));
+  }
+
+  /* Legacy alias — some older views use .container-main; map to container-xl */
+  .container-main {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  /* Page header block */
+  .page-header {
+    @apply flex items-center justify-between mb-8;
+  }
+
+  .page-title {
+    @apply font-heading text-4xl font-bold mb-2;
+    color: hsl(var(--color-text-primary));
+    letter-spacing: -0.02em;
+  }
+
+  /* Used on list pages where heading is slightly smaller */
+  .page-title-sm {
+    @apply font-heading text-3xl font-bold mb-2;
+    color: hsl(var(--color-text-primary));
+    letter-spacing: -0.015em;
+  }
+
+  .page-subtitle {
+    @apply text-sm;
+    color: hsl(var(--color-text-secondary));
+  }
+
+  /* Section heading inside a card */
+  .section-title {
+    @apply text-base font-semibold flex items-center gap-2;
+    color: hsl(var(--color-text-primary));
+    font-family: var(--font-family-sans);
+  }
+
+  /* Stat card — numeric KPI widget */
+  .stat-card {
+    @apply card card-elevated relative overflow-hidden;
+  }
+
+  .stat-card-body {
+    @apply card-body flex items-center gap-4;
+  }
+
+  .stat-card-icon {
+    @apply w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0;
+  }
+
+  .stat-card-value {
+    @apply font-heading text-3xl font-bold;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-card-label {
+    @apply text-xs mt-0.5;
+    color: hsl(var(--color-text-muted));
+    font-family: var(--font-family-sans);
+  }
+
+  /* Filter tab strip */
+  .tab-strip {
+    @apply flex gap-1 border-b overflow-x-auto mb-6;
+    border-color: hsl(var(--color-border));
+  }
+
+  .tab-item {
+    @apply px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors;
+    color: hsl(var(--color-text-secondary));
+    font-family: var(--font-family-sans);
+  }
+
+  .tab-item:hover {
+    color: hsl(var(--color-text-primary));
+  }
+
+  .tab-item-active {
+    @apply tab-item border-b-2;
+    color: hsl(var(--color-primary));
+    border-color: hsl(var(--color-primary));
+  }
+
+  /* Required asterisk — use instead of hard-coded text-red-600 */
+  .required-mark {
+    @apply ml-0.5;
+    color: hsl(var(--color-danger));
+  }
+
+  /* Info highlight block — use instead of hard-coded bg-blue-50 */
+  .info-block {
+    @apply p-4 rounded-lg border;
+    background-color: hsl(var(--color-info) / 0.07);
+    border-color: hsl(var(--color-info) / 0.3);
+  }
+
+  .dark .info-block {
+    background-color: hsl(var(--color-info) / 0.12);
+    border-color: hsl(var(--color-info) / 0.25);
+  }
+
+  /* Status dot */
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full flex-shrink-0;
+  }
+
+  /* Hover-surface transition */
+  .hover-surface {
+    @apply transition-colors duration-150;
+  }
+
+  .hover-surface:hover {
+    background-color: hsl(var(--color-surface-elevated));
+  }
+
   /* Add your custom components here */
 
 } /* End of @layer components */

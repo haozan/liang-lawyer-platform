@@ -67,7 +67,7 @@ class Comment < ApplicationRecord
   end
   
   def lawyer_comment?
-    author_role.in?(['lawyer', 'senior_lawyer', 'team_leader', 'super_admin'])
+    author_role.in?(['lawyer', 'assistant', 'admin'])
   end
   
   def mark_reviewed_by_lawyer
@@ -85,7 +85,7 @@ class Comment < ApplicationRecord
     return unless author_role.present?
     
     # 检查是否为律师角色（包括 lawyer, senior_lawyer, team_leader, super_admin）
-    is_lawyer_role = author_role.in?(['lawyer', 'senior_lawyer', 'team_leader', 'super_admin'])
+    is_lawyer_role = author_role.in?(['lawyer', 'assistant', 'admin'])
     return unless is_lawyer_role
     
     # 确定公告类型

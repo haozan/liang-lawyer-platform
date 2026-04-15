@@ -23,6 +23,7 @@ export default class extends Controller<HTMLElement> {
 
   declare readonly statusSelectTarget: HTMLSelectElement
   declare readonly executionSectionTarget: HTMLElement
+  declare readonly hasExecutionSectionTarget: boolean
 
   connect(): void {
     // Initialize visibility on page load
@@ -30,8 +31,10 @@ export default class extends Controller<HTMLElement> {
   }
 
   toggleExecutionSection(): void {
+    if (!this.hasExecutionSectionTarget) return
+
     const status = this.statusSelectTarget.value
-    
+
     if (status === "execution") {
       this.executionSectionTarget.style.display = ""
     } else {

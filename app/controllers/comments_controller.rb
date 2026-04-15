@@ -120,7 +120,7 @@ class CommentsController < ApplicationController
       
       # 检查评论所属资源是否属于当前用户的公司
       if commentable.respond_to?(:company_id)
-        unless commentable.company_id == current_company_user.company_id
+        unless commentable.company_id == viewing_company&.id
           raise ActiveRecord::RecordNotFound, "Comment not found or access denied"
         end
       end

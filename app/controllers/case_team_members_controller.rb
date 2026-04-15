@@ -84,7 +84,7 @@ class CaseTeamMembersController < ApplicationController
 
   def check_edit_permission
     # 只有案件的主办律师或团队负责人可以管理团队成员
-    unless @case.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account&.team_leader? || current_lawyer_account&.super_admin?
+    unless @case.is_lead_lawyer?(current_lawyer_account) || current_lawyer_account&.admin? || current_lawyer_account&.super_admin?
       redirect_to case_path(@case), alert: '只有主办律师或团队负责人可以管理案件团队成员'
     end
   end

@@ -1,7 +1,16 @@
 class Contract < ApplicationRecord
   include Searchable
   include TeamAccessible
-  
+  include DisplayLabels
+
+  # 状态中文映射（用于 status_display）
+  STATUS_LABELS = {
+    'active'     => '执行中',
+    'completed'  => '已完成',
+    'breach'     => '已违约',
+    'litigation' => '诉讼中'
+  }.freeze
+
   # Associations
   belongs_to :company
   belongs_to :related_case, class_name: 'Case', optional: true
@@ -69,15 +78,8 @@ class Contract < ApplicationRecord
   scope :new_files, -> { where('created_at >= ?', 3.days.ago) }
   scope :tagged_with, ->(tag_ids) { joins(:contract_taggings).where(contract_taggings: { tag_id: tag_ids }).distinct }
   
-  # Status display names
-  def status_display
-    case status
-    when 'active' then '执行中'
-    when 'completed' then '已完成'
-    when 'breach' then '已违约'
-    when 'litigation' then '诉讼中'
-    end
-  end
+  # Status display names（映射由 STATUS_LABELS 常量维护）
+  def status_display = display_label(:status, STATUS_LABELS)
   
   # 新增字段辅助方法
   def has_high_risk?

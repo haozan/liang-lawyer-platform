@@ -1,5 +1,6 @@
 class CasesController < ApplicationController
   include TeamAuthorizationConcern
+  include CompanyResolvable
   
   before_action :require_authentication
   before_action :set_company
@@ -16,8 +17,10 @@ class CasesController < ApplicationController
       @saved_filters = CaseFilter.where(user: current_user).ordered
     end
     
-    # 应用筛选（使用团队权限过滤）
-    base_scope = if lawyer?
+    # 应用筛选（律师选了企业时与企业员工视角一致）
+    base_scope = if lawyer? && @company
+      @company.cases.not_deleted
+    elsif lawyer?
       Case.accessible_by(current_lawyer_account).not_deleted
     elsif @company
       @company.cases.not_deleted
@@ -31,14 +34,7 @@ class CasesController < ApplicationController
     @stats = calculate_stats(base_scope)
     
     # 快速筛选选项
-    @filter_options = {
-      companies: Company.ordered.pluck(:name, :id),
-      team_members: LawyerAccount.ordered.pluck(:name, :id),
-      statuses: %w[preparing filed trial judged execution settled closed],
-      stages: %w[arbitration first_trial second_trial execution retrial resume_execution],
-      case_types: Case.not_deleted.distinct.pluck(:case_type).compact,
-      priorities: Case::PRIORITIES.keys
-    }
+    @filter_options = build_filter_options
   end
   
   # 案件关键日期日历视图
@@ -51,8 +47,10 @@ class CasesController < ApplicationController
     @event_types = params[:event_types] || ['立案日期', '开庭时间', '判决领取', '归档日期', '保全到期', '执行到期']
     @status_filter = params[:status]
     
-    # 获取案件范围（使用团队权限过滤）
-    if lawyer?
+    # 获取案件范围（律师选了企业时与企业员工视角一致）
+    if lawyer? && @company
+      @cases = @company.cases.not_deleted
+    elsif lawyer?
       @cases = Case.accessible_by(current_lawyer_account).not_deleted
     elsif @company
       @cases = @company.cases.not_deleted
@@ -63,7 +61,7 @@ class CasesController < ApplicationController
     @cases = @cases.where(status: @status_filter) if @status_filter.present?
     
     # 收集所有案件的关键日期事件
-    @calendar_events = collect_calendar_events(@cases, @event_types)
+    @calendar_events = CaseCalendarEventsService.new(cases: @cases, event_types: @event_types).call
     @events_by_date = @calendar_events.group_by { |event| event[:date].to_date }
   end
 
@@ -72,10 +70,9 @@ class CasesController < ApplicationController
     @work_logs = @case.work_logs.ordered
     
     # 设置用户模式（律师模式 vs 企业模式）
-    @user_mode = lawyer? ? :lawyer : :company
     
     # 计算律师待办事项（仅律师模式）
-    @pending_tasks = lawyer? ? calculate_pending_tasks_for_case(@case) : []
+    @pending_tasks = lawyer? ? CasePendingTasksService.new(case_record: @case).call : []
   end
   
   def my_cases
@@ -95,14 +92,7 @@ class CasesController < ApplicationController
     @stats = calculate_stats(Case.accessible_by(current_lawyer_account).not_deleted.filter_by_team_member(current_lawyer.id))
     
     # 快速筛选选项
-    @filter_options = {
-      companies: Company.ordered.pluck(:name, :id),
-      team_members: LawyerAccount.ordered.pluck(:name, :id),
-      statuses: %w[preparing filed trial judged execution settled closed],
-      stages: %w[arbitration first_trial second_trial execution retrial resume_execution],
-      case_types: Case.not_deleted.distinct.pluck(:case_type).compact,
-      priorities: Case::PRIORITIES.keys
-    }
+    @filter_options = build_filter_options
     
     # 加载保存的筛选条件
     if current_user
@@ -129,14 +119,7 @@ class CasesController < ApplicationController
     @stats = calculate_stats(Case.accessible_by(current_lawyer_account).not_deleted.filter_by_lead_lawyer(current_lawyer.id))
     
     # 快速筛选选项
-    @filter_options = {
-      companies: Company.ordered.pluck(:name, :id),
-      team_members: LawyerAccount.ordered.pluck(:name, :id),
-      statuses: %w[preparing filed trial judged execution settled closed],
-      stages: %w[arbitration first_trial second_trial execution retrial resume_execution],
-      case_types: Case.not_deleted.distinct.pluck(:case_type).compact,
-      priorities: Case::PRIORITIES.keys
-    }
+    @filter_options = build_filter_options
     
     # 加载保存的筛选条件
     if current_user
@@ -163,11 +146,14 @@ class CasesController < ApplicationController
   end
 
   def new
-    if lawyer?
-      # 律师创建案件时,需要选择企业
-      @companies = Company.ordered
-      # 如果有 company_id 参数,使用指定的企业
+    if lawyer? && @company
+      # 律师已选定企业：直接在该企业下创建
       @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : @company
+      @case = Case.new
+    elsif lawyer?
+      # 律师未选企业：需要选择企业
+      @companies = Company.accessible_by_lawyer(current_lawyer).ordered
+      @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : nil
       @case = Case.new
     else
       # 企业用户只能为自己的企业创建案件
@@ -177,18 +163,20 @@ class CasesController < ApplicationController
     # 如果是从合同快速创建，预填充数据
     if params[:from_contract_id].present?
       @source_contract = Contract.find(params[:from_contract_id])
-      prefill_case_from_contract(@case, @source_contract)
+      CasePrefillFromContractService.new(case_obj: @case, contract: @source_contract).call
     end
   end
 
   def create
-    if lawyer?
-      # 律师创建案件时,必须指定 company_id
+    if lawyer? && @company
+      # 律师已选定企业：直接在该企业下创建
+      @case = @company.cases.new(case_params.except(:company_id))
+    elsif lawyer?
+      # 律师未选企业：必须指定 company_id
       company_id = case_params[:company_id]
       if company_id.blank?
         redirect_to new_case_path, alert: '请选择案件所属企业' and return
       end
-      
       target_company = Company.find(company_id)
       @case = target_company.cases.new(case_params.except(:company_id))
     else
@@ -207,8 +195,10 @@ class CasesController < ApplicationController
       
       redirect_to case_path(@case), notice: '案件创建成功'
     else
-      if lawyer?
-        @companies = Company.ordered
+      if lawyer? && @company
+        @selected_company = @company
+      elsif lawyer?
+        @companies = Company.accessible_by_lawyer(current_lawyer).ordered
         @selected_company = @case.company
       end
       render :new, status: :unprocessable_entity
@@ -217,7 +207,7 @@ class CasesController < ApplicationController
 
   def edit
     if lawyer?
-      @companies = Company.ordered
+      @companies = Company.accessible_by_lawyer(current_lawyer).ordered
       @selected_company = @case.company
     end
   end
@@ -606,40 +596,7 @@ class CasesController < ApplicationController
     end
   end
 
-  def set_company
-    @company = if current_company_user
-                 # 企业主只能访问自己的公司数据,防止客户信息泄露
-                 current_company_user.company
-               elsif current_lawyer
-                 # 如果 URL 参数中有 company_id，设置到 session 中
-                 if params[:company_id].present?
-                   if params[:company_id] == 'all'
-                     # 'all' 表示查看全部企业，清空 session
-                     session[:viewing_company_id] = nil
-                     @viewing_company = nil
-                   else
-                     company = Company.find_by(id: params[:company_id])
-                     if company
-                       session[:viewing_company_id] = company.id
-                       @viewing_company = nil  # 清除缓存，确保 viewing_company 读取最新的 session 值
-                     end
-                   end
-                 end
-                 
-                 # 律师可以选择企业或查看全部企业
-                 if session[:viewing_company_id]
-                   Company.find(session[:viewing_company_id])
-                 else
-                   # 全部企业模式：返回 nil，允许查看所有案件
-                   nil
-                 end
-               end
-    
-    # 只有企业用户在未找到公司时才重定向
-    if current_company_user && @company.nil?
-      redirect_to root_path, alert: '未找到公司'
-    end
-  end
+  # set_company 由 CompanyResolvable concern 提供
 
   def set_case
     if current_lawyer
@@ -650,8 +607,8 @@ class CasesController < ApplicationController
     elsif current_company_user
       # 🔒 企业用户只能访问自己公司的案件
       # 使用 find 方法，如果找不到会抛出 ActiveRecord::RecordNotFound
-      @case = current_company_user.company.cases.find(params[:id])
-      @company = current_company_user.company
+      @company = viewing_company
+      @case = @company.cases.find(params[:id])
     else
       raise ActiveRecord::RecordNotFound, "Case not found or access denied"
     end
@@ -750,228 +707,17 @@ class CasesController < ApplicationController
       zip.write attachment.download
     end
   end
-  
-  # 收集案件的所有日期事件
-  def collect_calendar_events(cases, event_types)
-    events = []
-    
-    cases.each do |kase|
-      # 立案日期
-      if event_types.include?('立案日期') && kase.filing_at.present?
-        events << {
-          date: kase.filing_at,
-          type: '立案日期',
-          case: kase,
-          label: "立案：#{kase.name}",
-          color: 'info',
-          icon: 'file-text'
-        }
-      end
-      
-      # 开庭时间
-      if event_types.include?('开庭时间') && kase.hearing_at.present?
-        color = if kase.hearing_at < Time.current
-          'success'  # 已开庭
-        elsif kase.hearing_at < 7.days.from_now
-          'danger'   # 7天内开庭
-        elsif kase.hearing_at < 15.days.from_now
-          'warning'  # 15天内开庭
-        else
-          'info'
-        end
-        
-        events << {
-          date: kase.hearing_at,
-          type: '开庭时间',
-          case: kase,
-          label: "开庭：#{kase.name}",
-          color: color,
-          icon: 'gavel'
-        }
-      end
-      
-      # 判决领取
-      if event_types.include?('判决领取') && kase.judgement_received_at.present?
-        events << {
-          date: kase.judgement_received_at,
-          type: '判决领取',
-          case: kase,
-          label: "判决：#{kase.name}",
-          color: 'success',
-          icon: 'file-check'
-        }
-      end
-      
-      # 归档日期
-      if event_types.include?('归档日期') && kase.archived_at.present?
-        events << {
-          date: kase.archived_at,
-          type: '归档日期',
-          case: kase,
-          label: "归档：#{kase.name}",
-          color: 'neutral',
-          icon: 'archive'
-        }
-      end
-      
-      # 财产保全到期
-      if event_types.include?('保全到期') && kase.property_preservation_deadline.present?
-        color = if kase.property_preservation_deadline < Date.today
-          'danger'  # 已过期
-        elsif kase.property_preservation_deadline < 7.days.from_now.to_date
-          'warning' # 即将到期
-        else
-          'info'
-        end
-        
-        events << {
-          date: kase.property_preservation_deadline,
-          type: '保全到期',
-          case: kase,
-          label: "保全到期：#{kase.name}",
-          color: color,
-          icon: 'shield-alert'
-        }
-      end
-      
-      # 执行期限（预计结束日期）
-      if event_types.include?('执行到期') && kase.estimated_end_date.present?
-        color = if kase.estimated_end_date < Date.today
-          'danger'
-        elsif kase.estimated_end_date < 30.days.from_now.to_date
-          'warning'
-        else
-          'info'
-        end
-        
-        events << {
-          date: kase.estimated_end_date,
-          type: '执行到期',
-          case: kase,
-          label: "执行期限：#{kase.name}",
-          color: color,
-          icon: 'clock'
-        }
-      end
-    end
-    
-    events.sort_by { |e| e[:date] }
+
+  # 构建筛选器下拉选项（index / calendar / kanban 三个 action 共用）
+  def build_filter_options
+    {
+      companies: Company.ordered.pluck(:name, :id),
+      team_members: LawyerAccount.ordered.pluck(:name, :id),
+      statuses: %w[preparing filed trial judged execution settled closed],
+      stages: %w[arbitration first_trial second_trial execution retrial resume_execution],
+      case_types: Case.not_deleted.distinct.pluck(:case_type).compact,
+      priorities: Case::PRIORITIES.keys
+    }
   end
-  
-  # 从合同预填充案件数据
-  def prefill_case_from_contract(case_obj, contract)
-    # 基本信息
-    case_obj.name = "《#{contract.name}》纠纷案件"
-    
-    # 对方角色（诉讼地位）
-    case_obj.counterparty_role = contract.counterparty_role if contract.counterparty_role.present?
-    
-    # 我方角色（根据对方角色推断）
-    if contract.counterparty_role.present?
-      case_obj.our_party_role = contract.counterparty_role == '甲方' ? '被告' : '原告'
-    else
-      case_obj.our_party_role = '原告'
-    end
-    
-    # 案件摘要（包含合同背景信息）
-    summary_parts = []
-    summary_parts << "原合同名称：#{contract.name}"
-    summary_parts << "签订日期：#{contract.signed_at.strftime('%Y年%m月%d日')}" if contract.signed_at
-    summary_parts << "合同金额：#{contract.contract_amount}#{contract.currency || '元'}" if contract.contract_amount.present?
-    summary_parts << "对方：#{contract.counterparty_name}" if contract.counterparty_name.present?
-    
-    if contract.counterparty_unified_code.present?
-      summary_parts << "对方统一社会信用代码：#{contract.counterparty_unified_code}"
-    end
-    
-    if contract.counterparty_legal_rep.present?
-      summary_parts << "对方法定代表人：#{contract.counterparty_legal_rep}"
-    end
-    
-    if contract.counterparty_address.present?
-      summary_parts << "对方地址：#{contract.counterparty_address}"
-    end
-    
-    if contract.counterparty_contact.present? || contract.counterparty_phone.present?
-      contact_info = [contract.counterparty_contact, contract.counterparty_phone].compact.join(' ')
-      summary_parts << "对方联系方式：#{contact_info}"
-    end
-    
-    summary_parts << "争议状态：#{contract.dispute_status}" if contract.dispute_status.present?
-    
-    if contract.dispute_occurred_at.present?
-      summary_parts << "争议发生日期：#{contract.dispute_occurred_at.strftime('%Y年%m月%d日')}"
-    end
-    
-    if contract.litigation_amount.present?
-      summary_parts << "诉讼标的金额：#{contract.litigation_amount}元"
-    end
-    
-    if contract.litigation_notes.present?
-      summary_parts << "\n诉讼备注：\n#{contract.litigation_notes}"
-    end
-    
-    case_obj.summary = summary_parts.join("\n")
-    
-    # 设置初始状态
-    case_obj.status = 'investigating'
-    case_obj.stage = 'first_trial'
-    case_obj.priority = contract.has_high_risk? ? 'high' : 'normal'
-    
-    # 如果合同有争议发生日期，可以作为参考
-    if contract.dispute_occurred_at.present?
-      case_obj.filing_at = contract.dispute_occurred_at
-    end
-  end
-  
-  # 计算案件的律师待办事项
-  def calculate_pending_tasks_for_case(case_record)
-    tasks = []
-    
-    # 即将开庭（7天内）
-    if case_record.hearing_at.present? && case_record.hearing_at > Time.current && case_record.hearing_at < 7.days.from_now
-      days_until = ((case_record.hearing_at - Time.current) / 1.day).ceil
-      tasks << {
-        type: :hearing_upcoming,
-        text: "#{days_until}天后开庭（#{case_record.hearing_at.strftime('%m月%d日 %H:%M')}）",
-        anchor: '#progress'
-      }
-    end
-    
-    # 上诉/再审期限临近（15天内）
-    if case_record.show_appeal_deadline_reminder?
-      days_left = case_record.days_until_effective_appeal_deadline
-      if days_left <= 15
-        tasks << {
-          type: :appeal_deadline,
-          text: "#{case_record.appeal_deadline_type}仅剩#{days_left}天",
-          anchor: '#progress'
-        }
-      end
-    end
-    
-    # 财产保全到期提醒（7天内）
-    if case_record.property_preservation_deadline.present?
-      days_left = case_record.property_preservation_days_left
-      if days_left >= 0 && days_left <= 7
-        tasks << {
-          type: :property_preservation_expiring,
-          text: "财产保全将于#{days_left}天后到期",
-          anchor: '#preservation'
-        }
-      end
-    end
-    
-    # 未审查的工作记录（最近3天新增）
-    recent_logs_count = case_record.work_logs.where('created_at > ?', 3.days.ago).count
-    if recent_logs_count > 0
-      tasks << {
-        type: :unreviewed_work_logs,
-        text: "有#{recent_logs_count}条新工作记录待查看",
-        anchor: '#work-logs'
-      }
-    end
-    
-    tasks
-  end
+
 end

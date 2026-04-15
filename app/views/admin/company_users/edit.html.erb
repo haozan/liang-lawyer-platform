@@ -1,0 +1,46 @@
+<% content_for :title, "编辑用户 - #{@company_user.name}" %>
+
+<div class="container-xl max-w-2xl">
+  <div class="flex items-center gap-4 mb-8">
+    <%= link_to admin_company_user_path(@company_user), class: "p-2 text-muted hover:text-gray-900 hover:bg-surface-elevated rounded-lg transition-colors" do %>
+      <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
+    <% end %>
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50">编辑用户</h1>
+  </div>
+
+  <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+      <%= form_with model: [:admin, @company_user], class: "space-y-6" do |f| %>
+        <% if @company_user.errors.any? %>
+          <div class="alert alert-danger">
+            <ul class="list-disc list-inside text-sm">
+              <% @company_user.errors.full_messages.each do |msg| %><li><%= msg %></li><% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div>
+          <%= f.label :name, "姓名", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_field :name, class: "form-input w-full", required: true %>
+        </div>
+        <div>
+          <%= f.label :phone, "手机号", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.text_field :phone, class: "form-input w-full", required: true %>
+        </div>
+        <div>
+          <%= f.label :password, "新密码（留空不修改）", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.password_field :password, class: "form-input w-full", placeholder: "留空则不修改密码" %>
+        </div>
+        <div>
+          <%= f.label :password_confirmation, "确认新密码", class: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= f.password_field :password_confirmation, class: "form-input w-full" %>
+        </div>
+
+        <div class="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+          <%= link_to "取消", admin_company_user_path(@company_user), class: "btn-outline" %>
+          <%= f.submit "保存修改", class: "btn-primary cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,6 @@
 class MajorIssueAnalyticsController < ApplicationController
+  include CompanyResolvable
+
   before_action :require_authentication
   before_action :set_company
 
@@ -94,9 +96,11 @@ class MajorIssueAnalyticsController < ApplicationController
       .first(10)
       .to_h
     
-    # 13. 企业TOP10（仅律师可见）
+    # 13. 企业TOP10（仅律师可见，只统计负责的企业）
     if lawyer?
+      accessible_company_ids = Company.accessible_by_lawyer(current_lawyer).pluck(:id)
       @company_rankings = Company.joins(:major_issues)
+        .where(id: accessible_company_ids)
         .where(major_issues: { deleted_at: nil })
         .group('companies.id', 'companies.name')
         .select('companies.id, companies.name, COUNT(major_issues.id) as issues_count')
@@ -117,12 +121,6 @@ class MajorIssueAnalyticsController < ApplicationController
   end
 
   def set_company
-    @company = if current_company_user
-                 current_company_user.company
-               elsif current_lawyer && params[:company_id].present? && params[:company_id] != 'all'
-                 Company.find(params[:company_id])
-               else
-                 nil
-               end
+    set_company_for_analytics
   end
 end

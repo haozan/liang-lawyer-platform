@@ -44,7 +44,7 @@ class AttachmentsController < ApplicationController
         record.editable_by?(current_lawyer_account)
       elsif company_user?
         # 企业用户需要是同公司且有管理权限
-        record.company_id == current_company_user.company_id &&
+        record.company_id == viewing_company&.id &&
           current_company_user.can_manage_attachments?
       else
         false
@@ -55,7 +55,7 @@ class AttachmentsController < ApplicationController
       if lawyer?
         record.contract.editable_by?(current_lawyer_account)
       elsif company_user?
-        record.contract.company_id == current_company_user.company_id &&
+        record.contract.company_id == viewing_company&.id &&
           current_company_user.can_manage_attachments?
       else
         false

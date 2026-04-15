@@ -20,7 +20,7 @@
           <span class="text-secondary">律师模式：可搜索系统内全部企业资料</span>
         <% else %>
           <%= lucide_icon "lock", class: "w-4 h-4 text-primary" %>
-          <span class="text-secondary">仅搜索 <strong class="text-primary"><%= current_company_user.company.name %></strong> 的资料</span>
+          <span class="text-secondary">仅搜索 <strong class="text-primary"><%= viewing_company&.name %></strong> 的资料</span>
         <% end %>
         
         <% if @query.present? %>
@@ -156,7 +156,7 @@
             <div class="grid md:grid-cols-2 gap-4 text-left">
               <div class="p-4 bg-surface-elevated rounded-lg">
                 <div class="flex items-center gap-2 mb-2">
-                  <%= lucide_icon "zap", class: "w-5 h-5 text-yellow-600" %>
+                  <%= lucide_icon "zap", class: "w-5 h-5 text-warning" %>
                   <h4 class="font-semibold text-primary">搜索技巧</h4>
                 </div>
                 <ul class="text-sm text-secondary space-y-1">
@@ -168,7 +168,7 @@
               
               <div class="p-4 bg-surface-elevated rounded-lg">
                 <div class="flex items-center gap-2 mb-2">
-                  <%= lucide_icon "keyboard", class: "w-5 h-5 text-blue-600" %>
+                  <%= lucide_icon "keyboard", class: "w-5 h-5 text-info" %>
                   <h4 class="font-semibold text-primary">快捷键</h4>
                 </div>
                 <ul class="text-sm text-secondary space-y-1">

@@ -42,51 +42,55 @@
     </div>
 
     <!-- Stats Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
       <div class="card card-elevated">
-        <div class="card-body">
-          <p class="text-sm text-secondary mb-1">全部案件</p>
-          <p class="font-heading text-2xl font-bold text-primary"><%= @cases.total_count %></p>
+        <div class="card-body flex items-center gap-3">
+          <div class="stat-card-icon bg-primary/10"><%= lucide_icon "briefcase", class: "w-5 h-5 text-primary" %></div>
+          <div><p class="stat-card-label">全部案件</p><p class="stat-card-value text-primary"><%= @cases.total_count %></p></div>
         </div>
       </div>
       <div class="card card-elevated">
-        <div class="card-body">
-          <p class="text-sm text-secondary mb-1">准备立案</p>
-          <% if @company %>
-            <p class="font-heading text-2xl font-bold text-yellow-600"><%= @company.cases.not_deleted.where(status: 'preparing').count %></p>
-          <% else %>
-            <p class="font-heading text-2xl font-bold text-yellow-600"><%= Case.not_deleted.where(status: 'preparing').count %></p>
-          <% end %>
+        <div class="card-body flex items-center gap-3">
+          <div class="stat-card-icon bg-warning/10"><%= lucide_icon "file-plus", class: "w-5 h-5 text-warning" %></div>
+          <div>
+            <p class="stat-card-label">准备立案</p>
+            <p class="stat-card-value text-warning">
+              <% if @company %><%= @company.cases.not_deleted.where(status: 'preparing').count %><% else %><%= Case.not_deleted.where(status: 'preparing').count %><% end %>
+            </p>
+          </div>
         </div>
       </div>
       <div class="card card-elevated">
-        <div class="card-body">
-          <p class="text-sm text-secondary mb-1">调查中</p>
-          <% if @company %>
-            <p class="font-heading text-2xl font-bold text-blue-600"><%= @company.cases.not_deleted.where(status: 'investigating').count %></p>
-          <% else %>
-            <p class="font-heading text-2xl font-bold text-blue-600"><%= Case.not_deleted.where(status: 'investigating').count %></p>
-          <% end %>
+        <div class="card-body flex items-center gap-3">
+          <div class="stat-card-icon bg-info/10"><%= lucide_icon "search", class: "w-5 h-5 text-info" %></div>
+          <div>
+            <p class="stat-card-label">调查中</p>
+            <p class="stat-card-value text-info">
+              <% if @company %><%= @company.cases.not_deleted.where(status: 'investigating').count %><% else %><%= Case.not_deleted.where(status: 'investigating').count %><% end %>
+            </p>
+          </div>
         </div>
       </div>
       <div class="card card-elevated">
-        <div class="card-body">
-          <p class="text-sm text-secondary mb-1">审理中</p>
-          <% if @company %>
-            <p class="font-heading text-2xl font-bold text-orange-600"><%= @company.cases.not_deleted.where(status: 'trial').count %></p>
-          <% else %>
-            <p class="font-heading text-2xl font-bold text-orange-600"><%= Case.not_deleted.where(status: 'trial').count %></p>
-          <% end %>
+        <div class="card-body flex items-center gap-3">
+          <div class="stat-card-icon bg-warning/10"><%= lucide_icon "gavel", class: "w-5 h-5 text-warning" %></div>
+          <div>
+            <p class="stat-card-label">审理中</p>
+            <p class="stat-card-value text-warning">
+              <% if @company %><%= @company.cases.not_deleted.where(status: 'trial').count %><% else %><%= Case.not_deleted.where(status: 'trial').count %><% end %>
+            </p>
+          </div>
         </div>
       </div>
       <div class="card card-elevated">
-        <div class="card-body">
-          <p class="text-sm text-secondary mb-1">已归档</p>
-          <% if @company %>
-            <p class="font-heading text-2xl font-bold text-green-600"><%= @company.cases.not_deleted.where(status: 'closed').count %></p>
-          <% else %>
-            <p class="font-heading text-2xl font-bold text-green-600"><%= Case.not_deleted.where(status: 'closed').count %></p>
-          <% end %>
+        <div class="card-body flex items-center gap-3">
+          <div class="stat-card-icon bg-success/10"><%= lucide_icon "archive", class: "w-5 h-5 text-success" %></div>
+          <div>
+            <p class="stat-card-label">已归档</p>
+            <p class="stat-card-value text-success">
+              <% if @company %><%= @company.cases.not_deleted.where(status: 'closed').count %><% else %><%= Case.not_deleted.where(status: 'closed').count %><% end %>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -157,7 +161,7 @@
               <div class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-4 text-muted">
                   <% if kase.hearing_at.present? %>
-                    <span class="<%= kase.hearing_at < Time.current ? 'text-green-600' : 'text-orange-600' %>">
+                    <span class="<%= kase.hearing_at < Time.current ? 'text-success' : 'text-warning' %>">
                       <%= lucide_icon "calendar-clock", class: "w-4 h-4 inline" %>
                       开庭：<%= kase.hearing_at.strftime('%Y-%m-%d %H:%M') %>
                     </span>

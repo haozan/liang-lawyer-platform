@@ -22,7 +22,7 @@
                   <%= button_to comment_path(comment), 
                     method: :delete, 
                     data: { turbo_confirm: '确定删除该评论吗？' },
-                    class: "text-red-600 hover:text-red-800" do %>
+                    class: "text-danger hover:text-danger" do %>
                     <%= lucide_icon "trash-2", class: "w-4 h-4" %>
                   <% end %>
                 <% end %>

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class LawyerExpiryService < ApplicationService
-  def initialize(company_id: nil)
+  def initialize(company_id: nil, accessible_company_ids: nil)
     @company_id = company_id
+    @accessible_company_ids = accessible_company_ids
   end
 
   def call
@@ -172,8 +173,9 @@ class LawyerExpiryService < ApplicationService
   def expiring_companies
     items = []
     
+    base_companies = @accessible_company_ids ? Company.where(id: @accessible_company_ids) : Company.all
     # 7天内到期 - 紧急
-    Company.active.expires_soon(7).each do |company|
+    base_companies.active.expires_soon(7).each do |company|
       days_left = days_until(company.service_expires_at)
       items << {
         type: :company_service,
@@ -188,7 +190,7 @@ class LawyerExpiryService < ApplicationService
     end
     
     # 8-15天内到期 - 警告
-    Company.active
+    base_companies.active
            .where('service_expires_at BETWEEN ? AND ?', 8.days.from_now.to_date, 15.days.from_now.to_date)
            .each do |company|
       days_left = days_until(company.service_expires_at)
@@ -205,7 +207,7 @@ class LawyerExpiryService < ApplicationService
     end
     
     # 16-30天内到期 - 注意
-    Company.active
+    base_companies.active
            .where('service_expires_at BETWEEN ? AND ?', 16.days.from_now.to_date, 30.days.from_now.to_date)
            .each do |company|
       days_left = days_until(company.service_expires_at)
@@ -233,11 +235,14 @@ class LawyerExpiryService < ApplicationService
   end
 
   def contracts_scope
-    @company_id ? Contract.where(company_id: @company_id) : Contract.all
+    scope = @company_id ? Contract.where(company_id: @company_id) : Contract.all
+    scope = scope.where(company_id: @accessible_company_ids) if @accessible_company_ids
+    scope
   end
 
   def cases_scope
     scope = @company_id ? Case.where(company_id: @company_id) : Case.all
+    scope = scope.where(company_id: @accessible_company_ids) if @accessible_company_ids
     scope.where(deleted_at: nil)
   end
 

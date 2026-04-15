@@ -1,38 +1,34 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller<HTMLElement> {
-  static targets = ["passwordTab", "smsTab", "passwordForm", "smsForm"]
+  static targets = ["userTab", "lawyerTab", "userForm", "lawyerForm"]
 
-  declare readonly passwordTabTarget: HTMLButtonElement
-  declare readonly smsTabTarget: HTMLButtonElement
-  declare readonly passwordFormTarget: HTMLElement
-  declare readonly smsFormTarget: HTMLElement
+  declare readonly userTabTarget: HTMLButtonElement
+  declare readonly lawyerTabTarget: HTMLButtonElement
+  declare readonly userFormTarget: HTMLElement
+  declare readonly lawyerFormTarget: HTMLElement
 
   connect(): void {
-    console.log("LoginTab connected")
+    this.showUser()
   }
 
-  showPassword(): void {
-    // Update tab styles
-    this.passwordTabTarget.classList.add("text-primary", "border-primary")
-    this.passwordTabTarget.classList.remove("text-secondary", "border-transparent")
-    this.smsTabTarget.classList.add("text-secondary", "border-transparent")
-    this.smsTabTarget.classList.remove("text-primary", "border-primary")
+  showUser(): void {
+    this.userTabTarget.classList.add("bg-primary", "text-surface", "shadow-sm")
+    this.userTabTarget.classList.remove("text-secondary")
+    this.lawyerTabTarget.classList.remove("bg-primary", "text-surface", "shadow-sm")
+    this.lawyerTabTarget.classList.add("text-secondary")
 
-    // Show password form, hide SMS form
-    this.passwordFormTarget.style.display = "block"
-    this.smsFormTarget.style.display = "none"
+    this.userFormTarget.style.display = "block"
+    this.lawyerFormTarget.style.display = "none"
   }
 
-  showSms(): void {
-    // Update tab styles
-    this.smsTabTarget.classList.add("text-primary", "border-primary")
-    this.smsTabTarget.classList.remove("text-secondary", "border-transparent")
-    this.passwordTabTarget.classList.add("text-secondary", "border-transparent")
-    this.passwordTabTarget.classList.remove("text-primary", "border-primary")
+  showLawyer(): void {
+    this.lawyerTabTarget.classList.add("bg-primary", "text-surface", "shadow-sm")
+    this.lawyerTabTarget.classList.remove("text-secondary")
+    this.userTabTarget.classList.remove("bg-primary", "text-surface", "shadow-sm")
+    this.userTabTarget.classList.add("text-secondary")
 
-    // Show SMS form, hide password form
-    this.smsFormTarget.style.display = "block"
-    this.passwordFormTarget.style.display = "none"
+    this.lawyerFormTarget.style.display = "block"
+    this.userFormTarget.style.display = "none"
   }
 }

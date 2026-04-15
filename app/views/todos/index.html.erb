@@ -1,69 +1,91 @@
-<div class="container-main">
-  <!-- Page Header -->
-  <div class="mb-6">
-    <h1 class="font-heading text-3xl font-bold text-primary mb-2">全部待办</h1>
-    <p class="text-secondary">查看和管理所有待办任务</p>
-  </div>
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
 
-  <!-- Filter Tabs -->
-  <div class="mb-6">
-    <div class="flex gap-2 border-b border-border overflow-x-auto">
-      <%= link_to todos_path(filter: 'all'), 
-          class: "px-4 py-3 font-medium whitespace-nowrap #{@filter == 'all' ? 'text-primary border-b-2 border-primary' : 'text-secondary hover:text-primary'}" do %>
-        全部 (<%= @stats[:total_pending] %>)
-      <% end %>
-      
-      <%= link_to todos_path(filter: 'today'), 
-          class: "px-4 py-3 font-medium whitespace-nowrap #{@filter == 'today' ? 'text-primary border-b-2 border-primary' : 'text-secondary hover:text-primary'}" do %>
-        今日新增 (<%= @stats[:today_new] %>)
-      <% end %>
-      
-      <%= link_to todos_path(filter: 'pending'), 
-          class: "px-4 py-3 font-medium whitespace-nowrap #{@filter == 'pending' ? 'text-primary border-b-2 border-primary' : 'text-secondary hover:text-primary'}" do %>
-        待处理 (<%= @stats[:total_pending] %>)
-      <% end %>
-      
-      <%= link_to todos_path(filter: 'urgent'), 
-          class: "px-4 py-3 font-medium whitespace-nowrap #{@filter == 'urgent' ? 'text-primary border-b-2 border-primary' : 'text-secondary hover:text-primary'}" do %>
-        紧急待办 (<%= @stats[:urgent] %>)
-      <% end %>
-      
-      <%= link_to todos_path(filter: 'reviewed'), 
-          class: "px-4 py-3 font-medium whitespace-nowrap #{@filter == 'reviewed' ? 'text-primary border-b-2 border-primary' : 'text-secondary hover:text-primary'}" do %>
-        本周已处理 (<%= @stats[:this_week_reviewed] %>)
-      <% end %>
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">全部待办</h1>
+      <p class="page-subtitle">查看和管理所有待办任务</p>
     </div>
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">今日新增</p>
-        <p class="font-heading text-3xl font-bold text-primary"><%= @stats[:today_new] %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-primary/10">
+          <%= lucide_icon "inbox", class: "w-5 h-5 text-primary" %>
+        </div>
+        <div>
+          <p class="stat-card-label">今日新增</p>
+          <p class="stat-card-value text-primary"><%= @stats[:today_new] %></p>
+        </div>
       </div>
     </div>
-    
+
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">待处理</p>
-        <p class="font-heading text-3xl font-bold text-blue-600"><%= @stats[:total_pending] %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-info/10">
+          <%= lucide_icon "list-checks", class: "w-5 h-5 text-info" %>
+        </div>
+        <div>
+          <p class="stat-card-label">待处理</p>
+          <p class="stat-card-value text-info"><%= @stats[:total_pending] %></p>
+        </div>
       </div>
     </div>
-    
+
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">本周已处理</p>
-        <p class="font-heading text-3xl font-bold text-green-600"><%= @stats[:this_week_reviewed] %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-success/10">
+          <%= lucide_icon "check-circle", class: "w-5 h-5 text-success" %>
+        </div>
+        <div>
+          <p class="stat-card-label">本周已处理</p>
+          <p class="stat-card-value text-success"><%= @stats[:this_week_reviewed] %></p>
+        </div>
       </div>
     </div>
-    
+
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">紧急待办</p>
-        <p class="font-heading text-3xl font-bold text-red-600"><%= @stats[:urgent] %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-danger/10">
+          <%= lucide_icon "alert-triangle", class: "w-5 h-5 text-danger" %>
+        </div>
+        <div>
+          <p class="stat-card-label">紧急待办</p>
+          <p class="stat-card-value text-danger"><%= @stats[:urgent] %></p>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="tab-strip">
+    <%= link_to todos_path(filter: 'all'),
+        class: @filter == 'all' ? 'tab-item-active' : 'tab-item' do %>
+      全部 (<%= @stats[:total_pending] %>)
+    <% end %>
+
+    <%= link_to todos_path(filter: 'today'),
+        class: @filter == 'today' ? 'tab-item-active' : 'tab-item' do %>
+      今日新增 (<%= @stats[:today_new] %>)
+    <% end %>
+
+    <%= link_to todos_path(filter: 'pending'),
+        class: @filter == 'pending' ? 'tab-item-active' : 'tab-item' do %>
+      待处理 (<%= @stats[:total_pending] %>)
+    <% end %>
+
+    <%= link_to todos_path(filter: 'urgent'),
+        class: @filter == 'urgent' ? 'tab-item-active' : 'tab-item' do %>
+      紧急待办 (<%= @stats[:urgent] %>)
+    <% end %>
+
+    <%= link_to todos_path(filter: 'reviewed'),
+        class: @filter == 'reviewed' ? 'tab-item-active' : 'tab-item' do %>
+      本周已处理 (<%= @stats[:this_week_reviewed] %>)
+    <% end %>
   </div>
 
   <!-- Content based on filter -->
@@ -71,8 +93,8 @@
     <!-- Show Recent Comments for Reviewed Items -->
     <div class="card card-elevated">
       <div class="card-header">
-        <h2 class="card-title">
-          <%= lucide_icon "check-circle", class: "w-5 h-5 mr-2 text-green-600" %>
+        <h2 class="section-title">
+          <%= lucide_icon "check-circle", class: "w-5 h-5 text-success" %>
           本周已处理事项
         </h2>
       </div>
@@ -80,52 +102,52 @@
         <% if @recent_comments.any? %>
           <div class="space-y-4">
             <% @recent_comments.each do |comment| %>
-              <div class="border-l-4 border-green-500 pl-4 py-3 bg-surface-secondary rounded-r-lg">
+              <div class="border-l-4 border-success pl-4 py-3 bg-success/5 rounded-r-lg">
                 <div class="flex items-start justify-between mb-2">
                   <div class="flex items-center gap-2">
                     <span class="font-semibold text-primary"><%= comment.author_name %></span>
-                    <span class="badge badge-success badge-sm"><%= comment.author_role == 'lawyer' ? '律师' : '助理' %></span>
+                    <span class="badge badge-success"><%= comment.author_role == 'lawyer' ? '律师' : '助理' %></span>
                   </div>
-                  <span class="text-sm text-secondary"><%= time_ago_in_words(comment.created_at) %>前</span>
+                  <span class="text-sm text-muted"><%= time_ago_in_words(comment.created_at) %>前</span>
                 </div>
-                
+
                 <div class="mb-2">
                   <% begin %>
                     <% if comment.commentable.present? %>
                       <% commentable_type = comment.commentable_type %>
                       <% commentable = comment.commentable %>
-                      
+
                       <% type_info = case commentable_type
                            when 'Contract'
-                             { icon: 'file-text', label: '合同', color_class: 'text-green-600', name: commentable.name }
+                             { icon: 'file-text', label: '合同', color_class: 'text-success', name: commentable.name }
                            when 'Case'
-                             { icon: 'briefcase', label: '案件', color_class: 'text-blue-600', name: commentable.name }
+                             { icon: 'briefcase', label: '案件', color_class: 'text-info', name: commentable.name }
                            when 'MajorIssue'
-                             { icon: 'message-square', label: '重大事项', color_class: 'text-purple-600', name: commentable.title }
+                             { icon: 'message-square', label: '重大事项', color_class: 'text-warning', name: commentable.title }
                            else
-                             { icon: 'circle', label: '其他', color_class: 'text-gray-600', name: '未知' }
+                             { icon: 'circle', label: '其他', color_class: 'text-muted', name: '未知' }
                            end %>
-                      
+
                       <%= link_to polymorphic_path(commentable), class: "inline-flex items-center gap-1 text-sm #{type_info[:color_class]} hover:underline" do %>
                         <%= lucide_icon type_info[:icon], class: "w-4 h-4" %>
                         <span><%= type_info[:label] %>: <%= type_info[:name] %></span>
                       <% end %>
                     <% end %>
                   <% rescue NameError => e %>
-                    <span class="text-sm text-secondary">
+                    <span class="text-sm text-muted">
                       <%= lucide_icon "circle", class: "w-4 h-4 inline" %>
-                      <span>已删除的项目</span>
+                      已删除的项目
                     </span>
                   <% end %>
                 </div>
-                
+
                 <p class="text-secondary text-sm line-clamp-2"><%= comment.content %></p>
               </div>
             <% end %>
           </div>
         <% else %>
           <div class="text-center py-8">
-            <%= lucide_icon "inbox", class: "w-12 h-12 text-secondary mx-auto mb-3" %>
+            <%= lucide_icon "inbox", class: "w-12 h-12 text-muted mx-auto mb-3" %>
             <p class="text-secondary">本周暂无处理记录</p>
           </div>
         <% end %>
@@ -144,43 +166,43 @@
                   <div class="flex-shrink-0">
                     <% icon_config = case item[:type]
                          when :contract
-                           { icon: 'file-text', bg: 'bg-green-100', text: 'text-green-600' }
+                           { icon: 'file-text', bg: 'bg-success/10', text: 'text-success' }
                          when :case
-                           { icon: 'briefcase', bg: 'bg-blue-100', text: 'text-blue-600' }
+                           { icon: 'briefcase', bg: 'bg-info/10', text: 'text-info' }
                          when :major_issue
-                           { icon: 'message-square', bg: 'bg-purple-100', text: 'text-purple-600' }
+                           { icon: 'message-square', bg: 'bg-warning/10', text: 'text-warning' }
                          else
-                           { icon: 'circle', bg: 'bg-gray-100', text: 'text-gray-600' }
+                           { icon: 'circle', bg: 'bg-surface-elevated', text: 'text-muted' }
                          end %>
-                    
-                    <div class="w-12 h-12 <%= icon_config[:bg] %> rounded-lg flex items-center justify-center">
+
+                    <div class="w-12 h-12 <%= icon_config[:bg] %> rounded-xl flex items-center justify-center">
                       <%= lucide_icon icon_config[:icon], class: "w-6 h-6 #{icon_config[:text]}" %>
                     </div>
                   </div>
-                  
+
                   <!-- Content -->
                   <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between mb-2">
                       <div class="flex-1">
                         <p class="font-semibold text-primary mb-1"><%= item[:message] %></p>
-                        
+
                         <div class="flex items-center gap-3 text-sm text-secondary">
                           <% if lawyer? && item[:company].present? %>
                             <span><%= lucide_icon "building", class: "w-4 h-4 inline mr-1" %><%= item[:company].name %></span>
                           <% end %>
-                          
+
                           <% if item[:created_ago].present? %>
                             <span><%= lucide_icon "clock", class: "w-4 h-4 inline mr-1" %><%= item[:created_ago] %></span>
                           <% end %>
                         </div>
                       </div>
-                      
+
                       <!-- Priority Badge -->
                       <% if item[:priority] == 0 %>
-                        <span class="badge badge-danger badge-sm flex-shrink-0 ml-2">紧急</span>
+                        <span class="badge badge-danger flex-shrink-0 ml-2">紧急</span>
                       <% end %>
                     </div>
-                    
+
                     <!-- Type Badge -->
                     <% type_badge = case item[:type]
                          when :contract
@@ -192,12 +214,12 @@
                          else
                            { text: '其他', class: 'badge-secondary' }
                          end %>
-                    <span class="badge <%= type_badge[:class] %> badge-sm"><%= type_badge[:text] %></span>
+                    <span class="badge <%= type_badge[:class] %>"><%= type_badge[:text] %></span>
                   </div>
-                  
+
                   <!-- Arrow Icon -->
-                  <div class="flex-shrink-0">
-                    <%= lucide_icon "chevron-right", class: "w-5 h-5 text-secondary" %>
+                  <div class="flex-shrink-0 self-center">
+                    <%= lucide_icon "chevron-right", class: "w-5 h-5 text-muted" %>
                   </div>
                 </div>
               </div>
@@ -206,8 +228,8 @@
         <% end %>
       </div>
     <% else %>
-      <div class="card card-elevated text-center py-12">
-        <%= lucide_icon "inbox", class: "w-16 h-16 text-secondary mx-auto mb-4" %>
+      <div class="card card-elevated text-center py-16">
+        <%= lucide_icon "inbox", class: "w-16 h-16 text-muted mx-auto mb-4" %>
         <p class="text-secondary text-lg">
           <% case @filter
              when 'today' %>
@@ -218,8 +240,10 @@
             暂无待办事项
           <% end %>
         </p>
-        <p class="text-secondary text-sm mt-2">继续保持！</p>
+        <p class="text-muted text-sm mt-2">继续保持！</p>
       </div>
     <% end %>
   <% end %>
+
+  </div>
 </div>

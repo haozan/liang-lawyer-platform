@@ -23,7 +23,7 @@
   </div>
 
   <!-- Admin oplog Content -->
-  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+  <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
     <div class="card-body">
       <!-- Main Information -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -37,7 +37,7 @@
               <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
                 <%= @admin_oplog.administrator.name %>
               </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">
+              <div class="text-xs text-muted dark:text-muted">
                 <%= @admin_oplog.administrator.role_name %>
               </div>
             </div>
@@ -52,11 +52,11 @@
               <div class="text-sm text-gray-900 dark:text-gray-100">
                 <span class="font-medium"><%= @admin_oplog.resource_type %></span>
                 <% if @admin_oplog.resource_id.present? %>
-                  <span class="text-gray-500 dark:text-gray-400">#<%= @admin_oplog.resource_id %></span>
+                  <span class="text-muted dark:text-muted">#<%= @admin_oplog.resource_id %></span>
                 <% end %>
               </div>
             <% else %>
-              <span class="text-gray-400 dark:text-gray-500">No specific resource</span>
+              <span class="text-muted dark:text-muted">No specific resource</span>
             <% end %>
           </div>
 
@@ -67,7 +67,7 @@
             </label>
             <div class="font-mono text-sm">
               <div class="text-gray-900 dark:text-gray-100"><%= @admin_oplog.created_at.strftime("%Y-%m-%d %H:%M:%S") %></div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <div class="text-xs text-muted dark:text-muted mt-1">
                 <%= time_ago_in_words(@admin_oplog.created_at) %> ago
               </div>
             </div>
@@ -90,7 +90,7 @@
             </label>
             <div class="space-y-2">
               <div class="font-medium"><%= @admin_oplog.short_user_agent %></div>
-              <details class="bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <details class="bg-surface-elevated dark:bg-gray-800 rounded-lg">
                 <summary class="cursor-pointer p-3 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
                   Full User Agent
                 </summary>

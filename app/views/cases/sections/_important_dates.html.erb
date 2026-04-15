@@ -39,7 +39,7 @@
       <div class="flex items-start">
         <span class="text-secondary w-32 flex-shrink-0">开庭时间：</span>
         <div class="flex-1">
-          <span class="text-primary font-semibold <%= case_record.hearing_at < Time.current ? 'text-green-600' : 'text-orange-600' %>">
+          <span class="text-primary font-semibold <%= case_record.hearing_at < Time.current ? 'text-success' : 'text-warning' %>">
             <%= case_record.hearing_at.strftime('%Y年%m月%d日 %H:%M') %>
             <% if case_record.hearing_at > Time.current %>
               <span class="text-xs">(还有 <%= ((case_record.hearing_at - Time.current) / 1.day).to_i %> 天)</span>
@@ -78,14 +78,14 @@
     <!-- Appeal/Retrial Deadline Reminder -->
     <% if case_record.show_appeal_deadline_reminder? %>
       <% urgency_class = case case_record.appeal_deadline_urgency
-        when :danger then 'text-red-600 dark:text-red-400'
-        when :warning then 'text-orange-600 dark:text-orange-400'
-        else 'text-blue-600 dark:text-blue-400'
+        when :danger then 'text-danger dark:text-red-400'
+        when :warning then 'text-warning dark:text-orange-400'
+        else 'text-info'
       end %>
       <% bg_class = case case_record.appeal_deadline_urgency
-        when :danger then 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-        when :warning then 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800'
-        else 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+        when :danger then 'bg-danger/10 dark:bg-red-950/20 border-danger/30 dark:border-red-800'
+        when :warning then 'bg-warning/10 dark:bg-orange-950/20 border-warning/30 dark:border-orange-800'
+        else 'bg-info/10 border-info/30'
       end %>
       <% icon_name = case case_record.appeal_deadline_urgency
         when :danger then 'alert-triangle'

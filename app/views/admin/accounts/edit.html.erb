@@ -4,10 +4,10 @@
 
 <!-- Breadcrumb -->
 <div class="container-xl">
-  <div class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+  <div class="text-sm text-secondary dark:text-gray-300 mb-6">
     <ol class="flex space-x-2">
-      <li><%= link_to "Dashboard", admin_root_path, class: "text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" %></li>
-      <li class="text-gray-400 dark:text-gray-500">/</li>
+      <li><%= link_to "Dashboard", admin_root_path, class: "text-info hover:text-blue-800 dark:text-info dark:hover:text-blue-300" %></li>
+      <li class="text-muted dark:text-muted">/</li>
       <li>Account Settings</li>
     </ol>
   </div>
@@ -15,7 +15,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Personal Information Card -->
     <div class="lg:col-span-2">
-      <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <div class="card-body">
           <h2 class="text-2xl font-semibold mb-6 flex items-center text-gray-900 dark:text-gray-100">
             <%= lucide_icon "user", class: "w-6 h-6 mr-2" %>
@@ -63,7 +63,7 @@
 
     <!-- Security Information Card -->
     <div>
-      <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+      <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <div class="card-body">
           <h2 class="text-xl font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100">
             <%= lucide_icon "lock", class: "w-5 h-5 mr-2" %>
@@ -74,33 +74,33 @@
             <!-- Account Status -->
             <div class="flex items-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
               <div class="flex-shrink-0">
-                <%= lucide_icon "check-circle", class: "w-6 h-6 text-green-600" %>
+                <%= lucide_icon "check-circle", class: "w-6 h-6 text-success" %>
               </div>
               <div class="ml-3">
                 <p class="text-sm font-medium text-green-800 dark:text-green-300">Account Active</p>
-                <p class="text-xs text-green-600 dark:text-green-400">Your account is active and secure</p>
+                <p class="text-xs text-success dark:text-green-400">Your account is active and secure</p>
               </div>
             </div>
 
             <!-- Last Login -->
-            <div class="flex items-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div class="flex items-center p-3 bg-info/10 dark:bg-blue-900/30 rounded-lg border border-info/30 dark:border-info/30">
               <div class="flex-shrink-0">
-                <%= lucide_icon "eye", class: "w-6 h-6 text-blue-600" %>
+                <%= lucide_icon "eye", class: "w-6 h-6 text-info" %>
               </div>
               <div class="ml-3">
                 <p class="text-sm font-medium text-blue-800 dark:text-blue-300">Last Login</p>
-                <p class="text-xs text-blue-600 dark:text-blue-400">Today at <%= Time.current.strftime("%H:%M") %></p>
+                <p class="text-xs text-info">Today at <%= Time.current.strftime("%H:%M") %></p>
               </div>
             </div>
 
             <!-- Security Tip -->
             <div class="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
               <div class="flex-shrink-0">
-                <%= lucide_icon "alert-triangle", class: "w-6 h-6 text-yellow-600" %>
+                <%= lucide_icon "alert-triangle", class: "w-6 h-6 text-warning" %>
               </div>
               <div class="ml-3">
                 <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Security Reminder</p>
-                <p class="text-xs text-yellow-600 dark:text-yellow-400">Update your password regularly</p>
+                <p class="text-xs text-warning dark:text-yellow-400">Update your password regularly</p>
               </div>
             </div>
           </div>

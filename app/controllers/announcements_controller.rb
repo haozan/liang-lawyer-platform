@@ -1,4 +1,6 @@
 class AnnouncementsController < ApplicationController
+  include CompanyResolvable
+
   before_action :require_login
   before_action :set_announcement, only: [:mark_as_read]
   before_action :set_company, only: [:index, :enter]
@@ -60,12 +62,18 @@ class AnnouncementsController < ApplicationController
         related_object = related_type.constantize.find_by(id: related_id)
         
         if related_object
-          AnnouncementDismissal.dismiss!(
-            announcement_type: announcement_type,
-            related: related_object,
-            user: current_user_for_announcement,
-            reason: params[:reason] || 'manual'
-          )
+          user = current_user_for_announcement
+          # 幂等处理：已消除过的直接视为成功，不重复创建
+          unless AnnouncementDismissal.dismissed_by_user?(announcement_type, related_object, user)
+            AnnouncementDismissal.dismiss!(
+              announcement_type: announcement_type,
+              related: related_object,
+              user: user,
+              reason: params[:reason] || 'manual'
+            )
+          end
+          # 清除缓存，确保下次加载时公告已过滤
+          AnnouncementService.expire_cache_for(user)
           
           redirect_back fallback_location: workbench_index_path, notice: "✅ 公告已消除"
         else
@@ -90,11 +98,14 @@ class AnnouncementsController < ApplicationController
         related_object = related_type.constantize.find_by(id: related_id)
         
         if related_object
+          user = current_user_for_announcement
           AnnouncementDismissal.restore!(
             announcement_type: announcement_type,
             related: related_object,
-            user: current_user_for_announcement
+            user: user
           )
+          # 清除缓存，确保公告重新出现
+          AnnouncementService.expire_cache_for(user)
           
           redirect_back fallback_location: workbench_index_path, notice: "✅ 公告已恢复"
         else
@@ -132,17 +143,23 @@ class AnnouncementsController < ApplicationController
       next unless related_object
       
       begin
-        AnnouncementDismissal.dismiss!(
-          announcement_type: announcement_type,
-          related: related_object,
-          user: current_user_for_announcement,
-          reason: 'batch_manual'
-        )
+        user = current_user_for_announcement
+        unless AnnouncementDismissal.dismissed_by_user?(announcement_type, related_object, user)
+          AnnouncementDismissal.dismiss!(
+            announcement_type: announcement_type,
+            related: related_object,
+            user: user,
+            reason: 'batch_manual'
+          )
+        end
         dismissed_count += 1
       rescue
         # 忽略错误，继续处理下一个
       end
     end
+    
+    # 清除缓存
+    AnnouncementService.expire_cache_for(current_user_for_announcement)
     
     redirect_back fallback_location: workbench_index_path, notice: "✅ 已消除 #{dismissed_count} 条公告"
   end
@@ -163,9 +180,7 @@ class AnnouncementsController < ApplicationController
   
   private
   
-  def set_company
-    @company = current_company_user.company
-  end
+  alias_method :set_company, :set_company_for_company_user
   
   def filter_announcements(announcements)
     filtered = announcements

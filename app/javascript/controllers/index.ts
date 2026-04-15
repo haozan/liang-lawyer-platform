@@ -29,6 +29,7 @@ import MajorIssueController from "./major_issue_controller"
 import AnalyticsQuickNavController from "./analytics_quick_nav_controller"
 import WorkbenchExpiryController from "./workbench_expiry_controller"
 import ContractCalendarController from "./contract_calendar_controller"
+import CaseCalendarController from "./case_calendar_controller"
 import FilterPanelController from "./filter_panel_controller"
 import CaseTabsController from "./case_tabs_controller"
 import CaseClientsController from "./case_clients_controller"
@@ -73,6 +74,7 @@ application.register("major-issue", MajorIssueController)
 application.register("analytics-quick-nav", AnalyticsQuickNavController)
 application.register("workbench-expiry", WorkbenchExpiryController)
 application.register("contract-calendar", ContractCalendarController)
+application.register("case-calendar", CaseCalendarController)
 application.register("filter-panel", FilterPanelController)
 application.register("case-tabs", CaseTabsController)
 application.register("case-clients", CaseClientsController)

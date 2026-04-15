@@ -32,7 +32,7 @@
   <body class="flex flex-col min-h-screen text-foreground <%= body_class %>" data-controller="search-shortcut">
     <main class="flex-1 flex flex-col bg-surface">
       <%= render 'shared/navbar' unless @full_render %>
-      <%= render 'shared/flash_messages' %>
+      <%= render 'shared/flash_messages' unless @full_render %>
       <%= yield %>
     </main>
     

@@ -1,4 +1,5 @@
-<div class="container-main">
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
   <!-- Analytics Tabs Navigation -->
   <%= render 'shared/analytics_tabs', current_tab: 'lawyer_fee' %>
   
@@ -60,7 +61,7 @@
   <!-- Page Header -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="font-heading text-3xl font-bold text-primary mb-2">律师费数据分析仪表盘</h1>
+      <h1 class="page-title">律师费数据分析仪表盘</h1>
       <p class="text-secondary">
         <% if @company %>
           <%= @company.name %> · 律师费收入与回款管理
@@ -661,4 +662,5 @@
       </div>
     </div>
   <% end %>
+  </div>
 </div>

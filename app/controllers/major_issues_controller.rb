@@ -1,5 +1,6 @@
 class MajorIssuesController < ApplicationController
   include TeamAuthorizationConcern
+  include CompanyResolvable
   
   before_action :require_authentication
   before_action :set_company, except: [:resolve, :archive, :reopen, :update_conclusion, :follow, :unfollow]
@@ -12,8 +13,10 @@ class MajorIssuesController < ApplicationController
     # 获取当前用户
     current_actor = current_lawyer || current_company_user
     
-    # 基础查询（使用团队权限过滤）
-    if lawyer?
+    # 基础查询（律师选了企业时与企业员工视角一致）
+    if lawyer? && @company
+      @major_issues = @company.major_issues.not_deleted
+    elsif lawyer?
       @major_issues = MajorIssue.accessible_by(current_lawyer_account).not_deleted
     elsif @company
       @major_issues = @company.major_issues.not_deleted
@@ -100,29 +103,23 @@ class MajorIssuesController < ApplicationController
     end
     
     # 分页
-    @major_issues = @major_issues.includes(:company, :creator, :mentioned_lawyer).page(params[:page])
+    @major_issues = @major_issues.includes(:company, :mentioned_lawyer).page(params[:page])
     
-    # 统计数据（基于筛选前的数据，使用团队权限过滤）
-    if lawyer?
-      accessible_issues = MajorIssue.accessible_by(current_lawyer_account).not_deleted
-      @all_count = accessible_issues.count
-      @pending_count = accessible_issues.pending.count
-      @discussing_count = accessible_issues.discussing.count
-      @resolved_count = accessible_issues.resolved.count
-      @urgent_count = accessible_issues.where(priority: 'urgent').count
+    # 统计数据（律师选了企业时与企业员工视角一致）
+    stats_scope = if lawyer? && @company
+      @company.major_issues.not_deleted
+    elsif lawyer?
+      MajorIssue.accessible_by(current_lawyer_account).not_deleted
     elsif @company
-      @all_count = @company.major_issues.not_deleted.count
-      @pending_count = @company.major_issues.not_deleted.pending.count
-      @discussing_count = @company.major_issues.not_deleted.discussing.count
-      @resolved_count = @company.major_issues.not_deleted.resolved.count
-      @urgent_count = @company.major_issues.not_deleted.where(priority: 'urgent').count
+      @company.major_issues.not_deleted
     else
-      @all_count = MajorIssue.not_deleted.count
-      @pending_count = MajorIssue.not_deleted.pending.count
-      @discussing_count = MajorIssue.not_deleted.discussing.count
-      @resolved_count = MajorIssue.not_deleted.resolved.count
-      @urgent_count = MajorIssue.not_deleted.where(priority: 'urgent').count
+      MajorIssue.not_deleted
     end
+    @all_count = stats_scope.count
+    @pending_count = stats_scope.pending.count
+    @discussing_count = stats_scope.discussing.count
+    @resolved_count = stats_scope.resolved.count
+    @urgent_count = stats_scope.where(priority: 'urgent').count
     
     # 加载用户的保存筛选条件
     if current_actor
@@ -139,11 +136,14 @@ class MajorIssuesController < ApplicationController
   end
 
   def new
-    if lawyer?
-      # 律师创建重大事项时,需要选择企业
-      @companies = Company.ordered
-      # 如果有 company_id 参数,使用指定的企业
+    if lawyer? && @company
+      # 律师已选定企业：直接在该企业下创建
       @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : @company
+      @major_issue = MajorIssue.new
+    elsif lawyer?
+      # 律师未选企业：需要选择企业
+      @companies = Company.accessible_by_lawyer(current_lawyer).ordered
+      @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : nil
       @major_issue = MajorIssue.new
     else
       # 企业用户只能为自己的企业创建重大事项
@@ -157,13 +157,15 @@ class MajorIssuesController < ApplicationController
   end
 
   def create
-    if lawyer?
-      # 律师创建重大事项时,必须指定 company_id
+    if lawyer? && @company
+      # 律师已选定企业：直接在该企业下创建
+      @major_issue = @company.major_issues.new(major_issue_params.except(:company_id))
+    elsif lawyer?
+      # 律师未选企业：必须指定 company_id
       company_id = major_issue_params[:company_id]
       if company_id.blank?
         redirect_to new_major_issue_path, alert: '请选择重大事项所属企业' and return
       end
-      
       target_company = Company.find(company_id)
       @major_issue = target_company.major_issues.new(major_issue_params.except(:company_id))
     else
@@ -175,8 +177,10 @@ class MajorIssuesController < ApplicationController
       redirect_to major_issue_path(@major_issue), notice: '重大事项已创建'
     else
       @lawyers = LawyerAccount.all
-      if lawyer?
-        @companies = Company.ordered
+      if lawyer? && @company
+        @selected_company = @company
+      elsif lawyer?
+        @companies = Company.accessible_by_lawyer(current_lawyer).ordered
         @selected_company = @major_issue.company
       end
       render :new, status: :unprocessable_entity
@@ -485,40 +489,7 @@ class MajorIssuesController < ApplicationController
     end
   end
 
-  def set_company
-    @company = if current_company_user
-                 # 企业主只能访问自己的公司数据,防止客户信息泄露
-                 current_company_user.company
-               elsif current_lawyer
-                 # 如果 URL 参数中有 company_id，设置到 session 中
-                 if params[:company_id].present?
-                   if params[:company_id] == 'all'
-                     # 'all' 表示查看全部企业，清空 session
-                     session[:viewing_company_id] = nil
-                     @viewing_company = nil
-                   else
-                     company = Company.find_by(id: params[:company_id])
-                     if company
-                       session[:viewing_company_id] = company.id
-                       @viewing_company = nil  # 清除缓存，确保 viewing_company 读取最新的 session 值
-                     end
-                   end
-                 end
-                 
-                 # 律师可以选择企业或查看全部企业
-                 if session[:viewing_company_id]
-                   Company.find(session[:viewing_company_id])
-                 else
-                   # 全部企业模式：返回 nil，允许查看所有重大事项
-                   nil
-                 end
-               end
-    
-    # 只有企业用户在未找到公司时才重定向
-    if current_company_user && @company.nil?
-      redirect_to root_path, alert: '未找到公司'
-    end
-  end
+  # set_company 由 CompanyResolvable concern 提供
 
   def set_major_issue
     if current_lawyer
@@ -529,8 +500,8 @@ class MajorIssuesController < ApplicationController
     elsif current_company_user
       # 🔒 企业用户只能访问自己公司的重大事项
       # 使用 find 方法，如果找不到会抛出 ActiveRecord::RecordNotFound
-      @major_issue = current_company_user.company.major_issues.find(params[:id])
-      @company = current_company_user.company
+      @company = viewing_company
+      @major_issue = @company.major_issues.find(params[:id])
     else
       raise ActiveRecord::RecordNotFound, "Major issue not found or access denied"
     end

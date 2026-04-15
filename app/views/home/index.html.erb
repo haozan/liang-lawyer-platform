@@ -1,15 +1,30 @@
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+
 <div class="min-h-screen bg-surface">
-  <!-- Hero Section -->
-  <section class="bg-gradient-to-br from-primary via-primary-dark to-primary-light text-surface py-24 relative">
+  <!-- Top Navbar -->
+  <nav class="bg-white/90 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50 shadow-sm">
     <div class="container-xl mx-auto px-6">
-      <!-- Login Button (top right) -->
-      <div class="absolute top-8 right-8">
-        <%= link_to login_path, class: "btn-secondary btn-lg" do %>
-          <%= lucide_icon "log-in", class: "w-5 h-5 mr-2" %>
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <%= lucide_icon "scale", class: "w-7 h-7 text-primary" %>
+          <span class="font-heading text-xl font-bold text-primary hidden sm:inline">极光法律服务管理系统</span>
+          <span class="font-heading text-xl font-bold text-primary sm:hidden">极光法律</span>
+        </div>
+        <!-- Login Button -->
+        <%= link_to login_path, class: "btn-primary btn-sm flex items-center gap-2" do %>
+          <%= lucide_icon "log-in", class: "w-4 h-4" %>
           <span>登录系统</span>
         <% end %>
       </div>
-      
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="bg-gradient-to-br from-primary via-primary-dark to-primary-light text-surface py-24">
+    <div class="container-xl mx-auto px-6">
       <div class="flex flex-col items-center text-center space-y-6">
         <%= lucide_icon "scale", class: "w-20 h-20 text-secondary" %>
         <h1 class="text-5xl md:text-6xl font-bold text-balance mb-6">

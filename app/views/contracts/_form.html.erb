@@ -13,15 +13,7 @@
       </div>
       <div class="card-body">
         <%= form_with model: @contract, class: "space-y-6", multipart: true do |f| %>
-          <% if lawyer? %>
-            <div>
-              <%= f.label :company_id, "所属企业 *", class: "form-label" %>
-              <%= f.select :company_id, 
-                  options_for_select(@companies.map { |c| [c.name, c.id] }, @selected_company&.id),
-                  { prompt: "请选择企业" },
-                  { class: "form-select", required: true } %>
-            </div>
-          <% end %>
+
           
           <!-- Tab Navigation and Content -->
           <div data-controller="tabs" data-tabs-active-tab-value="basic">
@@ -483,13 +475,7 @@
                 </div>
               </div>
               
-              <% if lawyer? %>
-                <div>
-                  <%= f.label :related_case_id, "关联案件ID", class: "form-label" %>
-                  <%= f.number_field :related_case_id, class: "form-input", placeholder: "如已立案，填写案件ID" %>
-                  <p class="form-help">关联到案件管理模块中的案件</p>
-                </div>
-              <% end %>
+
               
               <div>
                 <%= f.label :litigation_amount, "诉讼标的额", class: "form-label" %>
@@ -526,32 +512,7 @@
                 </div>
               </div>
               
-              <% if lawyer? %>
-                <h3 class="font-heading text-lg font-semibold text-primary border-b pb-2 mt-8">律师分工</h3>
-                
-                <div>
-                  <%= f.label :assigned_lawyer_id, "指派律师（主办）", class: "form-label" %>
-                  <%= f.select :assigned_lawyer_id, 
-                      LawyerAccount.where(role: ['lawyer', 'senior_lawyer', 'team_leader']).order(:name).map { |l| ["#{l.name}（#{l.role_display}）", l.id] },
-                      { prompt: "请选择主办律师" },
-                      { class: "form-select" } %>
-                </div>
-                
-                <div>
-                  <%= f.label :assistant_lawyer_ids, "律师助理", class: "form-label" %>
-                  <%= f.select :assistant_lawyer_ids, 
-                      LawyerAccount.where(role: 'assistant').order(:name).map { |l| [l.name, l.id] },
-                      { prompt: "请选择律师助理（可多选）" },
-                      { class: "form-select", multiple: true } %>
-                  <p class="form-help">可按住 Ctrl/Cmd 键选择多个律师助理</p>
-                </div>
-                
-                <div>
-                  <%= f.label :internal_notes, "内部备注", class: "form-label" %>
-                  <%= f.text_area :internal_notes, rows: 4, class: "form-textarea", placeholder: "仅律师内部可见的备注信息" %>
-                  <p class="form-help">⚠️ 该信息仅律师可见，客户无法查看</p>
-                </div>
-              <% end %>
+
               
               <div>
                 <%= f.label :reconciliation_cycle_days, "对账周期 (天)", class: "form-label" %>

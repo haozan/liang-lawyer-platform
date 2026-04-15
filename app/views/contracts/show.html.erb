@@ -14,8 +14,4 @@
   end
 %>
 
-<% if @user_mode == :lawyer %>
-  <%= render 'contracts/show_lawyer_mode' %>
-<% else %>
-  <%= render 'contracts/show_company_mode' %>
-<% end %>
+<%= render 'contracts/show_company_mode' %>

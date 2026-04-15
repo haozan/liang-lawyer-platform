@@ -375,7 +375,7 @@ module ApplicationHelper
     return '' if amount.blank?
     
     # 老板和主管看完整金额
-    if company_user? && (current_company_user.boss? || current_company_user.executive?)
+    if company_user? && current_membership&.boss?
       number_to_currency(amount, unit: '¥', precision: 2)
     elsif lawyer?
       # 律师看完整金额

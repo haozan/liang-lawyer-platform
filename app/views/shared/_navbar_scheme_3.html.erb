@@ -39,12 +39,12 @@
               <% if lawyer? %>
                 <%= current_lawyer.name %>（律师）
               <% elsif company_user? %>
-                <% if current_company_user.role == 'boss' %>
-                  <%= current_company_user.company.name %> · 企业主
-                <% elsif current_company_user.role == 'executive' %>
-                  <%= current_company_user.company.name %> · 高管
+                <% if current_membership&.boss? %>
+                  <%= viewing_company&.name %> · 企业主
+                <% elsif false %>
+                  <%= viewing_company&.name %> · 高管
                 <% else %>
-                  <%= current_company_user.company.name %> · 员工
+                  <%= viewing_company&.name %> · 员工
                 <% end %>
               <% end %>
             </span>
@@ -52,7 +52,7 @@
 
           <!-- Navigation Links -->
           <% if company_user? %>
-            <% if current_company_user.role == 'boss' || current_company_user.employee? %>
+            <% if true %>
               <!-- 企业用户（老板/员工）下拉菜单 - 简约扁平风格 -->
               <div class="relative" data-controller="dropdown">
                 <button type="button" data-action="click->dropdown#toggle" class="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 border-2 border-primary rounded-lg transition-all duration-200 font-semibold hover:-translate-y-0.5">

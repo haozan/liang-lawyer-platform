@@ -1,0 +1,148 @@
+<div class="space-y-6">
+  <!-- 律师审核状态卡片 -->
+  <div class="card card-elevated">
+    <div class="card-header border-b border-border">
+      <h3 class="font-heading text-lg font-semibold text-primary flex items-center gap-2">
+        <%= lucide_icon "scale", class: "w-5 h-5" %>
+        律师意见
+      </h3>
+    </div>
+    <div class="card-body space-y-6">
+
+      <!-- 审核状态提示 -->
+      <% if contract.reviewed_by_lawyer? %>
+        <div class="alert alert-success">
+          <%= lucide_icon "check-circle", class: "w-5 h-5 shrink-0" %>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">律师已审阅</p>
+            <% if contract.last_lawyer_comment_at.present? %>
+              <p class="text-xs mt-0.5">最近意见时间：<%= contract.last_lawyer_comment_at.strftime('%Y年%m月%d日 %H:%M') %></p>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="alert alert-warning">
+          <%= lucide_icon "clock", class: "w-5 h-5 shrink-0" %>
+          <div class="flex-1">
+            <p class="font-semibold text-sm">待律师审阅</p>
+            <p class="text-xs mt-0.5">律师尚未发表意见，请耐心等待</p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- 律师意见列表 -->
+      <% lawyer_comments = comments.select { |c| c.commentable_type == 'Contract' && c.visibility == 'public' && c.author_role.in?(%w[lawyer assistant admin]) } %>
+
+      <% if lawyer_comments.any? %>
+        <div>
+          <h4 class="font-semibold text-primary mb-3 flex items-center gap-2">
+            <%= lucide_icon "message-circle", class: "w-4 h-4" %>
+            律师意见记录
+          </h4>
+          <div class="space-y-4">
+            <% lawyer_comments.sort_by(&:created_at).each do |comment| %>
+              <div class="border border-border rounded-lg p-4 bg-surface-elevated">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <%= lucide_icon "briefcase", class: "w-4 h-4 text-primary" %>
+                    </div>
+                    <div>
+                      <span class="font-semibold text-primary text-sm"><%= comment.author_name %></span>
+                      <span class="badge badge-primary badge-sm ml-1">律师</span>
+                      <% if comment.is_key_opinion? %>
+                        <span class="badge badge-warning badge-sm ml-1">关键意见</span>
+                      <% end %>
+                    </div>
+                    <span class="text-xs text-muted"><%= comment.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+                  </div>
+                </div>
+                <p class="text-secondary text-sm whitespace-pre-wrap leading-relaxed mb-3"><%= comment.content %></p>
+                <% if comment.attachments.attached? %>
+                  <div class="flex flex-col gap-2 mt-3 pt-3 border-t border-border">
+                    <p class="text-xs text-muted font-medium flex items-center gap-1">
+                      <%= lucide_icon "paperclip", class: "w-3.5 h-3.5" %>
+                      附件
+                    </p>
+                    <% comment.attachments.each do |attachment| %>
+                      <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: false) %>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <%= lucide_icon "inbox", class: "w-10 h-10 text-muted mx-auto mb-3" %>
+          <p class="text-muted text-sm">律师尚未发表意见</p>
+        </div>
+      <% end %>
+
+      <!-- 公司用户回复区 -->
+      <div class="border-t border-border pt-6">
+        <h4 class="font-semibold text-primary mb-3 flex items-center gap-2">
+          <%= lucide_icon "reply", class: "w-4 h-4" %>
+          补充说明 / 回复律师
+        </h4>
+        <p class="text-xs text-muted mb-4">您可以向律师补充合同背景或回复律师意见，律师会尽快查阅并回复。</p>
+
+        <%# 展示公司用户已有的回复 %>
+        <% user_replies = comments.select { |c| c.commentable_type == 'Contract' && c.visibility == 'public' && c.author_role == 'company_user' } %>
+        <% if user_replies.any? %>
+          <div class="space-y-3 mb-4">
+            <% user_replies.sort_by(&:created_at).each do |comment| %>
+              <div class="border border-border rounded-lg p-4 bg-surface">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+                      <%= lucide_icon "user", class: "w-3.5 h-3.5 text-secondary" %>
+                    </div>
+                    <span class="font-semibold text-primary text-sm"><%= comment.author_name %></span>
+                    <span class="text-xs text-muted"><%= comment.created_at.strftime('%Y-%m-%d %H:%M') %></span>
+                  </div>
+                  <% current_user = current_lawyer || current_company_user %>
+                  <% if comment.deletable_by?(current_user) %>
+                    <%= link_to comment_path(comment),
+                          data: { turbo_method: :delete, turbo_confirm: "确定删除该回复吗？" },
+                          class: "text-danger hover:text-danger-hover",
+                          title: "删除回复（30分钟内可删）" do %>
+                      <%= lucide_icon "trash-2", class: "w-4 h-4" %>
+                    <% end %>
+                  <% end %>
+                </div>
+                <p class="text-secondary text-sm whitespace-pre-wrap"><%= comment.content %></p>
+                <% if comment.attachments.attached? %>
+                  <div class="flex flex-col gap-2 mt-2">
+                    <% comment.attachments.each do |attachment| %>
+                      <%= smart_file_link(attachment, action_buttons: true, show_size: true, deletable: true) %>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- 提交回复表单 -->
+        <%= form_with model: Comment.new, url: contract_comments_path(contract), class: "space-y-3", multipart: true do |f| %>
+          <%= hidden_field_tag 'comment[visibility]', 'public' %>
+          <%= f.text_area :content,
+                rows: 3,
+                placeholder: "请输入您对律师意见的回复或补充说明...",
+                class: "form-textarea",
+                required: true %>
+          <div>
+            <%= f.label :attachments, "附件上传（可选）", class: "form-label text-sm" %>
+            <%= f.file_field :attachments, multiple: true, class: "form-input",
+                  accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" %>
+            <p class="form-help text-xs">支持 PDF、Word、Excel、图片，单个文件不超过 40MB</p>
+          </div>
+          <%= f.submit "提交回复", class: "btn btn-primary btn-sm" %>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>

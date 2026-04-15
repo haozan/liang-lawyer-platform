@@ -1,4 +1,6 @@
 class TodosController < ApplicationController
+  include CompanyResolvable
+
   before_action :set_company, if: :company_user?
 
   def index
@@ -70,7 +72,5 @@ class TodosController < ApplicationController
 
   private
 
-  def set_company
-    @company = current_company_user.company
-  end
+  alias_method :set_company, :set_company_for_company_user
 end

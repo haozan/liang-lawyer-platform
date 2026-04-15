@@ -2,7 +2,25 @@ class MajorIssue < ApplicationRecord
   include Searchable
   include MajorIssueStateMachine
   include TeamAccessible
-  
+  include SoftDeletable
+  include DisplayLabels
+
+  # 状态中文映射（用于 status_display）
+  STATUS_LABELS = {
+    'pending'    => '待讨论',
+    'discussing' => '讨论中',
+    'resolved'   => '已解决',
+    'archived'   => '已归档'
+  }.freeze
+
+  # 优先级中文映射（用于 priority_display）
+  PRIORITY_LABELS = {
+    'low'    => '低',
+    'medium' => '中',
+    'high'   => '高',
+    'urgent' => '紧急'
+  }.freeze
+
   # Serialization
   serialize :team_member_ids, coder: JSON
   
@@ -30,8 +48,7 @@ class MajorIssue < ApplicationRecord
   scope :discussing, -> { where(status: 'discussing') }
   scope :resolved, -> { where(status: 'resolved') }
   scope :high_priority, -> { where(priority: ['high', 'urgent']) }
-  scope :not_deleted, -> { where(deleted_at: nil) }
-  scope :pending_deletion, -> { where.not(deleted_by_employee_id: nil).where(deleted_at: nil) }
+  # not_deleted, pending_deletion, deleted scopes 由 SoftDeletable concern 提供
   scope :pending_lawyer_review, -> { where(reviewed_by_lawyer: false) }
   scope :reviewed, -> { where(reviewed_by_lawyer: true) }
   scope :with_unread, ->(user) { 
@@ -40,48 +57,18 @@ class MajorIssue < ApplicationRecord
       .where('major_issue_read_statuses.unread_count > 0')
   }
   
-  # Status display names
-  def status_display
-    case status
-    when 'pending' then '待讨论'
-    when 'discussing' then '讨论中'
-    when 'resolved' then '已解决'
-    when 'archived' then '已归档'
-    end
-  end
+  # Status display names（映射由 STATUS_LABELS 常量维护）
+  def status_display = display_label(:status, STATUS_LABELS)
+
+  # Priority display names（映射由 PRIORITY_LABELS 常量维护）
+  def priority_display = display_label(:priority, PRIORITY_LABELS)
   
-  # Priority display names
-  def priority_display
-    case priority
-    when 'low' then '低'
-    when 'medium' then '中'
-    when 'high' then '高'
-    when 'urgent' then '紧急'
-    end
-  end
-  
-  # Soft delete by employee (requires boss confirmation)
-  def request_deletion_by_employee(employee_user)
-    update(deleted_by_employee_id: employee_user.id, deletion_requested_at: Time.current)
-  end
-  
-  # Boss confirms deletion
-  def confirm_deletion_by_boss(boss_user)
-    update(confirmed_by_boss_id: boss_user.id, deleted_at: Time.current)
-  end
-  
-  # Boss can delete directly
-  def delete_by_boss(boss_user)
-    update(deleted_by_employee_id: boss_user.id, confirmed_by_boss_id: boss_user.id, deleted_at: Time.current)
-  end
-  
-  def deleted?
-    deleted_at.present?
-  end
-  
-  def pending_deletion?
-    deleted_by_employee_id.present? && deleted_at.nil?
-  end
+  # 软删除方法由 SoftDeletable concern 提供：
+  # - request_deletion_by_employee(employee_user)
+  # - confirm_deletion_by_boss(boss_user)
+  # - delete_by_boss(boss_user)
+  # - deleted?
+  # - pending_deletion?
   
   # Lawyer review methods
   def needs_lawyer_review?

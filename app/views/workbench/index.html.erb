@@ -15,11 +15,11 @@
     <!-- 今日重点待办 -->
     <% urgent_and_today = (@urgent_items + @pending_contracts.select { |item| item[:record].created_at >= Time.current.beginning_of_day }).take(5) %>
     <% if urgent_and_today.any? %>
-      <div class="card card-elevated mb-8 border-l-4 border-red-500">
+      <div class="card card-elevated mb-8 border-l-4 border-danger">
         <div class="card-body">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
-              <%= lucide_icon "alert-circle", class: "w-6 h-6 text-red-600" %>
+              <%= lucide_icon "alert-circle", class: "w-6 h-6 text-danger" %>
               <h2 class="font-heading text-xl font-bold text-primary">🔥 今日重点</h2>
               <span class="badge badge-error"><%= urgent_and_today.count %> 项</span>
             </div>
@@ -58,7 +58,7 @@
       <div class="card card-elevated mb-8">
         <div class="card-body py-8">
           <div class="flex flex-col items-center justify-center">
-            <%= lucide_icon "check-circle", class: "w-16 h-16 text-green-500 mb-3" %>
+            <%= lucide_icon "check-circle", class: "w-16 h-16 text-success mb-3" %>
             <p class="text-lg font-semibold text-primary mb-1">✅ 今日暂无紧急事项</p>
             <p class="text-sm text-secondary">一切正常，继续保持！</p>
           </div>
@@ -130,11 +130,11 @@
     <!-- 届满提醒详情（可折叠） -->
     <% if @expiry_total_count > 0 %>
       <div class="mb-8" data-controller="workbench-expiry">
-        <div class="card card-elevated border-l-4 border-red-500">
+        <div class="card card-elevated border-l-4 border-danger">
           <div class="card-body">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
-                <%= lucide_icon "bell", class: "w-6 h-6 text-red-600" %>
+                <%= lucide_icon "bell", class: "w-6 h-6 text-danger" %>
                 <h2 class="font-heading text-xl font-bold text-primary">⏰ 届满提醒</h2>
                 <span class="badge badge-error"><%= @expiry_total_count %> 项</span>
               </div>
@@ -156,15 +156,15 @@
                     <span>即将到期合同 (<%= @expiring_contracts.count %>)</span>
                   </h3>
                   <div class="space-y-2">
-                    <% @expiring_contracts.each do |contract| %>
+                    <% @expiring_contracts.each do |item| %>
                       <div class="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
                         <div class="flex-1 min-w-0">
-                          <%= link_to contract_path(contract), class: "block" do %>
-                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= contract.name %></p>
-                            <p class="text-sm text-muted">到期日期：<%= contract.end_date.strftime('%Y年%m月%d日') %></p>
+                          <%= link_to item[:link], class: "block" do %>
+                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= item[:record].name %></p>
+                            <p class="text-sm text-muted">到期日期：<%= item[:due_date].strftime('%Y年%m月%d日') %></p>
                           <% end %>
                         </div>
-                        <span class="badge badge-warning flex-shrink-0"><%= ((contract.end_date - Date.current).to_i) %>天后到期</span>
+                        <span class="badge badge-warning flex-shrink-0"><%= item[:days_left] %>天后到期</span>
                       </div>
                     <% end %>
                   </div>
@@ -179,15 +179,15 @@
                     <span>即将开庭案件 (<%= @upcoming_hearings.count %>)</span>
                   </h3>
                   <div class="space-y-2">
-                    <% @upcoming_hearings.each do |case_item| %>
+                    <% @upcoming_hearings.each do |item| %>
                       <div class="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
                         <div class="flex-1 min-w-0">
-                          <%= link_to case_path(case_item), class: "block" do %>
-                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= case_item.name %></p>
-                            <p class="text-sm text-muted">开庭日期：<%= case_item.hearing_at.strftime('%Y年%m月%d日') %></p>
+                          <%= link_to item[:link], class: "block" do %>
+                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= item[:record].name %></p>
+                            <p class="text-sm text-muted">开庭日期：<%= item[:due_date].strftime('%Y年%m月%d日') %><% if item[:due_time].present? %>  <%= item[:due_time] %><% end %></p>
                           <% end %>
                         </div>
-                        <span class="badge badge-info flex-shrink-0"><%= ((case_item.hearing_at.to_date - Date.current).to_i) %>天后开庭</span>
+                        <span class="badge badge-info flex-shrink-0"><%= item[:days_left] %>天后开庭</span>
                       </div>
                     <% end %>
                   </div>
@@ -202,12 +202,12 @@
                     <span>待收集判决书 (<%= @pending_judgement_collections.count %>)</span>
                   </h3>
                   <div class="space-y-2">
-                    <% @pending_judgement_collections.each do |case_item| %>
+                    <% @pending_judgement_collections.each do |item| %>
                       <div class="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
                         <div class="flex-1 min-w-0">
-                          <%= link_to case_path(case_item), class: "block" do %>
-                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= case_item.name %></p>
-                            <p class="text-sm text-muted">预计判决日期：<%= case_item.expected_judgement_at.strftime('%Y年%m月%d日') %></p>
+                          <%= link_to item[:link], class: "block" do %>
+                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= item[:record].name %></p>
+                            <p class="text-sm text-muted">判决书待领取</p>
                           <% end %>
                         </div>
                         <span class="badge badge-warning flex-shrink-0">待收集</span>
@@ -225,12 +225,12 @@
                     <span>待归档案件 (<%= @pending_archives.count %>)</span>
                   </h3>
                   <div class="space-y-2">
-                    <% @pending_archives.each do |case_item| %>
+                    <% @pending_archives.each do |item| %>
                       <div class="flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
                         <div class="flex-1 min-w-0">
-                          <%= link_to case_path(case_item), class: "block" do %>
-                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= case_item.name %></p>
-                            <p class="text-sm text-muted">已完结，待归档</p>
+                          <%= link_to item[:link], class: "block" do %>
+                            <p class="font-medium text-primary hover:text-primary-dark truncate"><%= item[:record].name %></p>
+                            <p class="text-sm text-muted">已领取判决书 <%= item[:pending_days] %> 天，待归档</p>
                           <% end %>
                         </div>
                         <span class="badge badge-neutral flex-shrink-0">待归档</span>

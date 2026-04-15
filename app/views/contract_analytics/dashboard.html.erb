@@ -1,4 +1,5 @@
-<div class="container-main">
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
   <!-- Analytics Tabs Navigation -->
   <%= render 'shared/analytics_tabs', current_tab: 'contract' %>
   
@@ -63,7 +64,7 @@
   <!-- Page Header -->
   <div class="flex items-center justify-between mb-6">
     <div>
-      <h1 class="font-heading text-3xl font-bold text-primary mb-2">合同数据分析仪表盘</h1>
+      <h1 class="page-title">合同数据分析仪表盘</h1>
       <p class="text-secondary">
         <% if @company %>
           <%= @company.name %> · 专业合同风险监控与分析
@@ -537,4 +538,5 @@
 
   <!-- Floating Quick Navigation Button -->
   <%= render 'shared/analytics_quick_nav', current_module: 'contract' %>
+  </div>
 </div>

@@ -1,10 +1,10 @@
 <div class="container-card">
   <div class="card-header-compact">
     <div class="flex items-center gap-3">
-      <%= lucide_icon "repeat", class: "w-6 h-6 text-blue-600" %>
+      <%= lucide_icon "repeat", class: "w-6 h-6 text-info" %>
       <div>
         <h1 class="card-title-compact">续签配置</h1>
-        <p class="text-sm text-gray-500 mt-1">配置合同续签提醒和自动续约设置</p>
+        <p class="text-sm text-muted mt-1">配置合同续签提醒和自动续约设置</p>
       </div>
     </div>
     <%= link_to contract_path(@contract), class: "btn-secondary-sm" do %>
@@ -85,7 +85,7 @@
                 max: 365,
                 placeholder: "例如：30"
             %>
-            <span class="text-gray-600">天</span>
+            <span class="text-secondary">天</span>
           </div>
           <p class="form-hint">
             系统将在合同到期前指定天数发送续签提醒

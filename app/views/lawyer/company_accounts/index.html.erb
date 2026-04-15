@@ -129,8 +129,6 @@
                           <h3 class="font-semibold text-primary text-lg"><%= user.name %></h3>
                           <% if user.boss? %>
                             <span class="badge badge-primary">老板</span>
-                          <% elsif user.executive? %>
-                            <span class="badge badge-info">高管</span>
                           <% else %>
                             <span class="badge badge-secondary">员工</span>
                           <% end %>

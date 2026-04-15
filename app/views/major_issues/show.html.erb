@@ -1,4 +1,5 @@
-<div class="container-main">
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
   <!-- Breadcrumb -->
   <div class="flex items-center gap-2 text-sm text-secondary mb-4">
     <%= link_to major_issues_path, class: "hover:text-primary" do %>
@@ -12,7 +13,7 @@
   <div class="flex items-start justify-between mb-6">
     <div class="flex-1">
       <div class="flex items-center gap-3 mb-2">
-        <h1 class="font-heading text-3xl font-bold text-primary"><%= @major_issue.title %></h1>
+        <h1 class="page-title-sm"><%= @major_issue.title %></h1>
         
         <!-- Status Badge -->
         <% status_class = case @major_issue.status
@@ -173,9 +174,9 @@
                         class: "bg-transparent border-0 p-0 cursor-pointer",
                         disabled: todo.status == 'completed' do %>
                       <% if todo.status == 'completed' %>
-                        <%= lucide_icon "check-circle", class: "w-6 h-6 text-green-600" %>
+                        <%= lucide_icon "check-circle", class: "w-6 h-6 text-success" %>
                       <% else %>
-                        <%= lucide_icon "circle", class: "w-6 h-6 text-gray-400 hover:text-primary" %>
+                        <%= lucide_icon "circle", class: "w-6 h-6 text-muted hover:text-primary" %>
                       <% end %>
                     <% end %>
                   </div>
@@ -222,7 +223,7 @@
                       <% end %>
                       
                       <% if todo.status == 'completed' && todo.completed_at %>
-                        <span class="flex items-center gap-1 text-green-600">
+                        <span class="flex items-center gap-1 text-success">
                           <%= lucide_icon "check", class: "w-3 h-3" %>
                           <%= todo.completed_at.strftime('%Y-%m-%d') %> 已完成
                         </span>
@@ -328,7 +329,7 @@
                     置顶评论
                   </h4>
                   <% pinned_comments.each do |comment| %>
-                    <div class="comment-item border-l-4 border-yellow-500 bg-yellow-50 pl-4 py-2 mb-3">
+                    <div class="comment-item border-l-4 border-warning bg-yellow-50 pl-4 py-2 mb-3">
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                           <span class="badge badge-warning badge-sm">置顶</span>
@@ -380,7 +381,7 @@
                     关键意见
                   </h4>
                   <% key_opinion_comments.each do |comment| %>
-                    <div class="comment-item border-l-4 border-blue-500 bg-blue-50 pl-4 py-2 mb-3">
+                    <div class="comment-item border-l-4 border-info bg-info/10 pl-4 py-2 mb-3">
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                           <span class="badge badge-info badge-sm">关键意见</span>
@@ -683,5 +684,6 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 </div>

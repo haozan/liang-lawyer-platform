@@ -10,7 +10,7 @@
 
   <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50 mb-8">发布新公告</h1>
 
-  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+  <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
     <div class="card-body">
       <%= form_with model: [:admin, @announcement], local: true, class: "space-y-6" do |form| %>
         
@@ -44,7 +44,7 @@
               [['紧急', 'urgent'], ['重要', 'important'], ['普通', 'normal']], 
               {}, 
               class: "form-input" %>
-          <p class="text-sm text-gray-500 mt-1">紧急公告将以红色高亮显示</p>
+          <p class="text-sm text-muted mt-1">紧急公告将以红色高亮显示</p>
         </div>
 
         <!-- 公告范围 -->
@@ -54,21 +54,21 @@
               [['全局（所有企业可见）', '']] + @companies.map { |c| [c.name, c.id] }, 
               {}, 
               class: "form-input" %>
-          <p class="text-sm text-gray-500 mt-1">选择特定企业或留空为全局公告</p>
+          <p class="text-sm text-muted mt-1">选择特定企业或留空为全局公告</p>
         </div>
 
         <!-- 发布时间 -->
         <div class="form-group">
           <%= form.label :published_at, "发布时间 *" %>
           <%= form.datetime_local_field :published_at, class: "form-input" %>
-          <p class="text-sm text-gray-500 mt-1">可以设置为未来时间实现定时发布</p>
+          <p class="text-sm text-muted mt-1">可以设置为未来时间实现定时发布</p>
         </div>
 
         <!-- 过期时间 -->
         <div class="form-group">
           <%= form.label :expires_at, "过期时间" %>
           <%= form.datetime_local_field :expires_at, class: "form-input" %>
-          <p class="text-sm text-gray-500 mt-1">留空表示永不过期</p>
+          <p class="text-sm text-muted mt-1">留空表示永不过期</p>
         </div>
 
         <!-- 提交按钮 -->

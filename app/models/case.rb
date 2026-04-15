@@ -2,7 +2,20 @@ class Case < ApplicationRecord
   include Searchable
   include CaseFilterable
   include TeamAccessible
-  
+  include SoftDeletable
+  include DisplayLabels
+
+  # 状态中文映射（用于 status_display）
+  STATUS_LABELS = {
+    'preparing'  => '准备立案',
+    'filed'      => '已立案待审',
+    'trial'      => '审理中',
+    'judged'     => '已判决',
+    'execution'  => '执行中',
+    'settled'    => '调解结案',
+    'closed'     => '已归档'
+  }.freeze
+
   # Priority levels
   PRIORITIES = {
     'urgent' => '紧急',
@@ -101,11 +114,13 @@ class Case < ApplicationRecord
   has_one_attached :lawyer_fee_invoice # 律师费发票
   
   # Serialize JSON fields
-  serialize :property_preservation_history, coder: JSON
-  serialize :third_parties, coder: JSON
-  serialize :claims, coder: JSON
-  serialize :judgement_result, coder: JSON
-  serialize :execution_measures, coder: JSON
+  # 以下字段已迁移到 PostgreSQL jsonb 类型（见 migrate_case_json_columns_to_jsonb.rb）
+  # jsonb 列由 Rails 自动处理 Hash/Array 序列化，无需 serialize 声明
+  # serialize :property_preservation_history, coder: JSON  # migrated to jsonb
+  # serialize :third_parties, coder: JSON                  # migrated to jsonb
+  # serialize :claims, coder: JSON                         # migrated to jsonb
+  # serialize :judgement_result, coder: JSON               # migrated to jsonb
+  # serialize :execution_measures, coder: JSON             # migrated to jsonb
   
   # Validations
   validates :name, presence: true
@@ -182,9 +197,8 @@ class Case < ApplicationRecord
   scope :preparing, -> { where(status: 'preparing') }
   scope :active, -> { where(status: ['filed', 'trial', 'judged', 'execution']) }
   scope :closed, -> { where(status: ['settled', 'closed']) }
-  scope :not_deleted, -> { where(deleted_at: nil) }
-  scope :pending_deletion, -> { where.not(deleted_by_employee_id: nil).where(deleted_at: nil) }
-  
+  # not_deleted, pending_deletion, deleted scopes 由 SoftDeletable concern 提供
+
   # 新增高级筛选scopes
   scope :high_value, -> { where('claim_amount >= ?', 1_000_000) }  # 高标的案件（100万以上）
   scope :urgent_cases, -> { where(priority: 'urgent').active }      # 紧急案件
@@ -193,18 +207,8 @@ class Case < ApplicationRecord
   scope :overdue_judgements, -> { where(status: 'judged').where('judgement_received_at < ?', 15.days.ago).where.not(status: ['execution', 'settled', 'closed']) }  # 超期未执行
   scope :by_client, ->(company_id) { joins(:case_clients).where(case_clients: { company_id: company_id }) }  # 按委托人筛选
   
-  # Status display names
-  def status_display
-    case status
-    when 'preparing' then '准备立案'
-    when 'filed' then '已立案待审'
-    when 'trial' then '审理中'
-    when 'judged' then '已判决'
-    when 'execution' then '执行中'
-    when 'settled' then '调解结案'
-    when 'closed' then '已归档'
-    end
-  end
+  # Status display names（映射由 STATUS_LABELS 常量维护）
+  def status_display = display_label(:status, STATUS_LABELS)
   
   # Status badge color helper
   def status_badge_color
@@ -233,10 +237,8 @@ class Case < ApplicationRecord
     end
   end
   
-  # Priority display
-  def priority_display
-    PRIORITIES[priority] || priority
-  end
+  # Priority display（PRIORITIES 已含 value→中文，复用 display_label）
+  def priority_display = display_label(:priority, PRIORITIES)
   
   # Party role display
   def our_party_role_display
@@ -329,29 +331,13 @@ class Case < ApplicationRecord
     roles_hash.map { |key, display| [display, key] }
   end
   
-  # Soft delete by employee (requires boss confirmation)
-  def request_deletion_by_employee(employee_user)
-    update(deleted_by_employee_id: employee_user.id, deletion_requested_at: Time.current)
-  end
-  
-  # Boss confirms deletion
-  def confirm_deletion_by_boss(boss_user)
-    update(confirmed_by_boss_id: boss_user.id, deleted_at: Time.current)
-  end
-  
-  # Boss can delete directly
-  def delete_by_boss(boss_user)
-    update(deleted_by_employee_id: boss_user.id, confirmed_by_boss_id: boss_user.id, deleted_at: Time.current)
-  end
-  
-  def deleted?
-    deleted_at.present?
-  end
-  
-  def pending_deletion?
-    deleted_by_employee_id.present? && deleted_at.nil?
-  end
-  
+  # 软删除方法由 SoftDeletable concern 提供：
+  # - request_deletion_by_employee(employee_user)
+  # - confirm_deletion_by_boss(boss_user)
+  # - delete_by_boss(boss_user)
+  # - deleted?
+  # - pending_deletion?
+
   # 权限判断方法
   
   # 律师是否可以查看案件（团队成员或所有律师都可以查看）

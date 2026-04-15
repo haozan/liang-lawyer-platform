@@ -1,8 +1,10 @@
 class UnifiedTodoService < ApplicationService
-  def initialize(company: nil, company_id: nil, user_type: nil)
+  # accessible_company_ids: 律师可访问的企业 ID 列表，为 nil 时不限制（向后兼容）
+  def initialize(company: nil, company_id: nil, user_type: nil, accessible_company_ids: nil)
     @company = company
     @company_id = company_id
     @user_type = user_type # :lawyer or :company
+    @accessible_company_ids = accessible_company_ids
   end
 
   def call
@@ -238,7 +240,8 @@ class UnifiedTodoService < ApplicationService
   def company_todos
     return [] unless @user_type == :lawyer
     
-    companies = @company_id ? Company.where(id: @company_id) : Company.all
+    base = @accessible_company_ids ? Company.where(id: @accessible_company_ids) : Company.all
+    companies = @company_id ? base.where(id: @company_id) : base
     
     companies.map do |company|
       urgent = urgent_items.select { |item| item[:company].id == company.id }.count
@@ -288,16 +291,21 @@ class UnifiedTodoService < ApplicationService
 
   # Scope helpers
   def contracts_scope
-    @company_id ? Contract.where(company_id: @company_id) : Contract.all
+    scope = @company_id ? Contract.where(company_id: @company_id) : Contract.all
+    # 律师只能看自己负责企业的数据
+    scope = scope.where(company_id: @accessible_company_ids) if @accessible_company_ids
+    scope
   end
 
   def cases_scope
     scope = @company_id ? Case.where(company_id: @company_id) : Case.all
+    scope = scope.where(company_id: @accessible_company_ids) if @accessible_company_ids
     scope.where(deleted_at: nil)
   end
 
   def major_issues_scope
     scope = @company_id ? MajorIssue.where(company_id: @company_id) : MajorIssue.all
+    scope = scope.where(company_id: @accessible_company_ids) if @accessible_company_ids
     scope.where(deleted_at: nil)
   end
 

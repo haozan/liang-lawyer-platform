@@ -3,9 +3,9 @@
   # 位于右下角固定位置，提供快速切换分析模块的入口
   
   analytics_modules = [
-    { name: '重大事项分析', path_method: :dashboard_major_issue_analytics_path, icon: 'message-square', key: 'major_issue', color: 'text-purple-600' },
-    { name: '案件数据分析', path_method: :dashboard_case_analytics_path, icon: 'briefcase', key: 'case', color: 'text-blue-600' },
-    { name: '合同数据分析', path_method: :dashboard_contract_analytics_path, icon: 'folder-open', key: 'contract', color: 'text-green-600' }
+    { name: '重大事项分析', path_method: :dashboard_major_issue_analytics_path, icon: 'message-square', key: 'major_issue', color: 'text-secondary' },
+    { name: '案件数据分析', path_method: :dashboard_case_analytics_path, icon: 'briefcase', key: 'case', color: 'text-info' },
+    { name: '合同数据分析', path_method: :dashboard_contract_analytics_path, icon: 'folder-open', key: 'contract', color: 'text-success' }
   ]
   
   current_module = local_assigns[:current_module] || 'major_issue'

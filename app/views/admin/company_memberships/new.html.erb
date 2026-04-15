@@ -1,0 +1,124 @@
+<% content_for :title, "添加成员 - #{@company.name}" %>
+
+<div class="container-xl max-w-2xl">
+  <div class="flex items-center gap-4 mb-8">
+    <%= link_to admin_company_path(@company), class: "p-2 text-muted hover:text-gray-900 hover:bg-surface-elevated rounded-lg transition-colors" do %>
+      <%= lucide_icon "arrow-left", class: "w-5 h-5" %>
+    <% end %>
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-50">添加成员</h1>
+      <p class="text-muted mt-1">为「<%= @company.name %>」添加企业成员</p>
+    </div>
+  </div>
+
+  <!-- Tab 切换：已有用户 / 新建用户 -->
+  <div data-controller="tabs" data-tabs-active-tab-class="border-info text-info" class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <div class="card-body">
+
+      <!-- Tab 导航 -->
+      <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6 -mt-2">
+        <button type="button" id="tab-existing"
+                onclick="showTab('existing')"
+                class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-info text-info mr-4">
+          从已有用户中选择
+        </button>
+        <button type="button" id="tab-new"
+                onclick="showTab('new')"
+                class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted hover:text-gray-700">
+          创建新用户
+        </button>
+      </div>
+
+      <!-- 已有用户 -->
+      <div id="panel-existing">
+        <%= form_with url: admin_company_company_memberships_path(@company), method: :post, class: "space-y-5" do |f| %>
+          <%= hidden_field_tag :create_new_user, '0' %>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">选择用户</label>
+            <% if @available_users.any? %>
+              <select name="company_user_id" class="form-input w-full" required>
+                <option value="">— 请选择 —</option>
+                <% @available_users.each do |user| %>
+                  <option value="<%= user.id %>">
+                    <%= user.name %> (<%= user.phone %>)
+                    <% if user.companies.any? %>
+                      - 已在 <%= user.companies.map(&:name).join('、') %>
+                    <% end %>
+                  </option>
+                <% end %>
+              </select>
+            <% else %>
+              <p class="text-sm text-muted py-3">暂无可添加的用户（所有用户都已在此企业中）</p>
+            <% end %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">角色</label>
+            <select name="role" class="form-input w-full">
+              <option value="employee">员工</option>
+              <option value="boss">老板</option>
+            </select>
+          </div>
+
+          <div class="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+            <%= link_to "取消", admin_company_path(@company), class: "btn-outline" %>
+            <button type="submit" class="btn-primary" <%= @available_users.none? ? 'disabled' : '' %>>
+              添加成员
+            </button>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- 新建用户 -->
+      <div id="panel-new" class="hidden">
+        <%= form_with url: admin_company_company_memberships_path(@company), method: :post, class: "space-y-5" do |f| %>
+          <%= hidden_field_tag :create_new_user, '1' %>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">姓名 <span class="text-danger">*</span></label>
+            <%= text_field_tag 'company_user[name]', nil, class: "form-input w-full", placeholder: "请输入姓名", required: true %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">手机号 <span class="text-danger">*</span></label>
+            <%= text_field_tag 'company_user[phone]', nil, class: "form-input w-full", placeholder: "11位手机号", required: true %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">密码 <span class="text-danger">*</span></label>
+            <%= password_field_tag 'company_user[password]', nil, class: "form-input w-full", placeholder: "至少6位", required: true %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">在此企业的角色</label>
+            <select name="role" class="form-input w-full">
+              <option value="employee">员工</option>
+              <option value="boss">老板</option>
+            </select>
+          </div>
+
+          <div class="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+            <%= link_to "取消", admin_company_path(@company), class: "btn-outline" %>
+            <button type="submit" class="btn-primary">创建并加入</button>
+          </div>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(tab) {
+  document.getElementById('panel-existing').classList.toggle('hidden', tab !== 'existing');
+  document.getElementById('panel-new').classList.toggle('hidden', tab !== 'new');
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    const isActive = btn.id === 'tab-' + tab;
+    btn.classList.toggle('border-info', isActive);
+    btn.classList.toggle('text-info', isActive);
+    btn.classList.toggle('border-transparent', !isActive);
+    btn.classList.toggle('text-muted', !isActive);
+  });
+}
+</script>

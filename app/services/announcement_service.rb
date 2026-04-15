@@ -1,23 +1,39 @@
 class AnnouncementService < ApplicationService
+  # 缓存有效期（分钟）
+  CACHE_TTL = 5.minutes
+
   attr_reader :user, :company_ids
-  
+
   def initialize(user:, company_ids: nil)
     @user = user
     @company_ids = company_ids || (user.is_a?(CompanyUser) ? [user.company_id] : Company.pluck(:id))
   end
-  
+
   def call
-    {
-      manual_announcements: fetch_manual_announcements,
-      system_announcements: generate_system_announcements,
-      combined_announcements: combine_and_sort_announcements,
-      grouped_announcements: group_announcements,
-      stats: calculate_stats
-    }
+    Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
+      {
+        manual_announcements: fetch_manual_announcements,
+        system_announcements: generate_system_announcements,
+        combined_announcements: combine_and_sort_announcements,
+        grouped_announcements: group_announcements,
+        stats: calculate_stats
+      }
+    end
+  end
+
+  # 主动失效当前用户的公告缓存（数据变更时调用）
+  def self.expire_cache_for(user)
+    cache_key = "announcements/#{user.class.name.underscore}/#{user.id}"
+    Rails.cache.delete(cache_key)
   end
   
   private
-  
+
+  # 基于用户类型和ID生成唯一缓存键
+  def cache_key
+    "announcements/#{user.class.name.underscore}/#{user.id}"
+  end
+
   # 获取手动创建的公告（从数据库）
   def fetch_manual_announcements
     Announcement.active

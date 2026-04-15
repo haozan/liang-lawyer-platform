@@ -14,7 +14,9 @@ class ApplicationController < ActionController::Base
 
   before_action :require_authentication
   before_action :set_current_lawyer_account
-  helper_method :current_lawyer, :current_company_user, :current_user, :current_lawyer_account, :lawyer?, :company_user?, :viewing_company, :lawyer_announcement_count
+  helper_method :current_lawyer, :current_company_user, :current_user, :current_lawyer_account,
+                :lawyer?, :company_user?, :viewing_company, :current_membership,
+                :lawyer_announcement_count
 
   private
 
@@ -29,13 +31,12 @@ class ApplicationController < ActionController::Base
   def current_user
     current_lawyer || current_company_user
   end
-  
-  # 别名方法：current_lawyer_account = current_lawyer
-  # 用于团队权限系统
+
+  # 别名：兼容旧代码 current_lawyer_account
   def current_lawyer_account
     current_lawyer
   end
-  
+
   # 设置 Current.lawyer_account，供模型层使用
   def set_current_lawyer_account
     Current.lawyer_account = current_lawyer
@@ -49,9 +50,22 @@ class ApplicationController < ActionController::Base
     current_company_user.present?
   end
 
+  # 企业用户当前选择的企业
   def viewing_company
-    return nil unless lawyer?
-    @viewing_company ||= Company.find_by(id: session[:viewing_company_id]) if session[:viewing_company_id]
+    return nil unless company_user?
+    @viewing_company ||= begin
+      cid = session[:viewing_company_id]
+      if cid
+        # 确认该企业确实是用户所属的
+        current_company_user.companies.find_by(id: cid)
+      end
+    end
+  end
+
+  # 当前企业用户在 viewing_company 中的 membership
+  def current_membership
+    return nil unless company_user? && viewing_company
+    @current_membership ||= current_company_user.company_memberships.find_by(company: viewing_company)
   end
 
   def require_authentication
@@ -70,25 +84,20 @@ class ApplicationController < ActionController::Base
   end
 
   def require_boss_role
-    return if company_user? && current_company_user.role == 'boss'
+    return if company_user? && current_membership&.boss?
     redirect_to root_path, alert: '无权访问'
   end
-  
+
   # 获取律师的公告数量（用于导航栏徽章）
   def lawyer_announcement_count
     return 0 unless lawyer?
-    
-    # 使用 Rails.cache 缓存公告数量，避免频繁查询
-    Rails.cache.fetch("lawyer_#{current_lawyer.id}_announcement_count", expires_in: 5.minutes) do
-      company_ids = Company.pluck(:id)
-      announcement_service = AnnouncementService.new(
-        user: current_lawyer,
-        company_ids: company_ids
-      )
-      announcement_service.call[:combined_announcements].count
-    end
-  rescue
+
+    AnnouncementService.new(user: current_lawyer).call[:combined_announcements].count
+  rescue ActiveRecord::StatementInvalid, PG::Error => e
+    Rails.logger.error("[AnnouncementService] DB error in lawyer_announcement_count: #{e.message}")
+    0
+  rescue StandardError => e
+    Rails.logger.warn("[AnnouncementService] Unexpected error in lawyer_announcement_count: #{e.class} - #{e.message}")
     0
   end
-
 end

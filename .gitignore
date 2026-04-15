@@ -63,3 +63,6 @@ yarn-debug.log*
 /*rules
 !/.clackyrules
 *.tar.gz
+
+# Ignore vendored gems
+/vendor/bundle

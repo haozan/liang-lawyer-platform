@@ -52,7 +52,7 @@
   </div>
 
   <!-- Administrator Content -->
-  <div class="card bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+  <div class="card bg-surface-elevated dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
     <div class="card-body">
       <div class="space-y-6">
         <!-- Name -->
@@ -64,7 +64,7 @@
         <!-- Role -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= @administrator.super_admin? ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' %>">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <%= @administrator.super_admin? ? 'bg-danger/10 text-danger' : 'bg-info/10 text-blue-800' %>">
             <%= @administrator.role_name %>
           </span>
         </div>
@@ -72,18 +72,18 @@
         <!-- Created -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">创建时间</label>
-          <div class="text-sm text-gray-600">
+          <div class="text-sm text-secondary">
             <%= @administrator.created_at.strftime("%Y年%-m月%-d日 %H:%M") %>
-            <span class="text-gray-400">(<%= time_ago_in_words(@administrator.created_at) %> ago)</span>
+            <span class="text-muted">(<%= time_ago_in_words(@administrator.created_at) %> ago)</span>
           </div>
         </div>
 
         <!-- Last Updated -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">最后更新</label>
-          <div class="text-sm text-gray-600">
+          <div class="text-sm text-secondary">
             <%= @administrator.updated_at.strftime("%Y年%-m月%-d日 %H:%M") %>
-            <span class="text-gray-400">(<%= time_ago_in_words(@administrator.updated_at) %> ago)</span>
+            <span class="text-muted">(<%= time_ago_in_words(@administrator.updated_at) %> ago)</span>
           </div>
         </div>
       </div>

@@ -13,14 +13,14 @@
       <div class="space-y-3">
         <% @announcements.take(5).each do |announcement| %>
           <%= link_to announcement[:link] || "#", class: "block group" do %>
-            <div class="flex items-start gap-3 p-3 rounded-lg hover:shadow-md transition-shadow <%= announcement[:priority] == 'urgent' ? 'bg-red-50 border border-red-200' : announcement[:priority] == 'important' ? 'bg-orange-50 border border-orange-200' : 'bg-blue-50 border border-blue-200' %>">
-              <%= lucide_icon announcement[:icon], class: "w-5 h-5 mt-0.5 flex-shrink-0 #{announcement[:priority] == 'urgent' ? 'text-red-600' : announcement[:priority] == 'important' ? 'text-orange-600' : 'text-blue-600'}" %>
+            <div class="flex items-start gap-3 p-3 rounded-lg hover:shadow-md transition-shadow <%= announcement[:priority] == 'urgent' ? 'bg-danger/10 border border-danger/30' : announcement[:priority] == 'important' ? 'bg-warning/10 border border-warning/30' : 'bg-info/10 border border-info/30' %>">
+              <%= lucide_icon announcement[:icon], class: "w-5 h-5 mt-0.5 flex-shrink-0 #{announcement[:priority] == 'urgent' ? 'text-danger' : announcement[:priority] == 'important' ? 'text-warning' : 'text-info'}" %>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-secondary group-hover:text-primary transition-colors">
                   <%= announcement[:title] %>
                 </p>
                 <% if announcement[:content].present? %>
-                  <p class="text-xs mt-1 <%= announcement[:priority] == 'urgent' ? 'text-red-600' : announcement[:priority] == 'important' ? 'text-orange-600' : 'text-blue-600' %>">
+                  <p class="text-xs mt-1 <%= announcement[:priority] == 'urgent' ? 'text-danger' : announcement[:priority] == 'important' ? 'text-warning' : 'text-info' %>">
                     <%= announcement[:priority] == 'urgent' ? '🔴' : announcement[:priority] == 'important' ? '🟠' : '🔵' %>
                     <%= announcement[:content] %>
                   </p>
@@ -40,10 +40,10 @@
     </div>
   </div>
 <% else %>
-  <div class="card card-elevated border-l-4 border-green-500 mb-8">
+  <div class="card card-elevated border-l-4 border-success mb-8">
     <div class="card-body">
       <div class="flex items-center gap-3">
-        <%= lucide_icon "check-circle", class: "w-6 h-6 text-green-600" %>
+        <%= lucide_icon "check-circle", class: "w-6 h-6 text-success" %>
         <h3 class="font-heading text-xl font-semibold text-primary">✅ 暂无重要公告</h3>
       </div>
       <p class="text-secondary mt-2 ml-9">当前没有需要关注的重要事项</p>

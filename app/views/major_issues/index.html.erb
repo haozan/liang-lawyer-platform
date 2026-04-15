@@ -1,9 +1,11 @@
-<div class="container-main">
+<div class="min-h-screen bg-surface py-8">
+  <div class="container-xl mx-auto px-6">
+
   <!-- Page Header -->
-  <div class="flex items-center justify-between mb-6">
+  <div class="page-header">
     <div>
-      <h1 class="font-heading text-3xl font-bold text-primary mb-2">重大事项研讨</h1>
-      <p class="text-secondary">
+      <h1 class="page-title">重大事项研讨</h1>
+      <p class="page-subtitle">
         <% if @company %>
           <%= @company.name %> · 讨论和管理公司重大事项
         <% else %>
@@ -11,8 +13,8 @@
         <% end %>
       </p>
     </div>
-    <%= link_to new_major_issue_path, class: "btn btn-primary" do %>
-      <%= lucide_icon "plus", class: "w-5 h-5 mr-2" %>
+    <%= link_to new_major_issue_path, class: "btn-primary" do %>
+      <%= lucide_icon "plus", class: "w-5 h-5" %>
       新建重大事项
     <% end %>
   </div>
@@ -20,37 +22,62 @@
   <!-- Stats Overview -->
   <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">全部事项</p>
-        <p class="font-heading text-3xl font-bold text-primary"><%= @all_count %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-primary/10">
+          <%= lucide_icon "layers", class: "w-5 h-5 text-primary" %>
+        </div>
+        <div>
+          <p class="stat-card-label">全部事项</p>
+          <p class="stat-card-value text-primary"><%= @all_count %></p>
+        </div>
       </div>
     </div>
     
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">待讨论</p>
-        <p class="font-heading text-3xl font-bold text-yellow-600"><%= @pending_count %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-warning/10">
+          <%= lucide_icon "clock", class: "w-5 h-5 text-warning" %>
+        </div>
+        <div>
+          <p class="stat-card-label">待讨论</p>
+          <p class="stat-card-value text-warning"><%= @pending_count %></p>
+        </div>
       </div>
     </div>
     
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">讨论中</p>
-        <p class="font-heading text-3xl font-bold text-blue-600"><%= @discussing_count %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-info/10">
+          <%= lucide_icon "message-circle", class: "w-5 h-5 text-info" %>
+        </div>
+        <div>
+          <p class="stat-card-label">讨论中</p>
+          <p class="stat-card-value text-info"><%= @discussing_count %></p>
+        </div>
       </div>
     </div>
     
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">已解决</p>
-        <p class="font-heading text-3xl font-bold text-green-600"><%= @resolved_count %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-success/10">
+          <%= lucide_icon "check-circle", class: "w-5 h-5 text-success" %>
+        </div>
+        <div>
+          <p class="stat-card-label">已解决</p>
+          <p class="stat-card-value text-success"><%= @resolved_count %></p>
+        </div>
       </div>
     </div>
     
     <div class="card card-elevated">
-      <div class="card-body text-center">
-        <p class="text-sm text-secondary mb-1">紧急事项</p>
-        <p class="font-heading text-3xl font-bold text-red-600"><%= @urgent_count %></p>
+      <div class="card-body flex items-center gap-3">
+        <div class="stat-card-icon bg-danger/10">
+          <%= lucide_icon "alert-triangle", class: "w-5 h-5 text-danger" %>
+        </div>
+        <div>
+          <p class="stat-card-label">紧急事项</p>
+          <p class="stat-card-value text-danger"><%= @urgent_count %></p>
+        </div>
       </div>
     </div>
   </div>
@@ -167,7 +194,7 @@
               </button>
               
               <!-- 保存筛选表单 -->
-              <div data-dropdown-target="menu" class="hidden absolute z-50 mt-2 bg-white rounded-lg shadow-lg border border-border p-4 w-80">
+              <div data-dropdown-target="menu" class="hidden absolute z-50 mt-2 bg-surface rounded-lg shadow-lg border border-border p-4 w-80">
                 <%= form_with url: saved_filters_path, method: :post, local: true, class: "space-y-3" do |sf| %>
                   <%= hidden_field_tag "saved_filter[filterable_type]", "MajorIssue" %>
                   <%= hidden_field_tag "saved_filter[conditions]", params[:filter].to_json %>
@@ -307,4 +334,6 @@
       <p class="text-secondary text-sm mt-2">点击上方按钮创建第一个重大事项</p>
     </div>
   <% end %>
+
+  </div>
 </div>

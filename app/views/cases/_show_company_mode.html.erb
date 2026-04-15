@@ -96,6 +96,7 @@
                   <span class="badge badge-neutral ml-1"><%= @comments.count %></span>
                 <% end %>
               </button>
+
             </nav>
           </div>
 
@@ -135,6 +136,8 @@
             <div data-tabs-target="panel" data-tab="comments" class="hidden">
               <%= render 'cases/sections/lawyer_comments', case_record: @case, comments: @comments %>
             </div>
+
+
           </div>
         </div>
       </div>

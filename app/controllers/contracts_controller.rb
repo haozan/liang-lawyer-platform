@@ -1,5 +1,6 @@
 class ContractsController < ApplicationController
   include TeamAuthorizationConcern
+  include CompanyResolvable
   
   before_action :set_company
   before_action :require_contract_access
@@ -19,8 +20,10 @@ class ContractsController < ApplicationController
     @event_types = params[:event_types] || ['签订日期', '到期日期', '履行开始', '履行结束', '交付日期', '验收日期', '质保到期', '最后联系', '下次跟进', '争议发生', '案件结案', '最后续签']
     @status_filter = params[:status]
     
-    # 构建查询（使用团队权限过滤）
-    if lawyer?
+    # 构建查询（律师选了企业时与企业员工视角一致）
+    if lawyer? && @company
+      @contracts = @company.contracts
+    elsif lawyer?
       @contracts = Contract.accessible_by(current_lawyer_account)
     elsif @company
       @contracts = @company.contracts
@@ -40,54 +43,55 @@ class ContractsController < ApplicationController
 
   def index
     # 使用团队权限过滤合同
-    if lawyer?
-      # 律师：只能看到有权限的合同
-      @contracts = Contract.accessible_by(current_lawyer_account).includes(:company, :related_case).ordered
+    # 律师选了企业时，与企业员工视角完全一致（只看该企业数据）
+    if lawyer? && @company
+      # 律师已选定某企业：与企业员工视角一致
+      @contracts = @company.contracts.includes(:related_case).ordered
       @contracts = @contracts.where("name LIKE ?", "%#{params[:q]}%") if params[:q].present?
-      
-      # 标签筛选
       if params[:tag_ids].present?
         tag_ids = params[:tag_ids].is_a?(Array) ? params[:tag_ids] : [params[:tag_ids]]
         @contracts = @contracts.tagged_with(tag_ids)
       end
-      
-      # 获取所有标签（律师可见）
+      @available_tags = @company.contract_tags.ordered
+    elsif lawyer?
+      # 律师未选企业：看全部有权限合同
+      @contracts = Contract.accessible_by(current_lawyer_account).includes(:company, :related_case).ordered
+      @contracts = @contracts.where("name LIKE ?", "%#{params[:q]}%") if params[:q].present?
+      if params[:tag_ids].present?
+        tag_ids = params[:tag_ids].is_a?(Array) ? params[:tag_ids] : [params[:tag_ids]]
+        @contracts = @contracts.tagged_with(tag_ids)
+      end
       @available_tags = ContractTag.ordered
     elsif @company
       # 单个企业：显示该企业的合同
       @contracts = @company.contracts.includes(:related_case).ordered
       @contracts = @contracts.where("name LIKE ?", "%#{params[:q]}%") if params[:q].present?
-      
-      # 标签筛选
       if params[:tag_ids].present?
         tag_ids = params[:tag_ids].is_a?(Array) ? params[:tag_ids] : [params[:tag_ids]]
         @contracts = @contracts.tagged_with(tag_ids)
       end
-      
-      # 获取该企业的所有标签
       @available_tags = @company.contract_tags.ordered
     else
       # 全部企业：显示所有合同
       @contracts = Contract.includes(:company, :related_case).ordered
       @contracts = @contracts.where("name LIKE ?", "%#{params[:q]}%") if params[:q].present?
-      
-      # 标签筛选（全部企业模式）
       if params[:tag_ids].present?
         tag_ids = params[:tag_ids].is_a?(Array) ? params[:tag_ids] : [params[:tag_ids]]
         @contracts = @contracts.tagged_with(tag_ids)
       end
-      
-      # 获取所有标签
       @available_tags = ContractTag.ordered
     end
   end
 
   def new
-    if lawyer?
-      # 律师创建合同时,需要选择企业
-      @companies = Company.ordered
-      # 如果有 company_id 参数,使用指定的企业
+    if lawyer? && @company
+      # 律师已选定企业：直接在该企业下创建，无需再选
       @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : @company
+      @contract = Contract.new
+    elsif lawyer?
+      # 律师未选企业：需要选择企业
+      @companies = Company.accessible_by_lawyer(current_lawyer).ordered
+      @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : nil
       @contract = Contract.new
     else
       # 企业用户只能为自己的企业创建合同
@@ -99,13 +103,15 @@ class ContractsController < ApplicationController
   end
 
   def create
-    if lawyer?
-      # 律师创建合同时,必须指定 company_id
+    if lawyer? && @company
+      # 律师已选定企业：直接在该企业下创建
+      @contract = @company.contracts.new(contract_params.except(:company_id, :mode))
+    elsif lawyer?
+      # 律师未选企业：必须指定 company_id
       company_id = contract_params[:company_id]
       if company_id.blank?
         redirect_to new_contract_path, alert: '请选择合同所属企业' and return
       end
-      
       target_company = Company.find(company_id)
       @contract = target_company.contracts.new(contract_params.except(:company_id, :mode))
     else
@@ -119,8 +125,10 @@ class ContractsController < ApplicationController
     if @contract.save
       redirect_to contract_path(@contract), notice: "✅ 合同档案创建成功"
     else
-      if lawyer?
-        @companies = Company.ordered
+      if lawyer? && @company
+        @selected_company = @company
+      elsif lawyer?
+        @companies = Company.accessible_by_lawyer(current_lawyer).ordered
         @selected_company = @contract.company
       end
       render :new, status: :unprocessable_entity
@@ -141,7 +149,6 @@ class ContractsController < ApplicationController
     @mentionable_users = prepare_mentionable_users
     
     # 设置用户模式（律师模式 vs 企业模式）
-    @user_mode = lawyer? ? :lawyer : :company
     
     # 计算关键指标（用于两种模式）
     @key_metrics = calculate_key_metrics(@contract)
@@ -152,7 +159,7 @@ class ContractsController < ApplicationController
 
   def edit
     if lawyer?
-      @companies = Company.ordered
+      @companies = Company.accessible_by_lawyer(current_lawyer).ordered
       @selected_company = @contract.company
     end
     @mode = params[:mode] || 'full'  # 编辑默认使用完整模式
@@ -163,7 +170,7 @@ class ContractsController < ApplicationController
       redirect_to contract_path(@contract), notice: "合同档案已更新"
     else
       if lawyer?
-        @companies = Company.ordered
+        @companies = Company.accessible_by_lawyer(current_lawyer).ordered
         @selected_company = @contract.company
       end
       render :edit, status: :unprocessable_entity
@@ -230,8 +237,10 @@ class ContractsController < ApplicationController
       redirect_to contracts_path, alert: '未选择任何合同' and return
     end
     
-    # 查找需要标记的合同（使用团队权限过滤）
-    contracts = if lawyer?
+    # 查找需要标记的合同（律师选了企业时与企业视角一致）
+    contracts = if lawyer? && @company
+      @company.contracts.where(id: contract_ids)
+    elsif lawyer?
       Contract.accessible_by(current_lawyer_account).where(id: contract_ids)
     elsif @company
       @company.contracts.where(id: contract_ids)
@@ -644,45 +653,11 @@ class ContractsController < ApplicationController
     events.sort_by { |e| e[:date] }
   end
 
-  def set_company
-    @company = if lawyer?
-      # 如果 URL 参数中有 company_id，设置到 session 中
-      if params[:company_id].present?
-        if params[:company_id] == 'all'
-          # 'all' 表示查看全部企业，清空 session
-          session[:viewing_company_id] = nil
-          @viewing_company = nil
-        else
-          company = Company.find_by(id: params[:company_id])
-          if company
-            session[:viewing_company_id] = company.id
-            @viewing_company = nil  # 清除缓存，确保 viewing_company 读取最新的 session 值
-          end
-        end
-      end
-      
-      # 律师可以选择企业或查看全部企业
-      if session[:viewing_company_id]
-        Company.find(session[:viewing_company_id])
-      else
-        # 全部企业模式：返回 nil，允许查看所有合同
-        nil
-      end
-    else
-      current_company_user.company
-    end
-    
-    # 只有企业用户在未找到公司时才重定向
-    if company_user? && @company.nil?
-      redirect_to root_path, alert: '未找到公司'
-    end
-  end
+  # set_company 由 CompanyResolvable concern 提供
 
   def require_contract_access
     return if lawyer?
-    return if current_company_user&.boss?
-    return if current_company_user&.executive?
-    return if current_company_user&.employee?
+    return if current_company_user.present?
     redirect_to root_path, alert: "无权访问"
   end
 
@@ -695,8 +670,8 @@ class ContractsController < ApplicationController
     elsif company_user?
       # 🔒 企业用户只能访问自己公司的合同
       # 使用 find 方法，如果找不到会抛出 ActiveRecord::RecordNotFound
-      @contract = current_company_user.company.contracts.find(params[:id])
-      @company = current_company_user.company
+      @company = viewing_company
+      @contract = @company.contracts.find(params[:id])
     else
       raise ActiveRecord::RecordNotFound, "Contract not found or access denied"
     end

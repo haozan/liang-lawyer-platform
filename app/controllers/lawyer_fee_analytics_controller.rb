@@ -29,7 +29,7 @@ class LawyerFeeAnalyticsController < ApplicationController
     @comparison = analytics[:comparison]
     
     @companies = Company.ordered if current_lawyer_account.present?
-    @lawyers = LawyerAccount.where(role: ['assistant', 'lawyer', 'senior_lawyer', 'team_leader', 'super_admin']).order(:name)
+    @lawyers = LawyerAccount.where(role: ['assistant', 'lawyer', 'admin']).order(:name)
     @available_case_types = Case.not_deleted.where.not(lawyer_fee: nil).distinct.pluck(:case_type).compact.sort
   end
   

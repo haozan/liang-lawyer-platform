@@ -6,7 +6,7 @@ class ContractRisksController < ApplicationController
     @company = if lawyer?
       session[:viewing_company_id] ? Company.find_by(id: session[:viewing_company_id]) : nil
     else
-      current_company_user.company
+      viewing_company
     end
 
     # 获取风险分析数据

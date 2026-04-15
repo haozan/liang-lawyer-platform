@@ -34,19 +34,19 @@
         <div class="grid grid-cols-4 gap-3 mb-4 p-3 bg-surface rounded-lg">
           <div class="text-center">
             <p class="text-xs text-secondary mb-1">🔴 紧急</p>
-            <p class="text-xl font-bold text-red-600"><%= @announcement_stats[:urgent] %></p>
+            <p class="text-xl font-bold text-danger"><%= @announcement_stats[:urgent] %></p>
           </div>
           <div class="text-center">
             <p class="text-xs text-secondary mb-1">🟠 重要</p>
-            <p class="text-xl font-bold text-orange-600"><%= @announcement_stats[:important] %></p>
+            <p class="text-xl font-bold text-warning"><%= @announcement_stats[:important] %></p>
           </div>
           <div class="text-center">
             <p class="text-xs text-secondary mb-1">🔵 普通</p>
-            <p class="text-xl font-bold text-blue-600"><%= @announcement_stats[:normal] %></p>
+            <p class="text-xl font-bold text-info"><%= @announcement_stats[:normal] %></p>
           </div>
           <div class="text-center border-l border-border pl-3">
             <p class="text-xs text-secondary mb-1">开庭相关</p>
-            <p class="text-xl font-bold text-red-600"><%= @announcement_stats[:by_group][:hearing_related] || 0 %></p>
+            <p class="text-xl font-bold text-danger"><%= @announcement_stats[:by_group][:hearing_related] || 0 %></p>
           </div>
         </div>
 
@@ -58,7 +58,7 @@
               <div class="flex items-start gap-3 p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors group">
                 <!-- 优先级图标 -->
                 <div class="flex-shrink-0 mt-1">
-                  <%= lucide_icon announcement[:icon], class: "w-5 h-5 #{announcement[:priority] == 'urgent' ? 'text-red-600' : announcement[:priority] == 'important' ? 'text-orange-600' : 'text-blue-600'}" %>
+                  <%= lucide_icon announcement[:icon], class: "w-5 h-5 #{announcement[:priority] == 'urgent' ? 'text-danger' : announcement[:priority] == 'important' ? 'text-warning' : 'text-info'}" %>
                 </div>
                 
                 <!-- 公告内容 -->
@@ -120,7 +120,7 @@
       </div>
     <% else %>
       <div class="flex items-center justify-center py-6">
-        <%= lucide_icon "check-circle", class: "w-12 h-12 text-green-500 mb-2" %>
+        <%= lucide_icon "check-circle", class: "w-12 h-12 text-success mb-2" %>
         <p class="text-base font-semibold text-primary ml-3">✅ 暂无重要公告</p>
       </div>
     <% end %>
