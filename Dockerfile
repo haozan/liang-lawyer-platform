@@ -1,5 +1,5 @@
 # Ruby 3.3.5 + Rails 7.2 production image
-FROM ruby:3.3.5-slim
+FROM docker.m.daocloud.io/library/ruby:3.3.5-slim
 
 # System dependencies: PostgreSQL client, Node.js 20, build tools, jemalloc
 RUN apt-get update -qq && \
