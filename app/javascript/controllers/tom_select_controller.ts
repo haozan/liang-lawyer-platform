@@ -108,6 +108,11 @@ export default class extends Controller {
       }
     }
 
+    // Destroy any existing TomSelect instance on this element (Turbo cache restore)
+    if ((element as any).tomselect) {
+      (element as any).tomselect.destroy()
+    }
+
     // Initialize Tom Select
     this.tomSelect = new TomSelect(element, config)
 
