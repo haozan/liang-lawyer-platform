@@ -36,6 +36,16 @@ module TeamAccessible
     lawyer.present?
   end
 
+  # 所有律师都可编辑
+  def editable_by?(lawyer)
+    lawyer.present?
+  end
+
+  # 所有律师都可删除
+  def deletable_by?(lawyer)
+    lawyer.present?
+  end
+
   def access_level_for(_lawyer)
     'owner'
   end
