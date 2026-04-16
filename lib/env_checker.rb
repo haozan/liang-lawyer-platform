@@ -114,6 +114,12 @@ module EnvChecker
         var_name = config[:name]
         is_optional = config[:optional] || var_name.end_with?('_OPTIONAL')
 
+        # DATABASE_PASSWORD is optional when DATABASE_URL is present (standard production setup)
+        is_optional ||= (var_name == 'DATABASE_PASSWORD' && get_env_var('DATABASE_URL').present?)
+
+        # ALLOWED_ORIGINS has a sensible default in cors.rb, treat as optional
+        is_optional ||= (var_name == 'ALLOWED_ORIGINS')
+
         is_optional || get_env_var(var_name).present?
       end.map { |config| config[:name] }
 
