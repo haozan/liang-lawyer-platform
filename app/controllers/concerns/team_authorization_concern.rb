@@ -48,25 +48,9 @@ module TeamAuthorizationConcern
     
     # 检查律师是否有访问权限
     unless resource.accessible_by?(current_lawyer_account)
-      # 记录未授权访问尝试
-      log_access_attempt(
-        resource: resource,
-        action: action_name,
-        access_method: 'unauthorized_attempt',
-        success: false
-      )
-      
       redirect_to root_path, alert: '您没有权限访问该资源，请联系团队负责人申请权限'
       return false
     end
-    
-    # 记录合法访问
-    log_access_attempt(
-      resource: resource,
-      action: action_name,
-      access_method: resource.access_level_for(current_lawyer_account),
-      success: true
-    )
     
     true
   end
@@ -89,13 +73,6 @@ module TeamAuthorizationConcern
     end
     
     unless resource.editable_by?(current_lawyer_account)
-      log_access_attempt(
-        resource: resource,
-        action: action_name,
-        access_method: 'insufficient_permission',
-        success: false
-      )
-      
       redirect_to polymorphic_path(resource), alert: '您没有编辑权限，当前仅可查看'
       return false
     end
@@ -121,13 +98,6 @@ module TeamAuthorizationConcern
     end
     
     unless resource.deletable_by?(current_lawyer_account)
-      log_access_attempt(
-        resource: resource,
-        action: 'destroy',
-        access_method: 'insufficient_permission',
-        success: false
-      )
-      
       redirect_to polymorphic_path(resource), alert: '您没有删除权限，请联系业务负责人'
       return false
     end
@@ -145,26 +115,6 @@ module TeamAuthorizationConcern
     instance_variable_get("@#{controller_name_singular}")
   end
   
-  # 记录访问日志
-  # @param resource [ActiveRecord::Base] 被访问的资源
-  # @param action [String] 操作名称（show, edit, update, destroy等）
-  # @param access_method [String] 访问方式
-  # @param success [Boolean] 是否成功
-  def log_access_attempt(resource:, action:, access_method:, success:)
-    return unless current_lawyer_account
-    
-    DataAccessLog.create!(
-      lawyer_id: current_lawyer_account.id,
-      resource_type: resource.class.name,
-      resource_id: resource.id,
-      action: action,
-      access_method: access_method,
-      ip_address: request.remote_ip
-    )
-  rescue => e
-    # 日志记录失败不应影响正常流程
-    Rails.logger.error "Failed to log access attempt: #{e.message}"
-  end
   
   # 辅助方法：为资源授权团队访问
   # 可在控制器中调用
