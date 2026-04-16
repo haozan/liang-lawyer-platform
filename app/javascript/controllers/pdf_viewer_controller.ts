@@ -29,14 +29,23 @@ export default class extends Controller {
     // Create header
     const header = document.createElement('div')
     header.className = 'flex items-center justify-between p-4 border-b border-border'
-    header.innerHTML = `
-      <h3 class="text-lg font-semibold">PDF 预览</h3>
-      <button type="button" class="text-muted hover:text-foreground transition-colors" data-action="click->pdf-viewer#close">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+
+    const title = document.createElement('h3')
+    title.className = 'text-lg font-semibold'
+    title.textContent = 'PDF 预览'
+
+    const closeBtn = document.createElement('button')
+    closeBtn.type = 'button'
+    closeBtn.className = 'text-muted hover:text-foreground transition-colors'
+    closeBtn.innerHTML = `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
     `
+    closeBtn.addEventListener('click', () => backdrop.remove())
+
+    header.appendChild(title)
+    header.appendChild(closeBtn)
     
     // Create iframe for PDF
     const iframe = document.createElement('iframe')
