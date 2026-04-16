@@ -138,6 +138,7 @@ class MajorIssuesController < ApplicationController
   def new
     if lawyer? && @company
       # 律师已选定企业：直接在该企业下创建
+      @companies = Company.accessible_by_lawyer(current_lawyer).ordered
       @selected_company = params[:company_id].present? ? Company.find(params[:company_id]) : @company
       @major_issue = MajorIssue.new
     elsif lawyer?
