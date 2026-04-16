@@ -158,73 +158,66 @@
     <% if @todo_items.any? %>
       <div class="space-y-3">
         <% @todo_items.each do |item| %>
-          <%= link_to item[:link], class: "block" do %>
-            <div class="card card-elevated hover:shadow-lg transition-shadow">
-              <div class="card-body">
-                <div class="flex items-start gap-4">
-                  <!-- Icon based on type -->
-                  <div class="flex-shrink-0">
-                    <% icon_config = case item[:type]
-                         when :contract
-                           { icon: 'file-text', bg: 'bg-success/10', text: 'text-success' }
-                         when :case
-                           { icon: 'briefcase', bg: 'bg-info/10', text: 'text-info' }
-                         when :major_issue
-                           { icon: 'message-square', bg: 'bg-warning/10', text: 'text-warning' }
-                         else
-                           { icon: 'circle', bg: 'bg-surface-elevated', text: 'text-muted' }
-                         end %>
+          <% icon_config = case item[:type]
+               when :contract  then { icon: 'file-text',     bg: 'bg-success/10',  text: 'text-success' }
+               when :case      then { icon: 'briefcase',     bg: 'bg-info/10',     text: 'text-info' }
+               when :major_issue then { icon: 'message-square', bg: 'bg-warning/10', text: 'text-warning' }
+               else                 { icon: 'circle',        bg: 'bg-surface-elevated', text: 'text-muted' }
+               end %>
+          <% type_badge = case item[:type]
+               when :contract    then { text: '合同',    class: 'badge-success' }
+               when :case        then { text: '案件',    class: 'badge-info' }
+               when :major_issue then { text: '重大事项', class: 'badge-warning' }
+               else                   { text: '其他',    class: 'badge-secondary' }
+               end %>
 
-                    <div class="w-12 h-12 <%= icon_config[:bg] %> rounded-xl flex items-center justify-center">
-                      <%= lucide_icon icon_config[:icon], class: "w-6 h-6 #{icon_config[:text]}" %>
-                    </div>
-                  </div>
-
-                  <!-- Content -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between mb-2">
-                      <div class="flex-1">
-                        <p class="font-semibold text-primary mb-1"><%= item[:message] %></p>
-
-                        <div class="flex items-center gap-3 text-sm text-secondary">
-                          <% if lawyer? && item[:company].present? %>
-                            <span><%= lucide_icon "building", class: "w-4 h-4 inline mr-1" %><%= item[:company].name %></span>
-                          <% end %>
-
-                          <% if item[:created_ago].present? %>
-                            <span><%= lucide_icon "clock", class: "w-4 h-4 inline mr-1" %><%= item[:created_ago] %></span>
-                          <% end %>
-                        </div>
-                      </div>
-
-                      <!-- Priority Badge -->
-                      <% if item[:priority] == 0 %>
-                        <span class="badge badge-danger flex-shrink-0 ml-2">紧急</span>
-                      <% end %>
-                    </div>
-
-                    <!-- Type Badge -->
-                    <% type_badge = case item[:type]
-                         when :contract
-                           { text: '合同', class: 'badge-success' }
-                         when :case
-                           { text: '案件', class: 'badge-info' }
-                         when :major_issue
-                           { text: '重大事项', class: 'badge-warning' }
-                         else
-                           { text: '其他', class: 'badge-secondary' }
-                         end %>
-                    <span class="badge <%= type_badge[:class] %>"><%= type_badge[:text] %></span>
-                  </div>
-
-                  <!-- Arrow Icon -->
-                  <div class="flex-shrink-0 self-center">
-                    <%= lucide_icon "chevron-right", class: "w-5 h-5 text-muted" %>
-                  </div>
+          <div class="card card-elevated hover:shadow-lg transition-shadow flex items-stretch">
+            <!-- 左侧可点击区域 -->
+            <%= link_to item[:link], class: "flex items-start gap-4 p-4 flex-1 min-w-0" do %>
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 <%= icon_config[:bg] %> rounded-xl flex items-center justify-center">
+                  <%= lucide_icon icon_config[:icon], class: "w-6 h-6 #{icon_config[:text]}" %>
                 </div>
               </div>
-            </div>
-          <% end %>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex-1">
+                    <p class="font-semibold text-primary mb-1"><%= item[:message] %></p>
+                    <div class="flex items-center gap-3 text-sm text-secondary">
+                      <% if lawyer? && item[:company].present? %>
+                        <span><%= lucide_icon "building", class: "w-4 h-4 inline mr-1" %><%= item[:company].name %></span>
+                      <% end %>
+                      <% if item[:created_ago].present? %>
+                        <span><%= lucide_icon "clock", class: "w-4 h-4 inline mr-1" %><%= item[:created_ago] %></span>
+                      <% end %>
+                    </div>
+                  </div>
+                  <% if item[:priority] == 0 %>
+                    <span class="badge badge-danger flex-shrink-0 ml-2">紧急</span>
+                  <% end %>
+                </div>
+                <span class="badge <%= type_badge[:class] %>"><%= type_badge[:text] %></span>
+              </div>
+
+              <div class="flex-shrink-0 self-center ml-2">
+                <%= lucide_icon "chevron-right", class: "w-5 h-5 text-muted" %>
+              </div>
+            <% end %>
+
+            <!-- 右侧完成按钮（律师 + 重大事项） -->
+            <% if lawyer? && item[:type] == :major_issue %>
+              <div class="flex items-center border-l border-border px-4">
+                <%= button_to mark_as_reviewed_major_issue_path(item[:record]),
+                      method: :post,
+                      data: { turbo_confirm: "标记《#{item[:record].title}》为已处理？" },
+                      class: "btn-sm btn-success inline-flex items-center gap-1 whitespace-nowrap" do %>
+                  <%= lucide_icon "check", class: "w-3.5 h-3.5" %>
+                  <span>完成</span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         <% end %>
       </div>
     <% else %>

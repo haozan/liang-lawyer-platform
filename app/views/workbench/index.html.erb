@@ -31,24 +31,38 @@
           
           <div class="space-y-3">
             <% urgent_and_today.each do |item| %>
-              <div class="flex items-start gap-3 p-3 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
-                <%= lucide_icon(
-                  case item[:type]
-                  when :contract then "file-text"
-                  when :case then "briefcase"
-                  when :major_issue then "message-square"
-                  else "alert-circle"
-                  end, 
-                  class: "w-5 h-5 text-#{item[:priority] == 0 ? 'red' : 'orange'}-600 flex-shrink-0 mt-0.5"
-                ) %>
-                <div class="flex-1 min-w-0">
-                  <%= link_to item[:link], class: "block" do %>
+              <div class="flex items-center bg-surface rounded-lg hover:bg-surface-hover transition-colors overflow-hidden">
+                <!-- 左侧可点击区域 -->
+                <%= link_to item[:link], class: "flex items-start gap-3 p-3 flex-1 min-w-0" do %>
+                  <%= lucide_icon(
+                    case item[:type]
+                    when :contract then "file-text"
+                    when :case then "briefcase"
+                    when :major_issue then "message-square"
+                    else "alert-circle"
+                    end,
+                    class: "w-5 h-5 text-#{item[:priority] == 0 ? 'red' : 'orange'}-600 flex-shrink-0 mt-0.5"
+                  ) %>
+                  <div class="min-w-0">
                     <p class="font-medium text-primary hover:text-primary-dark mb-1"><%= item[:message] %></p>
                     <% if item[:created_ago] %>
                       <p class="text-sm text-muted"><%= item[:created_ago] %>创建</p>
                     <% end %>
-                  <% end %>
-                </div>
+                  </div>
+                <% end %>
+
+                <!-- 完成按钮（律师 + 重大事项） -->
+                <% if lawyer? && item[:type] == :major_issue %>
+                  <div class="flex-shrink-0 pr-3">
+                    <%= button_to mark_as_reviewed_major_issue_path(item[:record]),
+                          method: :post,
+                          data: { turbo_confirm: "标记《#{item[:record].title}》为已处理？" },
+                          class: "btn-sm btn-success inline-flex items-center gap-1 whitespace-nowrap" do %>
+                      <%= lucide_icon "check", class: "w-3.5 h-3.5" %>
+                      <span>完成</span>
+                    <% end %>
+                  </div>
+                <% end %>
               </div>
             <% end %>
           </div>

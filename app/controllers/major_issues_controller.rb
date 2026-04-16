@@ -259,9 +259,9 @@ class MajorIssuesController < ApplicationController
         # 忽略消除失败
       end
       
-      redirect_to major_issue_path(@major_issue), notice: "✅ 重大事项已标记为已答复，相关公告已自动消除"
+      redirect_back fallback_location: major_issue_path(@major_issue), notice: "✅ 重大事项已标记为已答复，相关公告已自动消除"
     else
-      redirect_to major_issue_path(@major_issue), alert: "操作失败"
+      redirect_back fallback_location: major_issue_path(@major_issue), alert: "操作失败"
     end
   end
   
