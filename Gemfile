@@ -28,6 +28,7 @@ gem "prawn-table", "~> 0.2.2"
 gem "rubyzip", "~> 2.3"
 gem "aasm", "~> 5.5"
 gem "groupdate", "~> 6.5"
+gem "connection_pool", "~> 2.4"
 
 group :development do
   gem "error_highlight", ">= 0.4.0", platforms: [ :ruby ]
