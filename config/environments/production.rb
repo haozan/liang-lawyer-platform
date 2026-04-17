@@ -31,7 +31,7 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
   # Store uploaded files on the cloud storage bucket (S3/GCS)
-  config.active_storage.service = :storage_bucket
+  config.active_storage.service = :local
   
   # Allow more content types for inline preview
   config.active_storage.content_types_allowed_inline = %w[
