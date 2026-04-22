@@ -1,6 +1,12 @@
 class Administrator < ApplicationRecord
   validates :name, presence: true, uniqueness: true
-  validates :phone, presence: true, uniqueness: true, format: { with: /\A1[3-9]\d{9}\z/, message: '必须是有效的中国手机号码' }
+  # 允许中国手机号（1[3-9]xxxxxxxxx）或保留的系统默认号 10000000000
+  # ⚠️ 不要移除 10000000000：这是首次部署时创建的默认 admin 账号的占位手机号
+  validates :phone, presence: true, uniqueness: true,
+    format: {
+      with: /\A(1[3-9]\d{9}|10000000000)\z/,
+      message: '必须是有效的中国手机号码'
+    }
   validates :role, presence: true, inclusion: { in: %w[admin super_admin] }
   has_secure_password
 

@@ -48,6 +48,8 @@ class Admin::SessionsController < Admin::BaseController
 
   # 只在"系统还没有 admin"或"admin 账号从未修改过初始密码"时，才执行重置/创建
   # ⚠️ 关键修复：以前每次登录都会把密码重置为 'admin'，导致用户改完密码后又被冲掉
+  # ⚠️ 注意：全程用 update_columns 绕过 validation，避免历史遗留的无效 phone（如 10000000000）
+  #        触发 ActiveRecord::RecordInvalid 导致 422
   def create_first_admin_or_reset_password!
     return unless first_admin?
 
@@ -71,11 +73,11 @@ class Admin::SessionsController < Admin::BaseController
     return unless needs_reset
 
     logger.info("Reset first admin password to default 'admin'")
-    if admin.phone.blank?
-      admin.update_columns(phone: '10000000000', password_digest: BCrypt::Password.create('admin'))
-    else
-      admin.update!(password: 'admin', password_confirmation: 'admin')
-    end
+    # 统一用 update_columns 绕过 validation（admin.phone 可能是 10000000000 这种
+    # 不符合 /\A1[3-9]\d{9}\z/ 正则的内部保留号码，update! 会抛 RecordInvalid）
+    updates = { password_digest: BCrypt::Password.create('admin') }
+    updates[:phone] = '10000000000' if admin.phone.blank?
+    admin.update_columns(updates)
   end
 
   # first_login = true 表示该 admin 账号还从未被修改过

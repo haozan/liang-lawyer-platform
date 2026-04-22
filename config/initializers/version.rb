@@ -1,6 +1,6 @@
 # Application version
 module AppVersion
-  VERSION = "1.0.2"
+  VERSION = "1.0.3"
   BUILD_DATE = "2026-04-22"
   
   def self.full_version
