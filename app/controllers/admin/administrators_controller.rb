@@ -34,11 +34,18 @@ class Admin::AdministratorsController < Admin::BaseController
   def update
     # Remove empty password parameters if not changing password
     update_params = administrator_params
+    password_changed = update_params[:password].present?
+    
     if update_params[:password].blank?
       update_params = update_params.except(:password, :password_confirmation)
     end
 
     if @administrator.update(update_params)
+      # If password was changed and it's the current admin, update the session token
+      if password_changed && @administrator == current_admin
+        session[:current_admin_token] = @administrator.password_digest
+      end
+      
       redirect_to admin_administrator_path(@administrator), notice: 'Administrator was successfully updated.'
     else
       render :edit, status: :unprocessable_entity
