@@ -4,18 +4,23 @@ class Admin::AccountsController < Admin::BaseController
 
   def update
     if current_admin.authenticate(params.require(:administrator)[:current_password])
+      password_changed = params[:administrator][:password].present?
+      
+      # Get permitted params
       update_params = admin_params
-      password_changed = update_params[:password].present?
       
       # Mark first login as false when password is changed
-      update_params[:first_login] = false if password_changed
+      if password_changed
+        # Directly update the attribute along with password
+        current_admin.first_login = false
+      end
 
       if current_admin.update(update_params)
         # If password was changed, sign out and require re-login
         # Otherwise, update the session token to prevent logout
         if password_changed
           admin_sign_out
-          redirect_to admin_login_path, notice: 'Password has been updated, please log in again'
+          redirect_to admin_login_path, notice: 'Password has been updated successfully. Please log in with your new password.'
         else
           # Update session token to reflect any changes
           session[:current_admin_token] = current_admin.password_digest
@@ -25,7 +30,7 @@ class Admin::AccountsController < Admin::BaseController
         render 'edit', status: :unprocessable_entity
       end
     else
-      flash.now[:alert] = 'Old password is wrong, try again'
+      flash.now[:alert] = 'Current password is incorrect. Please try again.'
       render 'edit', status: :unprocessable_entity
     end
   end

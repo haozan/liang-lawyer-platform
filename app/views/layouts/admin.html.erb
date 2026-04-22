@@ -108,6 +108,10 @@
               <%= render 'shared/flash_messages' %>
               <%= yield %>
             </div>
+            <!-- Version info -->
+            <div class="fixed bottom-2 right-2 text-xs text-gray-400 dark:text-gray-600 bg-white dark:bg-gray-800 px-2 py-1 rounded shadow">
+              <%= AppVersion.full_version %>
+            </div>
           </main>
         </div>
       </div>
