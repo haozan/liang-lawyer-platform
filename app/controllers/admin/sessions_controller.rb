@@ -46,23 +46,40 @@ class Admin::SessionsController < Admin::BaseController
     end
   end
 
+  # 只在"系统还没有 admin"或"admin 账号从未修改过初始密码"时，才执行重置/创建
+  # ⚠️ 关键修复：以前每次登录都会把密码重置为 'admin'，导致用户改完密码后又被冲掉
   def create_first_admin_or_reset_password!
     return unless first_admin?
+
     admin = Administrator.find_by(name: 'admin')
     if admin.nil?
       logger.info("System have no admins, create the first one")
       admin = Administrator.new(name: 'admin', phone: '10000000000', password: 'admin', role: 'super_admin')
       admin.save!(validate: false)
+      return
+    end
+
+    # 只有当 admin 的密码 digest 为空，或者密码仍然是初始 'admin' 时，才重置
+    # 这样用户修改过密码后，即使 first_login 字段异常也不会被冲掉
+    needs_reset = admin.password_digest.blank? ||
+                  (begin
+                     BCrypt::Password.new(admin.password_digest).is_password?('admin')
+                   rescue BCrypt::Errors::InvalidHash
+                     true
+                   end)
+
+    return unless needs_reset
+
+    logger.info("Reset first admin password to default 'admin'")
+    if admin.phone.blank?
+      admin.update_columns(phone: '10000000000', password_digest: BCrypt::Password.create('admin'))
     else
-      # 为现有 admin 设置默认手机号（如果还没有）
-      if admin.phone.blank? || admin.phone == '10000000000'
-        admin.update_columns(phone: '10000000000', password_digest: BCrypt::Password.create('admin'))
-      else
-        admin.update!(password: 'admin', password_confirmation: 'admin')
-      end
+      admin.update!(password: 'admin', password_confirmation: 'admin')
     end
   end
 
+  # first_login = true 表示该 admin 账号还从未被修改过
+  # 一旦用户修改了密码，first_login 会被置为 false，此方法返回 false
   def first_admin?
     return true if Administrator.count.zero?
     Administrator.exists?(name: 'admin', first_login: true)
