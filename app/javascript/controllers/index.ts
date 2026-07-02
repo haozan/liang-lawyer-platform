@@ -26,7 +26,6 @@ import AnnouncementGroupToggleController from "./announcement_group_toggle_contr
 import TabsController from "./tabs_controller"
 import CollapsibleController from "./collapsible_controller"
 import MajorIssueController from "./major_issue_controller"
-import AnalyticsQuickNavController from "./analytics_quick_nav_controller"
 import WorkbenchExpiryController from "./workbench_expiry_controller"
 import ContractCalendarController from "./contract_calendar_controller"
 import CaseCalendarController from "./case_calendar_controller"
@@ -38,7 +37,6 @@ import CaseRelationsController from "./case_relations_controller"
 import CaseStatusToggleController from "./case_status_toggle_controller"
 import WechatModalController from "./wechat_modal_controller"
 import DashboardChartController from "./dashboard_chart_controller"
-import AnalyticsStickyBarController from "./analytics_sticky_bar_controller"
 import StatusIndicatorController from "./status_indicator_controller"
 import PendingTasksController from "./pending_tasks_controller"
 import WordViewerController from "./word_viewer_controller"
@@ -71,7 +69,6 @@ application.register("announcement-group-toggle", AnnouncementGroupToggleControl
 application.register("tabs", TabsController)
 application.register("collapsible", CollapsibleController)
 application.register("major-issue", MajorIssueController)
-application.register("analytics-quick-nav", AnalyticsQuickNavController)
 application.register("workbench-expiry", WorkbenchExpiryController)
 application.register("contract-calendar", ContractCalendarController)
 application.register("case-calendar", CaseCalendarController)
@@ -83,7 +80,6 @@ application.register("case-relations", CaseRelationsController)
 application.register("case-status-toggle", CaseStatusToggleController)
 application.register("wechat-modal", WechatModalController)
 application.register("dashboard-chart", DashboardChartController)
-application.register("analytics-sticky-bar", AnalyticsStickyBarController)
 application.register("status-indicator", StatusIndicatorController)
 application.register("pending-tasks", PendingTasksController)
 application.register("word-viewer", WordViewerController)
