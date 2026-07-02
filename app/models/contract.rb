@@ -1,6 +1,4 @@
 class Contract < ApplicationRecord
-  include Searchable
-  include TeamAccessible
   include DisplayLabels
 
   # 状态中文映射（用于 status_display）

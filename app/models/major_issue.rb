@@ -1,7 +1,4 @@
 class MajorIssue < ApplicationRecord
-  include Searchable
-  include MajorIssueStateMachine
-  include TeamAccessible
   include SoftDeletable
   include DisplayLabels
 

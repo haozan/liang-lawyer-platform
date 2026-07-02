@@ -1,13 +1,9 @@
 class MajorIssuesController < ApplicationController
-  include TeamAuthorizationConcern
   include CompanyResolvable
   
   before_action :require_authentication
   before_action :set_company, except: [:resolve, :archive, :reopen, :update_conclusion, :follow, :unfollow]
   before_action :set_major_issue, only: [:show, :edit, :update, :destroy, :request_deletion, :confirm_deletion, :delete_directly, :mark_as_reviewed, :export_archive, :resolve, :archive, :reopen, :update_conclusion, :follow, :unfollow, :create_todo_item, :complete_todo_item, :delete_todo_item]
-  before_action :check_team_access, only: [:show, :edit, :update, :destroy, :mark_as_reviewed, :export_archive, :resolve, :archive, :reopen, :update_conclusion, :follow, :unfollow, :create_todo_item, :complete_todo_item, :delete_todo_item]
-  before_action :check_edit_permission, only: [:update, :resolve, :archive, :reopen, :update_conclusion, :create_todo_item, :complete_todo_item, :delete_todo_item]
-  before_action :check_delete_permission, only: [:destroy]
 
   def index
     # 获取当前用户

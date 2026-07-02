@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_02_041716) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -44,22 +44,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "admin_oplogs", force: :cascade do |t|
-    t.bigint "administrator_id", null: false
-    t.string "action"
-    t.string "resource_type"
-    t.integer "resource_id"
-    t.string "ip_address"
-    t.text "user_agent"
-    t.text "details"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["action"], name: "index_admin_oplogs_on_action"
-    t.index ["administrator_id"], name: "index_admin_oplogs_on_administrator_id"
-    t.index ["created_at"], name: "index_admin_oplogs_on_created_at"
-    t.index ["resource_type", "resource_id"], name: "index_admin_oplogs_on_resource_type_and_resource_id"
-  end
-
   create_table "administrators", force: :cascade do |t|
     t.string "name", null: false
     t.string "password_digest"
@@ -71,45 +55,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["name"], name: "index_administrators_on_name", unique: true
     t.index ["phone"], name: "index_administrators_on_phone", unique: true
     t.index ["role"], name: "index_administrators_on_role"
-  end
-
-  create_table "announcement_dismissals", force: :cascade do |t|
-    t.string "announcement_type", null: false
-    t.string "related_type", null: false
-    t.bigint "related_id", null: false
-    t.string "user_type", null: false
-    t.bigint "user_id", null: false
-    t.string "dismissal_reason"
-    t.datetime "dismissed_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["announcement_type", "related_type", "related_id"], name: "idx_dismissal_lookup"
-    t.index ["related_type", "related_id"], name: "index_announcement_dismissals_on_related"
-    t.index ["user_type", "user_id"], name: "index_announcement_dismissals_on_user"
-    t.index ["user_type", "user_id"], name: "index_announcement_dismissals_on_user_type_and_user_id"
-  end
-
-  create_table "announcement_groups", force: :cascade do |t|
-    t.string "group_key", null: false
-    t.string "group_name", null: false
-    t.integer "priority", default: 0, null: false
-    t.string "icon"
-    t.string "color_class"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["group_key"], name: "index_announcement_groups_on_group_key", unique: true
-  end
-
-  create_table "announcement_read_statuses", force: :cascade do |t|
-    t.bigint "announcement_id", null: false
-    t.string "user_type", null: false
-    t.bigint "user_id", null: false
-    t.datetime "read_at", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["announcement_id", "user_type", "user_id"], name: "index_announcement_read_unique", unique: true
-    t.index ["announcement_id"], name: "index_announcement_read_statuses_on_announcement_id"
-    t.index ["user_type", "user_id"], name: "index_announcement_read_statuses_on_user_type_and_user_id"
   end
 
   create_table "announcements", force: :cascade do |t|
@@ -134,129 +79,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["related_type", "related_id"], name: "index_announcements_on_related_type_and_related_id"
   end
 
-  create_table "case_clients", force: :cascade do |t|
-    t.bigint "case_id", null: false
-    t.bigint "company_id", null: false
-    t.string "role", default: "client"
-    t.integer "position", default: 0
-    t.date "joined_at"
-    t.text "notes"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["case_id", "company_id"], name: "index_case_clients_on_case_id_and_company_id", unique: true
-    t.index ["case_id"], name: "index_case_clients_on_case_id"
-    t.index ["company_id"], name: "index_case_clients_on_company_id"
-    t.index ["position"], name: "index_case_clients_on_position"
-    t.index ["role"], name: "index_case_clients_on_role"
-  end
-
-  create_table "case_filters", force: :cascade do |t|
-    t.string "user_type", null: false
-    t.bigint "user_id", null: false
-    t.string "name", null: false
-    t.jsonb "filter_params", default: {}
-    t.boolean "is_default", default: false
-    t.integer "position", default: 0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["position"], name: "index_case_filters_on_position"
-    t.index ["user_type", "user_id", "is_default"], name: "index_case_filters_on_user_type_and_user_id_and_is_default"
-    t.index ["user_type", "user_id"], name: "index_case_filters_on_user"
-  end
-
-  create_table "case_notifications", force: :cascade do |t|
-    t.bigint "case_id", null: false
-    t.string "recipient_type", null: false
-    t.bigint "recipient_id", null: false
-    t.string "notification_type", null: false
-    t.string "title"
-    t.text "content"
-    t.jsonb "metadata", default: {}
-    t.datetime "read_at"
-    t.datetime "sent_at"
-    t.boolean "email_sent", default: false
-    t.boolean "sms_sent", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["case_id"], name: "index_case_notifications_on_case_id"
-    t.index ["notification_type"], name: "index_case_notifications_on_notification_type"
-    t.index ["read_at"], name: "index_case_notifications_on_read_at"
-    t.index ["recipient_type", "recipient_id", "read_at"], name: "idx_case_notifications_recipient_read"
-    t.index ["recipient_type", "recipient_id"], name: "index_case_notifications_on_recipient"
-    t.index ["sent_at"], name: "index_case_notifications_on_sent_at"
-  end
-
-  create_table "case_progress_events", force: :cascade do |t|
-    t.bigint "case_id", null: false
-    t.string "event_type", null: false
-    t.string "title", null: false
-    t.text "description"
-    t.date "event_date", null: false
-    t.datetime "event_time"
-    t.jsonb "metadata", default: {}
-    t.boolean "is_milestone", default: false
-    t.boolean "is_automated", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["case_id"], name: "index_case_progress_events_on_case_id"
-    t.index ["event_date"], name: "index_case_progress_events_on_event_date"
-    t.index ["event_type"], name: "index_case_progress_events_on_event_type"
-    t.index ["is_milestone"], name: "index_case_progress_events_on_is_milestone"
-  end
-
-  create_table "case_questions", force: :cascade do |t|
-    t.bigint "case_id", null: false
-    t.string "asker_type", null: false
-    t.bigint "asker_id", null: false
-    t.text "question", null: false
-    t.text "answer"
-    t.string "answerer_type"
-    t.bigint "answerer_id"
-    t.datetime "answered_at"
-    t.boolean "is_resolved", default: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["answered_at"], name: "index_case_questions_on_answered_at"
-    t.index ["answerer_type", "answerer_id"], name: "index_case_questions_on_answerer"
-    t.index ["asker_type", "asker_id"], name: "index_case_questions_on_asker"
-    t.index ["case_id"], name: "index_case_questions_on_case_id"
-    t.index ["is_resolved"], name: "index_case_questions_on_is_resolved"
-  end
-
-  create_table "case_relations", force: :cascade do |t|
-    t.bigint "from_case_id", null: false
-    t.bigint "to_case_id", null: false
-    t.string "relation_type", null: false
-    t.text "description"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["from_case_id", "to_case_id"], name: "index_case_relations_on_from_case_id_and_to_case_id", unique: true
-    t.index ["relation_type"], name: "index_case_relations_on_relation_type"
-  end
-
-  create_table "case_series", force: :cascade do |t|
-    t.string "name", null: false
-    t.text "description"
-    t.bigint "company_id", null: false
-    t.string "created_by_type"
-    t.bigint "created_by_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["company_id"], name: "index_case_series_on_company_id"
-    t.index ["created_by_type", "created_by_id"], name: "index_case_series_on_created_by"
-  end
-
-  create_table "case_series_memberships", force: :cascade do |t|
-    t.bigint "case_series_id", null: false
-    t.bigint "case_id", null: false
-    t.integer "position", default: 0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["case_id"], name: "index_case_series_memberships_on_case_id"
-    t.index ["case_series_id", "case_id"], name: "index_case_series_memberships_on_case_series_id_and_case_id", unique: true
-    t.index ["case_series_id"], name: "index_case_series_memberships_on_case_series_id"
-  end
-
   create_table "case_team_members", force: :cascade do |t|
     t.bigint "case_id", null: false
     t.bigint "lawyer_account_id", null: false
@@ -269,23 +91,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["lawyer_account_id", "case_id"], name: "idx_case_team_lawyer_case", where: "(lawyer_account_id IS NOT NULL)"
     t.index ["lawyer_account_id"], name: "index_case_team_members_on_lawyer_account_id"
     t.index ["role"], name: "index_case_team_members_on_role"
-  end
-
-  create_table "case_weekly_reports", force: :cascade do |t|
-    t.bigint "case_id", null: false
-    t.date "week_start_date", null: false
-    t.date "week_end_date", null: false
-    t.jsonb "work_summary", default: {}
-    t.jsonb "next_week_plan", default: {}
-    t.text "lawyer_assessment"
-    t.datetime "generated_at"
-    t.boolean "is_auto_generated", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["case_id", "week_start_date"], name: "index_case_weekly_reports_on_case_id_and_week_start_date", unique: true
-    t.index ["case_id"], name: "index_case_weekly_reports_on_case_id"
-    t.index ["week_end_date"], name: "index_case_weekly_reports_on_week_end_date"
-    t.index ["week_start_date"], name: "index_case_weekly_reports_on_week_start_date"
   end
 
   create_table "cases", force: :cascade do |t|
@@ -420,17 +225,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["status"], name: "index_companies_on_status"
   end
 
-  create_table "company_memberships", force: :cascade do |t|
-    t.bigint "company_id", null: false
-    t.bigint "company_user_id", null: false
-    t.string "role", default: "employee", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["company_id", "company_user_id"], name: "index_company_memberships_unique", unique: true
-    t.index ["company_id"], name: "index_company_memberships_on_company_id"
-    t.index ["company_user_id"], name: "index_company_memberships_on_company_user_id"
-  end
-
   create_table "company_users", force: :cascade do |t|
     t.string "password_digest"
     t.string "name"
@@ -442,21 +236,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.datetime "locked_at"
     t.index ["phone"], name: "index_company_users_on_phone", unique: true
     t.index ["unlock_token"], name: "index_company_users_on_unlock_token", unique: true
-  end
-
-  create_table "contract_taggings", force: :cascade do |t|
-    t.integer "contract_id"
-    t.integer "tag_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "contract_tags", force: :cascade do |t|
-    t.string "name"
-    t.string "color", default: "#3B82F6"
-    t.integer "company_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "contracts", force: :cascade do |t|
@@ -549,17 +328,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["legal_risk_level"], name: "index_contracts_on_legal_risk_level"
     t.index ["performance_status"], name: "index_contracts_on_performance_status"
     t.index ["related_case_id"], name: "index_contracts_on_related_case_id"
-  end
-
-  create_table "friendly_id_slugs", force: :cascade do |t|
-    t.string "slug", null: false
-    t.integer "sluggable_id", null: false
-    t.string "sluggable_type", limit: 50
-    t.string "scope"
-    t.datetime "created_at"
-    t.index ["slug", "sluggable_type", "scope"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type_and_scope", unique: true
-    t.index ["slug", "sluggable_type"], name: "index_friendly_id_slugs_on_slug_and_sluggable_type"
-    t.index ["sluggable_type", "sluggable_id"], name: "index_friendly_id_slugs_on_sluggable_type_and_sluggable_id"
   end
 
   create_table "good_job_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -667,57 +435,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["unlock_token"], name: "index_lawyer_accounts_on_unlock_token", unique: true
   end
 
-  create_table "major_issue_followers", force: :cascade do |t|
-    t.bigint "major_issue_id", null: false
-    t.string "user_type", null: false
-    t.bigint "user_id", null: false
-    t.boolean "notify_new_comment", default: true
-    t.boolean "notify_status_change", default: true
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["major_issue_id", "user_type", "user_id"], name: "index_followers_on_issue_and_user", unique: true
-    t.index ["major_issue_id"], name: "index_major_issue_followers_on_major_issue_id"
-    t.index ["user_type", "user_id"], name: "index_major_issue_followers_on_user"
-  end
-
-  create_table "major_issue_read_statuses", force: :cascade do |t|
-    t.bigint "major_issue_id", null: false
-    t.string "user_type", null: false
-    t.bigint "user_id", null: false
-    t.datetime "last_read_at"
-    t.integer "last_read_comment_id"
-    t.integer "unread_count", default: 0
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["major_issue_id", "user_type", "user_id"], name: "index_read_statuses_on_issue_and_user", unique: true
-    t.index ["major_issue_id"], name: "index_major_issue_read_statuses_on_major_issue_id"
-    t.index ["unread_count"], name: "index_major_issue_read_statuses_on_unread_count"
-    t.index ["user_type", "user_id"], name: "index_major_issue_read_statuses_on_user"
-  end
-
-  create_table "major_issue_todo_items", force: :cascade do |t|
-    t.bigint "major_issue_id", null: false
-    t.string "title", null: false
-    t.text "description"
-    t.string "status", default: "pending"
-    t.string "assignee_type"
-    t.bigint "assignee_id"
-    t.string "creator_type"
-    t.bigint "creator_id"
-    t.date "due_date"
-    t.datetime "completed_at"
-    t.integer "completed_by_id"
-    t.string "completed_by_type"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["assignee_type", "assignee_id"], name: "index_major_issue_todo_items_on_assignee"
-    t.index ["completed_by_type", "completed_by_id"], name: "idx_on_completed_by_type_completed_by_id_9985adfab5"
-    t.index ["creator_type", "creator_id"], name: "index_major_issue_todo_items_on_creator"
-    t.index ["due_date"], name: "index_major_issue_todo_items_on_due_date"
-    t.index ["major_issue_id"], name: "index_major_issue_todo_items_on_major_issue_id"
-    t.index ["status"], name: "index_major_issue_todo_items_on_status"
-  end
-
   create_table "major_issues", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.string "title"
@@ -799,24 +516,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
     t.index ["user_type", "user_id"], name: "index_saved_filters_on_user"
   end
 
-  create_table "search_indexes", force: :cascade do |t|
-    t.string "searchable_type", null: false
-    t.bigint "searchable_id", null: false
-    t.bigint "company_id", null: false
-    t.string "title", null: false
-    t.text "content"
-    t.string "category"
-    t.jsonb "metadata", default: {}
-    t.datetime "indexed_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["category"], name: "index_search_indexes_on_category"
-    t.index ["company_id"], name: "index_search_indexes_on_company_id"
-    t.index ["content"], name: "index_search_indexes_on_content", opclass: :gin_trgm_ops, using: :gin
-    t.index ["searchable_type", "searchable_id"], name: "index_search_on_searchable", unique: true
-    t.index ["title"], name: "index_search_indexes_on_title", opclass: :gin_trgm_ops, using: :gin
-  end
-
   create_table "work_logs", force: :cascade do |t|
     t.bigint "case_id"
     t.date "date"
@@ -846,25 +545,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_04_15_150757) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "admin_oplogs", "administrators"
-  add_foreign_key "case_clients", "cases"
-  add_foreign_key "case_clients", "companies"
-  add_foreign_key "case_notifications", "cases"
-  add_foreign_key "case_progress_events", "cases"
-  add_foreign_key "case_questions", "cases"
-  add_foreign_key "case_relations", "cases", column: "from_case_id"
-  add_foreign_key "case_relations", "cases", column: "to_case_id"
-  add_foreign_key "case_series", "companies"
-  add_foreign_key "case_series_memberships", "case_series"
-  add_foreign_key "case_series_memberships", "cases"
   add_foreign_key "case_team_members", "cases"
   add_foreign_key "case_team_members", "lawyer_accounts"
-  add_foreign_key "case_weekly_reports", "cases"
   add_foreign_key "cases", "companies"
-  add_foreign_key "company_memberships", "companies"
-  add_foreign_key "company_memberships", "company_users"
-  add_foreign_key "major_issue_followers", "major_issues"
-  add_foreign_key "major_issue_read_statuses", "major_issues"
-  add_foreign_key "major_issue_todo_items", "major_issues"
   add_foreign_key "major_issues", "companies"
 end

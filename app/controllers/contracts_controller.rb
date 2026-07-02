@@ -1,13 +1,9 @@
 class ContractsController < ApplicationController
-  include TeamAuthorizationConcern
   include CompanyResolvable
   
   before_action :set_company
   before_action :require_contract_access
   before_action :set_contract, only: [:show, :edit, :update, :destroy, :mark_as_reviewed, :export_archive, :renew, :renewal_settings, :append_evidence_files, :new_case_from_contract]
-  before_action :check_team_access, only: [:show, :edit, :update, :destroy, :mark_as_reviewed, :export_archive, :renew, :renewal_settings, :append_evidence_files, :new_case_from_contract]
-  before_action :check_edit_permission, only: [:update]
-  before_action :check_delete_permission, only: [:destroy]
   
   # 合同关键日期日历视图
   def calendar

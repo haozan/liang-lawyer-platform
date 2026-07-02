@@ -1,7 +1,5 @@
 class Case < ApplicationRecord
-  include Searchable
   include CaseFilterable
-  include TeamAccessible
   include SoftDeletable
   include DisplayLabels
 

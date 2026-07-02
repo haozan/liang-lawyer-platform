@@ -1,5 +1,4 @@
 class WorkLog < ApplicationRecord
-  include Searchable
   
   # Work log types
   WORK_LOG_TYPES = {

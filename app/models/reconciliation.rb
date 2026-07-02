@@ -1,5 +1,4 @@
 class Reconciliation < ApplicationRecord
-  include Searchable
   
   # Associations
   belongs_to :contract

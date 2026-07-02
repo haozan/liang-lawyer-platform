@@ -1,11 +1,8 @@
 class CaseTeamMembersController < ApplicationController
-  include TeamAuthorizationConcern
   
   before_action :require_authentication
   before_action :set_case
-  before_action :check_case_team_access, only: [:create]
   before_action :set_case_team_member, only: [:destroy]
-  before_action :check_team_access, only: [:destroy]
   before_action :check_edit_permission
 
   def create

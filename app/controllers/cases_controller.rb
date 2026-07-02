@@ -1,13 +1,9 @@
 class CasesController < ApplicationController
-  include TeamAuthorizationConcern
   include CompanyResolvable
   
   before_action :require_authentication
   before_action :set_company
   before_action :set_case, only: [:show, :edit, :update, :destroy, :request_deletion, :confirm_deletion, :delete_directly, :download_archive, :export_all_materials, :append_attachments, :update_property_preservation, :add_relation, :remove_relation, :update_lawyer_fee]
-  before_action :check_team_access, only: [:show, :edit, :update, :destroy, :download_archive, :export_all_materials, :append_attachments, :update_property_preservation, :add_relation, :remove_relation, :update_lawyer_fee]
-  before_action :check_edit_permission, only: [:update, :append_attachments, :update_property_preservation, :add_relation, :remove_relation, :update_lawyer_fee]
-  before_action :check_delete_permission, only: [:destroy]
 
   def index
     @filter_params = filter_params
