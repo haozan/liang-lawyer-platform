@@ -2,6 +2,13 @@
 
 class MigrateExistingDataToTeamSystem < ActiveRecord::Migration[7.2]
   def up
+    # 检查必要的模型是否存在（处理模型文件未提交至仓库的情况）
+    # 对于全新数据库，这些表都为空，迁移本质上不需要执行任何操作
+    unless defined?(LawyerTeam)
+      puts "⏭️  跳过团队系统数据迁移：LawyerTeam 模型未定义"
+      return
+    end
+
     # 第一步：确保所有律师都有团队归属
     # 如果现有律师没有团队，为他们创建默认团队
     migrate_lawyers_to_teams
