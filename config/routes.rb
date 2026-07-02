@@ -103,6 +103,9 @@ Rails.application.routes.draw do
     # 公告管理
     resources :announcements
 
+    # 管理员账户设置
+    resource :account, only: [:edit, :update]
+
     # 管理员登录
     resource :session, only: [:new, :create, :destroy]
     get "login", to: "sessions#new"
