@@ -31,8 +31,8 @@
   </head>
   <body class="flex flex-col min-h-screen text-foreground <%= body_class %>" data-controller="search-shortcut">
     <!-- 版本号（全站统一，始终显示在左上角） -->
-    <div class="fixed top-0 left-0 z-[9999] pointer-events-none">
-      <span class="inline-block text-[10px] text-muted font-mono bg-white/70 backdrop-blur-sm px-1.5 py-0.5 rounded-br opacity-50 hover:opacity-100 transition-opacity pointer-events-auto select-none">v<%= AppVersion::VERSION %></span>
+    <div class="fixed top-0 left-0 z-[9999]">
+      <span class="inline-block text-xs text-gray-500 font-mono bg-white/90 backdrop-blur-sm px-2 py-1 rounded-br shadow-sm select-none">v<%= AppVersion::VERSION %></span>
     </div>
     <main class="flex-1 flex flex-col bg-surface">
       <%= render 'shared/navbar' unless @full_render %>
