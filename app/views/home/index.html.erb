@@ -12,6 +12,7 @@
           <%= lucide_icon "scale", class: "w-7 h-7 text-primary" %>
           <span class="font-heading text-xl font-bold text-primary hidden sm:inline">极光法律服务管理系统</span>
           <span class="font-heading text-xl font-bold text-primary sm:hidden">极光法律</span>
+          <span class="ml-1 text-xs text-muted font-mono bg-gray-100 px-1.5 py-0.5 rounded hidden sm:inline">v<%= AppVersion::VERSION %></span>
         </div>
         <!-- Login Button -->
         <%= link_to login_path, class: "btn-primary btn-sm flex items-center gap-2" do %>
