@@ -46,15 +46,6 @@
             <% end %>
           <% end %>
 
-          <!-- 🔍 搜索按钮 -->
-          <%= link_to search_path,
-                class: "flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary bg-surface-elevated hover:bg-surface-hover border border-border rounded-lg transition-colors",
-                title: "全局搜索 (Ctrl+K)" do %>
-            <%= lucide_icon "search", class: "w-4 h-4" %>
-            <span class="hidden lg:inline text-sm">搜索</span>
-            <kbd class="hidden lg:inline-block px-1.5 py-0.5 text-xs bg-surface border border-border rounded text-muted">Ctrl K</kbd>
-          <% end %>
-
           <!-- ☰ 汉堡菜单 -->
           <div class="relative" data-controller="dropdown">
             <button type="button"
@@ -77,10 +68,6 @@
                     <%= lucide_icon "home", class: "w-4 h-4" %>
                     <span>首页</span>
                   <% end %>
-                  <%= link_to todos_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
-                    <%= lucide_icon "list-checks", class: "w-4 h-4" %>
-                    <span>待办事项</span>
-                  <% end %>
                   <%= link_to contracts_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
                     <%= lucide_icon "folder-open", class: "w-4 h-4" %>
                     <span>合同管理</span>
@@ -93,20 +80,10 @@
                     <%= lucide_icon "message-square", class: "w-4 h-4" %>
                     <span>重大事项</span>
                   <% end %>
-                  <% if current_membership&.boss? %>
-                    <%= link_to dashboard_major_issue_analytics_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
-                      <%= lucide_icon "bar-chart", class: "w-4 h-4" %>
-                      <span>数据分析</span>
-                    <% end %>
-                  <% end %>
                 <% elsif lawyer? %>
                   <%= link_to lawyer_companies_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
                     <%= lucide_icon "home", class: "w-4 h-4" %>
                     <span>首页</span>
-                  <% end %>
-                  <%= link_to todos_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
-                    <%= lucide_icon "list-checks", class: "w-4 h-4" %>
-                    <span>全部待办</span>
                   <% end %>
                   <%= link_to contracts_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
                     <%= lucide_icon "folder-open", class: "w-4 h-4" %>
@@ -119,10 +96,6 @@
                   <%= link_to major_issues_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
                     <%= lucide_icon "message-square", class: "w-4 h-4" %>
                     <span>重大事项</span>
-                  <% end %>
-                  <%= link_to dashboard_major_issue_analytics_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors text-sm" do %>
-                    <%= lucide_icon "bar-chart", class: "w-4 h-4" %>
-                    <span>数据分析</span>
                   <% end %>
                 <% end %>
               </div>

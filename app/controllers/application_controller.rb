@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :current_lawyer, :current_company_user, :current_user,
                 :lawyer?, :company_user?, :viewing_company, :can_edit?,
-                :current_membership
+                :current_membership, :lawyer_announcement_count
 
   private
 
@@ -75,5 +75,13 @@ class ApplicationController < ActionController::Base
   def require_edit_permission
     return if can_edit?
     redirect_to root_path, alert: '您只有查看权限，无法执行此操作'
+  end
+
+  # 公告数（简化版）
+  def lawyer_announcement_count
+    return 0 unless lawyer?
+    Announcement.active.count
+  rescue
+    0
   end
 end

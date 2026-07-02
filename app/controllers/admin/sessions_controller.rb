@@ -17,7 +17,6 @@ class Admin::SessionsController < Admin::BaseController
     admin = Administrator.find_by(phone: params[:phone])
     if admin && admin.authenticate(params[:password])
       admin_sign_in(admin)
-      AdminOplogService.log_login(admin, request)
       redirect_to admin_root_path
     else
       flash.now[:alert] = '手机号或密码错误'
@@ -27,7 +26,6 @@ class Admin::SessionsController < Admin::BaseController
   end
 
   def destroy
-    AdminOplogService.log_logout(current_admin, request) if current_admin
     admin_sign_out
     redirect_to admin_login_path
   end

@@ -14,7 +14,7 @@
       <!-- Search Bar (Desktop only) -->
       <% if current_user %>
         <div class="hidden md:flex flex-1 max-w-2xl">
-          <%= form_with url: search_path, method: :get, class: "w-full" do |f| %>
+          <%= form_with url: cases_path, method: :get, class: "w-full" do |f| %>
             <div class="relative">
               <%= f.text_field :q, 
                 placeholder: "搜索合同、案件、问题...", 
@@ -66,10 +66,6 @@
                       <%= lucide_icon "home", class: "w-5 h-5" %>
                       <span>首页</span>
                     <% end %>
-                    <%= link_to todos_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                      <%= lucide_icon "list-checks", class: "w-5 h-5" %>
-                      <span>待办事项</span>
-                    <% end %>
                     <div class="border-t border-border my-1"></div>
                     <%= link_to contracts_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
                       <%= lucide_icon "folder-open", class: "w-5 h-5" %>
@@ -82,10 +78,6 @@
                     <%= link_to major_issues_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
                       <%= lucide_icon "message-square", class: "w-5 h-5" %>
                       <span>重大事项</span>
-                    <% end %>
-                    <%= link_to dashboard_major_issue_analytics_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                      <%= lucide_icon "bar-chart", class: "w-5 h-5" %>
-                      <span>数据分析</span>
                     <% end %>
                   </div>
                 </div>
@@ -105,10 +97,6 @@
                     <%= lucide_icon "home", class: "w-5 h-5" %>
                     <span>首页</span>
                   <% end %>
-                  <%= link_to todos_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                    <%= lucide_icon "list-checks", class: "w-5 h-5" %>
-                    <span>全部待办</span>
-                  <% end %>
                   <div class="border-t border-border my-1"></div>
                   <%= link_to contracts_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
                     <%= lucide_icon "folder-open", class: "w-5 h-5" %>
@@ -121,10 +109,6 @@
                   <%= link_to major_issues_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
                     <%= lucide_icon "message-square", class: "w-5 h-5" %>
                     <span>重大事项</span>
-                  <% end %>
-                  <%= link_to dashboard_major_issue_analytics_path, class: "flex items-center gap-3 px-4 py-2 text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-                    <%= lucide_icon "bar-chart", class: "w-5 h-5" %>
-                    <span>数据分析</span>
                   <% end %>
                 </div>
               </div>

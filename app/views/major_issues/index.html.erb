@@ -182,69 +182,9 @@
         <div class="flex items-center gap-3">
           <%= f.submit "应用筛选", class: "btn btn-primary" %>
           <%= link_to "重置", major_issues_path, class: "btn btn-secondary" %>
-          
-          <!-- 保存筛选条件按钮 -->
-          <% if params[:filter].present? && (current_lawyer || current_company_user) %>
-            <div class="relative" data-controller="dropdown">
-              <button type="button" 
-                      data-action="click->dropdown#toggle"
-                      class="btn btn-success">
-                <%= lucide_icon "save", class: "w-4 h-4 mr-2" %>
-                保存筛选条件
-              </button>
-              
-              <!-- 保存筛选表单 -->
-              <div data-dropdown-target="menu" class="hidden absolute z-50 mt-2 bg-surface rounded-lg shadow-lg border border-border p-4 w-80">
-                <%= form_with url: saved_filters_path, method: :post, local: true, class: "space-y-3" do |sf| %>
-                  <%= hidden_field_tag "saved_filter[filterable_type]", "MajorIssue" %>
-                  <%= hidden_field_tag "saved_filter[conditions]", params[:filter].to_json %>
-                  
-                  <div class="form-group">
-                    <%= label_tag "saved_filter[name]", "筛选条件名称", class: "form-label" %>
-                    <%= text_field_tag "saved_filter[name]", nil,
-                        class: "form-input",
-                        placeholder: "例如：高优先级待处理",
-                        required: true %>
-                  </div>
-                  
-                  <div class="flex items-center gap-2">
-                    <%= check_box_tag "saved_filter[is_default]", "1", false, class: "form-checkbox", id: "saved_filter_is_default" %>
-                    <%= label_tag "saved_filter_is_default", "设为默认筛选", class: "text-sm text-primary" %>
-                  </div>
-                  
-                  <div class="flex gap-2">
-                    <%= sf.submit "保存", class: "btn btn-primary btn-sm" %>
-                    <button type="button" data-action="click->dropdown#toggle" class="btn btn-secondary btn-sm">取消</button>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
         </div>
       <% end %>
       
-      <!-- 已保存的筛选条件 -->
-      <% if @saved_filters&.any? %>
-        <div class="border-t border-border pt-4 mt-4">
-          <h4 class="text-sm font-semibold text-secondary mb-3">已保存的筛选条件</h4>
-          <div class="flex flex-wrap gap-2">
-            <% @saved_filters.each do |saved_filter| %>
-              <div class="flex items-center gap-2 bg-surface-secondary rounded-lg px-3 py-2">
-                <%= link_to saved_filter.name, major_issues_path(filter: saved_filter.conditions), 
-                    class: "text-sm text-primary hover:underline" %>
-                <% if saved_filter.is_default %>
-                  <span class="badge badge-success badge-sm">默认</span>
-                <% end %>
-                <%= link_to saved_filter_path(saved_filter), 
-                    data: { turbo_method: :delete, turbo_confirm: "确认删除此筛选条件？" },
-                    class: "text-danger hover:text-danger-hover" do %>
-                  <%= lucide_icon "x", class: "w-4 h-4" %>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
     </div>
   </div>
 
