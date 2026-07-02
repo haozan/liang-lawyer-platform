@@ -27,7 +27,7 @@ class DropUnusedTables < ActiveRecord::Migration[7.2]
 
     # === 其他 ===
     drop_table :friendly_id_slugs, if_exists: true
-    drop_table :company_memberships, if_exists: true
+    # company_memberships 保留（企业用户↔公司多对多关系）
     drop_table :admin_oplogs, if_exists: true
     drop_table :search_indexes, if_exists: true
   end

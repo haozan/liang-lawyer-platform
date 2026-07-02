@@ -57,11 +57,12 @@ Rails.application.routes.draw do
 
   # === 律师选择企业 ===
   namespace :lawyer do
-    resources :companies, only: [:index] do
+    resources :companies, only: [:index, :new, :create, :edit, :update, :destroy] do
       member do
         post :enter
       end
     end
+    resources :company_accounts, only: [:index, :create, :update, :destroy]
     resource :profile, only: [:edit, :update]
   end
 

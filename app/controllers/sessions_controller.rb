@@ -45,7 +45,7 @@ class SessionsController < ApplicationController
     session[:current_company_user_id] = company_user.id
     session[:viewing_company_id] = company.id
     session[:user_type] = 'company_user'
-    redirect_to workbench_index_path, notice: "已进入「#{company.name}」工作台"
+    redirect_to cases_path, notice: "已进入「#{company.name}」工作台"
   end
 
   def destroy
@@ -135,7 +135,7 @@ class SessionsController < ApplicationController
       session[:current_company_user_id] = company_user.id
       session[:viewing_company_id] = company.id
       session[:user_type] = 'company_user'
-      redirect_to workbench_index_path, notice: '登录成功'
+      redirect_to cases_path, notice: '登录成功'
     else
       # 多个企业：存临时 session，跳转选企业页面
       session[:pending_company_user_id] = company_user.id

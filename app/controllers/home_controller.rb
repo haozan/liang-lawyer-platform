@@ -8,7 +8,7 @@ class HomeController < ApplicationController
       if lawyer?
         redirect_to lawyer_companies_path
       elsif company_user?
-        redirect_to workbench_index_path
+        redirect_to cases_path
       else
         redirect_to login_path, alert: '未知用户类型'
       end
